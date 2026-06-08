@@ -1,0 +1,217 @@
+/* src/components/forum-panels.css */
+/* Plain CSS import (like header-nav.css) so it loads reliably even though these
+   panels render at the forum layout level, where styled-jsx has bitten us before.
+   Classes are prefixed (fstats-/fpanel-/fadmin-) to avoid colliding with globals. */
+
+.fpanel-wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 28px 40px; /* matches .wrap gutters so panels line up with forum content */
+}
+
+/* ============================================================
+   Forum Statistics — warm editorial card
+   ============================================================ */
+.fstats {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 20px;
+    padding: 32px 36px 28px;
+    background:
+            radial-gradient(135% 130% at 100% 0%, rgba(91, 107, 63, 0.08), transparent 55%),
+            var(--card, #fffdf7);
+}
+
+.fstats-sprig {
+    position: absolute;
+    right: -6px;
+    top: -8px;
+    width: 132px;
+    height: 132px;
+    color: var(--green, #5b6b3f);
+    opacity: 0.12;
+    pointer-events: none;
+}
+
+.fstats-kicker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    color: var(--terra, #c2603a);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+.fstats-kicker svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.fstats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+.fstats-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 22px;
+    border-left: 1px solid var(--line, #e6e3da);
+}
+.fstats-item:first-child {
+    padding-left: 0;
+    border-left: none;
+}
+.fstats-num {
+    font-family: var(--display, "Fraunces", serif);
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 0.85;
+    letter-spacing: -0.015em;
+}
+.fstats-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+}
+
+.fstats-foot {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line, #e6e3da);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 48px;
+}
+.fstats-foot-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.fstats-foot-key {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+}
+.fstats-foot-item a,
+.fstats-foot-item strong {
+    font-family: var(--display, "Fraunces", serif);
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.fstats-foot-item a {
+    color: var(--terra, #c2603a);
+    text-decoration: none;
+}
+.fstats-foot-item a:hover {
+    text-decoration: underline;
+}
+.fstats-foot-item strong {
+    color: var(--ink, #1c2317);
+}
+.fstats-foot-sub {
+    font-size: 12.5px;
+    color: var(--muted, #6b7264);
+}
+
+/* ============================================================
+   Admin Control Panel
+   ============================================================ */
+.fpanel {
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--paper, #fff);
+}
+.fpanel-head {
+    font-family: var(--display, "Fraunces", serif);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 20px;
+    color: #fff;
+}
+.fpanel-body {
+    padding: 22px 20px;
+}
+.fpanel-admin .fpanel-head {
+    background: var(--terra, #c2603a);
+}
+.fadmin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+/* inline-block (not flex) on the <a>, so the global anchor rule can't clobber it */
+.fadmin-primary {
+    display: inline-block;
+    background: var(--terra, #c2603a);
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.fadmin-primary:hover {
+    filter: brightness(0.96);
+}
+.fadmin-btn {
+    display: inline-block;
+    border: 1px solid var(--line, #d9d5c8);
+    background: #fff;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--ink, #1c2317);
+    text-decoration: none;
+}
+.fadmin-btn:hover {
+    background: var(--cream, #f3f1e9);
+}
+.fadmin-btn.soon {
+    color: var(--muted, #6b7264);
+    cursor: default;
+}
+.fadmin-btn.soon em {
+    font-style: normal;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.65;
+    margin-left: 6px;
+}
+.fadmin-note {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--muted, #6b7264);
+}
+
+@media (max-width: 720px) {
+    .fstats {
+        padding: 26px 22px 22px;
+    }
+    .fstats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px 18px;
+    }
+    .fstats-item {
+        padding-left: 18px;
+    }
+    .fstats-item:nth-child(odd) {
+        padding-left: 0;
+        border-left: none;
+    }
+    .fstats-num {
+        font-size: 40px;
+    }
+}

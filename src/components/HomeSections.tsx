@@ -1,0 +1,157 @@
+// src/components/HomeSections.tsx
+import Link from "next/link";
+import { pills, stats, collections, threads, cooks } from "@/data/site";
+
+const Arrow = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+);
+
+export function Pills() {
+  return (
+      <div className="cats">
+        <div className="wrap">
+          <span className="label">Browse</span>
+          {pills.map((p, i) => (
+              <span key={p} className={`pill${i === 0 ? " active" : ""}`}>{p}</span>
+          ))}
+        </div>
+      </div>
+  );
+}
+
+export function Trust() {
+  return (
+      <div className="wrap">
+        <div className="trust">
+          {stats.map((s) => (
+              <div className="stat" key={s.lab}>
+                <div className="num">{s.num}</div>
+                <div className="lab">{s.lab}</div>
+              </div>
+          ))}
+        </div>
+      </div>
+  );
+}
+
+export function Collections() {
+  return (
+      <div className="wrap">
+        <section style={{ paddingTop: 30 }}>
+          <div className="sec-head">
+            <div>
+              <span className="kicker" style={{ color: "var(--gold)" }}>Hand-picked by our editors</span>
+              <h2 style={{ marginTop: 10 }}>Cook by collection</h2>
+            </div>
+            <Link href="/recipes">All collections <Arrow /></Link>
+          </div>
+          <div className="collections">
+            {collections.map((c) => (
+                <Link href="/recipes" className="col-tile" key={c.name}>
+                  <div className={`ph ${c.ph}`} />
+                  <div className="col-tile-body">
+                    <h3>{c.name}</h3>
+                    <span>{c.count} recipes <svg className="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+                  </div>
+                </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+  );
+}
+
+export function ForumSection() {
+  return (
+      <div className="forum">
+        <div className="wrap">
+          <section>
+            <div className="sec-head">
+              <div>
+                <span className="kicker" style={{ color: "var(--olive)" }}>The Kitchen Table</span>
+                <h2 style={{ marginTop: 10 }}>What the community is talking about</h2>
+              </div>
+              <Link href="/forum" style={{ color: "var(--olive)" }}>Open the forum <Arrow /></Link>
+            </div>
+            <div className="threads">
+              {threads.map((t) => (
+                  <article className="thread reveal" key={t.title}>
+                    <span className={`avatar ${t.avatar}`}>{t.initial}</span>
+                    <div>
+                      <span className={`thread-cat ${t.catClass}`}>{t.cat}</span>
+                      <h3>{t.title}</h3>
+                      <div className="t-meta">{t.meta}</div>
+                    </div>
+                    <div className="t-stats"><b>{t.replies}</b>replies</div>
+                  </article>
+              ))}
+            </div>
+            <div style={{ marginTop: 28, display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <Link href="/forum" className="btn-primary" style={{ background: "var(--olive)", boxShadow: "0 10px 28px -12px rgba(34,95,39,.7)" }}>
+                Start a discussion
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
+              </Link>
+              <Link href="/forum" className="pill" style={{ padding: "15px 24px" }}>Browse all topics</Link>
+            </div>
+          </section>
+        </div>
+      </div>
+  );
+}
+
+export function CooksSection() {
+  return (
+      <div className="wrap">
+        <section>
+          <div className="sec-head">
+            <div>
+              <span className="kicker">The people behind the recipes</span>
+              <h2 style={{ marginTop: 10 }}>Meet the cooks</h2>
+            </div>
+            <Link href="#">All contributors <Arrow /></Link>
+          </div>
+          <div className="cooks">
+            {cooks.map((c, i) => (
+                <div className="cook reveal" key={c.name} style={{ transitionDelay: `${i * 0.08}s` }}>
+                  <span className={`avatar ${c.avatar}`}>{c.name[0]}</span>
+                  <h3>{c.name}</h3>
+                  <div className="role">{c.role}</div>
+                  <p className="bio">{c.bio}</p>
+                  <span className="follow">+ Follow</span>
+                  <div className="rcount">{c.recipes} recipes</div>
+                </div>
+            ))}
+          </div>
+        </section>
+      </div>
+  );
+}
+
+export function JoinBand() {
+  return (
+      <div className="wrap">
+        <div className="band">
+          <div>
+            <span className="kicker" style={{ color: "var(--gold)" }}>More than a recipe site</span>
+            <h2>A kitchen full of people, not a wall of instructions.</h2>
+            <p>Create a free account to save recipes, rate what you cook, swap tips in the forum, and follow your favourite contributors. Plus one tested recipe in your inbox each Sunday.</p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 22 }}>
+              <Link href="/submit" className="btn-primary">
+                Create a free account <Arrow />
+              </Link>
+              <Link href="/forum" className="pill" style={{ padding: "15px 24px", background: "transparent", color: "var(--paper)", borderColor: "rgba(244,243,234,.4)" }}>Browse the forum</Link>
+            </div>
+            <form className="news-form" action="#">
+              <input type="email" placeholder="Just want the newsletter? Drop your email" aria-label="Email" />
+              <button type="submit">Sign up</button>
+            </form>
+          </div>
+          <div className="band-img">
+            <div className="photo"><div className="ph p2" /><span className="ph-label">Your photo here</span></div>
+          </div>
+        </div>
+      </div>
+  );
+}

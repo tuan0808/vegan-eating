@@ -1,0 +1,137 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"          // swap to "postgresql" later; same queries
+  url      = env("DATABASE_URL")
+}
+
+model Recipe {
+  id          String   @id            // slug
+  slug        String   @unique
+  title       String
+  sourceUrl   String
+  date        String
+  description String
+  recipeType  String
+  author      String
+  // SQLite has no array type, so list fields are stored as JSON strings
+  courses     String   @default("[]")
+  seasons     String   @default("[]")
+  allergens   String   @default("[]")
+  cuisines    String   @default("[]")
+  prepTime    Int?
+  cookTime    Int?
+  readyIn     Int?
+  servings    String   @default("")
+  calories    Int?
+  ingredients String   @default("[]")
+  steps       String   @default("[]")
+  image       String?
+  ph          String
+  sort        Int      @default(0)     // crawl order, for "latest"
+  @@index([recipeType])
+  @@index([sort])
+}
+
+model Article {
+  id        Int     @id @default(autoincrement())
+  slug      String  @unique
+  title     String
+  sourceUrl String
+  date      String
+  image     String?
+  body      String  @default("[]")     // JSON array of paragraphs
+  sort      Int     @default(0)
+  @@index([sort])
+}
+
+// ======================== COPY FROM HERE ========================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String?
+  name      String?
+  avatarUrl String?
+  bio       String?
+  role      String   @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
+  createdAt DateTime @default(now())
+
+  threads Thread[]
+  posts   Post[]
+}
+
+// Top level: General, Vegan, Vegetarians, Around the World, Help
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  position    Int      @default(0) // controls display order
+  createdAt   DateTime @default(now())
+
+  forums Forum[]
+}
+
+// Sub-category / board: News, Introductions, Recipes, Guides, Rules, etc.
+// Names repeat across categories (Vegan→Recipes and Vegetarians→Recipes),
+// so the slug is only unique *within* a category and we route by both.
+model Forum {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String
+  description String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  threads  Thread[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+// A topic. Its opening message is the first Post (everything is a Post),
+// which keeps editing/quoting uniform later.
+model Thread {
+  id         String   @id @default(cuid())
+  forumId    String
+  authorId   String
+  title      String
+  tag        String?
+  slug       String   @unique
+  pinned     Boolean  @default(false)
+  locked     Boolean  @default(false)
+  viewCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lastPostAt DateTime @default(now()) // denormalised for cheap "latest activity" sorting
+
+  forum  Forum  @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+  posts  Post[]
+
+  @@index([forumId, lastPostAt])
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  threadId  String
+  authorId  String
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  editedAt  DateTime?
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@index([threadId, createdAt])
+}
+
+// ======================== COPY TO HERE ========================

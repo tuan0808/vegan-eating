@@ -1,0 +1,100 @@
+// prisma/schema.forum.prisma
+// ---------------------------------------------------------------------------
+// These are the forum + user models. They are NOT a standalone schema —
+// COPY everything below the divider into your existing prisma/schema.prisma
+// (after your Recipe / Article models), then run `npm run db:push`.
+//
+// Notes that matter on your current setup:
+//  - SQLite has NO native enums in Prisma, so `role` is a String for now.
+//    When we move write-heavy features to Postgres we switch it to a real enum.
+//  - The User model is the spine the whole community sits on (forum now,
+//    ratings/comments/saved-recipes later). When we wire real auth (NextAuth),
+//    we ADD its adapter tables (Account, Session, VerificationToken) alongside
+//    this — we don't replace it.
+// ---------------------------------------------------------------------------
+
+// ======================== COPY FROM HERE ========================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  avatarUrl String?
+  bio       String?
+  role      String   @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
+  createdAt DateTime @default(now())
+
+  threads Thread[]
+  posts   Post[]
+}
+
+// Top level: General, Vegan, Vegetarians, Around the World, Help
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  position    Int      @default(0) // controls display order
+  createdAt   DateTime @default(now())
+
+  forums Forum[]
+}
+
+// Sub-category / board: News, Introductions, Recipes, Guides, Rules, etc.
+// Names repeat across categories (Vegan→Recipes and Vegetarians→Recipes),
+// so the slug is only unique *within* a category and we route by both.
+model Forum {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String
+  description String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  threads  Thread[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+// A topic. Its opening message is the first Post (everything is a Post),
+// which keeps editing/quoting uniform later.
+model Thread {
+  id         String   @id @default(cuid())
+  forumId    String
+  authorId   String
+  title      String
+  slug       String   @unique
+  pinned     Boolean  @default(false)
+  locked     Boolean  @default(false)
+  viewCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lastPostAt DateTime @default(now()) // denormalised for cheap "latest activity" sorting
+
+  forum  Forum  @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+  posts  Post[]
+
+  @@index([forumId, lastPostAt])
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  threadId  String
+  authorId  String
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  editedAt  DateTime?
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@index([threadId, createdAt])
+}
+
+// ======================== COPY TO HERE ========================

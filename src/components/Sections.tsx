@@ -1,0 +1,167 @@
+// src/components/Sections.tsx
+import Link from "next/link";
+import { promise } from "@/data/site";
+import { Logo } from "./Header";
+import HeroTitle from "./HeroTitle";
+import type { Recipe } from "@/data/recipes";
+
+const Arrow = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+);
+
+// First sentence of the recipe description — up to the first . ! or ?
+function firstSentence(text?: string | null): string {
+    if (!text) return "";
+    const clean = text.replace(/\s+/g, " ").trim();
+    const m = clean.match(/^.*?[.!?](?=\s|$)/);
+    return (m ? m[0] : clean).trim();
+}
+
+// Ensure local image paths are absolute from the site root (handles WP imports
+// stored as "2025/01/foo.jpg" without a leading slash). Leaves full URLs alone.
+function imgSrc(src?: string | null): string | null {
+    if (!src) return null;
+    if (/^https?:\/\//i.test(src) || src.startsWith("/")) return src;
+    return "/" + src.replace(/^\.?\//, "");
+}
+
+// "55" -> "55 min", "55 min" -> "55 min"
+function timeLabel(t?: string | number | null): string | null {
+    if (t === null || t === undefined || t === "") return null;
+    const s = String(t).trim();
+    return /^\d+$/.test(s) ? `${s} min` : s;
+}
+
+// "6" -> "Serves 6", "Serves 6" -> "Serves 6"
+function servingsLabel(s?: string | null): string | null {
+    if (!s) return null;
+    const v = String(s).trim();
+    return /^\d+$/.test(v) ? `Serves ${v}` : v;
+}
+
+export function Hero({ recipe }: { recipe?: Recipe }) {
+    const title = recipe?.title ?? "Slow-roasted tomato and almond-ricotta galette";
+    const dek = firstSentence(recipe?.description) ||
+        "A free-form summer tart with a buttery, flaky crust — built for the height of tomato season and almost impossible to get wrong.";
+    const href = recipe ? `/recipes/${recipe.slug}` : "/recipes/harissa-roasted-cauliflower-steaks";
+    const img = imgSrc(recipe?.image);
+    const ph = recipe?.ph || "p5";
+    const time = timeLabel(recipe?.readyIn);
+    const servings = servingsLabel(recipe?.servings);
+
+    return (
+        <section className="hero">
+            <div className="hero-bg">
+                {img ? (
+                    <img
+                        src={img}
+                        alt=""
+                        aria-hidden="true"
+                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                ) : (
+                    <div className={`ph ${ph}`} />
+                )}
+            </div>
+            {!img && <span className="hero-photo-note">Your hero photo here</span>}
+            <div className="wrap">
+                <div className="hero-copy">
+                    <span className="kicker">Recipe of the week</span>
+                    <HeroTitle title={title} />
+                    <p className="dek">{dek}</p>
+                    <div className="hero-meta">
+                        {time && <span>⏱ <b>{time}</b></span>}
+                        {servings && <span>🍽 <b>{servings}</b></span>}
+                        <span className="stars">★★★★★ <b style={{ color: "#fff" }}>4.9</b></span>
+                    </div>
+                    <Link href={href} className="btn-primary">
+                        Read the recipe <Arrow />
+                    </Link>
+                    <div className="hero-social">
+                        <div className="stack">
+                            <span className="avatar a2">R</span><span className="avatar a3">K</span>
+                            <span className="avatar a4">M</span><span className="avatar a5">J</span>
+                        </div>
+                        <p><b>212 members</b> cooked this &amp; left notes</p>
+                    </div>
+                </div>
+            </div>
+            <a href="#promise" className="scroll-cue" aria-label="Scroll down"><span /></a>
+            <svg className="hero-curve" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,90 L0,40 C360,86 1080,4 1440,46 L1440,90 Z" fill="var(--paper)" />
+            </svg>
+        </section>
+    );
+}
+
+const icons: Record<string, React.ReactNode> = {
+    check: <path d="M20 6 9 17l-5-5" />,
+    bolt: <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />,
+    people: (
+        <>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </>
+    ),
+};
+
+export function PromiseStrip() {
+    return (
+        <div className="wrap" id="promise">
+            <section className="promise">
+                <div className="promise-grid">
+                    {promise.map((p) => (
+                        <div className="promise-item reveal" key={p.title}>
+              <span className="promise-ico">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  {icons[p.icon]}
+                </svg>
+              </span>
+                            <div>
+                                <h4>{p.title}</h4>
+                                <p>{p.body}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
+    );
+}
+
+export function Footer() {
+    return (
+        <footer>
+            <div className="wrap">
+                <div className="foot-top">
+                    <div>
+                        <Link href="/"><Logo /></Link>
+                        <p style={{ marginTop: 14 }}>Eat green, feel green. Honest, tested plant-based recipes for everyday cooking — and a community to cook them with.</p>
+                    </div>
+                    <div className="fcol">
+                        <h4>Recipes</h4>
+                        <Link href="/recipes">Breakfast</Link><Link href="/recipes">Weeknight dinners</Link>
+                        <Link href="/recipes">Baking</Link><Link href="/recipes">Desserts</Link>
+                    </div>
+                    <div className="fcol">
+                        <h4>Explore</h4>
+                        <Link href="/recipes">All recipes</Link><Link href="/forum">Forum</Link>
+                        <Link href="/tools/veganize">Veganize a recipe</Link><Link href="/submit">Submit a recipe</Link>
+                    </div>
+                    <div className="fcol">
+                        <h4>About</h4>
+                        <Link href="#">Our story</Link><Link href="#">Contact</Link>
+                        <Link href="#">Newsletter</Link><Link href="#">Instagram</Link>
+                    </div>
+                </div>
+                <div className="foot-bot">
+                    <span>© 2026 vegan eating — eat green, feel green.</span>
+                    <span>Built custom. No WordPress in sight.</span>
+                </div>
+            </div>
+        </footer>
+    );
+}

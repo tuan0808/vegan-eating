@@ -81,7 +81,7 @@ export default function DirectoryPage() {
     return (
         <>
             <PageHero
-                image="/header/recipes.jpg"
+                image="/header/directory.jpg"
                 kicker="The vegan universe"
                 title="The Directory"
                 dek="A hand-kept index of the people and places worth your time — no affiliate links, no rankings, just the ones we actually read and watch."

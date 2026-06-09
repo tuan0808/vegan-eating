@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import "./news.css";
+import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = {
     title: "The Dispatch — news & notes — vegan eating",
@@ -53,17 +54,13 @@ function Headline({ item, tag }: { item: Item; tag: "h2" | "h3" }) {
 export default function NewsPage() {
     return (
         <>
-            <div className="nws-plate">
-                <div className="nws-wrap">
-                    <p className="nws-eyebrow">vegan eating · news &amp; notes</p>
-                    <h1 className="nws-nameplate">The Dispatch</h1>
-                    <div className="nws-dateline">
-                        <span>{EDITION.no}</span>
-                        <span className="nws-dateline-mid">{EDITION.date}</span>
-                        <span>{EDITION.line}</span>
-                    </div>
-                </div>
-            </div>
+            <PageHero
+                image="/header/news3.jpg"
+                kicker="vegan eating · news &amp; notes"
+                title="The Dispatch"
+                dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."
+            />
+
 
             <div className="nws-wrap nws-body">
                 {/* Lead story */}

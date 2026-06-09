@@ -1,0 +1,58 @@
+/* src/components/recipe-gallery.css */
+/* Editorial collage for recipe photos: big lead frame + supporting frames.
+   Adapts to 1 / 2 / 3+ images. Plain CSS (imported by the component). */
+
+.recipe-gallery {
+    max-width: var(--maxw, 1200px);
+    margin: 0 auto;
+    padding: 44px 24px 8px;
+}
+
+.rg-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.rg-kicker {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--terra, #c2603a);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.rg-rule { flex: 1; height: 1px; background: var(--line, #e6dfce); }
+.rg-count { font-size: 13px; color: var(--muted, #6b7264); white-space: nowrap; }
+
+.rg-frames { display: grid; gap: 12px; }
+.rg-frame {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border: 6px solid #fff;
+    border-radius: 6px;
+    background: #efe8d9;
+    box-shadow: 0 1px 3px rgba(28, 35, 23, 0.08);
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.rg-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rg-frame:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(28, 35, 23, 0.15); }
+
+/* one image */
+.rg-solo { grid-template-columns: 1fr; max-width: 660px; }
+.rg-solo .rg-frame { aspect-ratio: 16 / 10; }
+
+/* two images */
+.rg-duo { grid-template-columns: 1fr 1fr; }
+.rg-duo .rg-frame { aspect-ratio: 4 / 3; }
+
+/* three or more: big lead + supporting tiles */
+.rg-grid { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 150px; grid-auto-flow: dense; }
+.rg-grid .rg-frame { height: 100%; }
+.rg-grid .rg-frame:first-child { grid-column: span 2; grid-row: span 2; }
+
+@media (max-width: 720px) {
+    .recipe-gallery { padding: 32px 16px 4px; }
+    .rg-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 120px; }
+    .rg-grid .rg-frame:first-child { grid-column: span 2; grid-row: span 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rg-frame { transition: none; }
+    .rg-frame:hover { transform: none; }
+}

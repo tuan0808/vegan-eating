@@ -1,0 +1,70 @@
+// src/app/(app)/admin/recipes/[slug]/edit/actions.ts
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-helpers";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+/** Split a textarea value into a clean string[] — one item per line, blanks dropped. */
+function lines(value: FormDataEntryValue | null): string[] {
+    if (typeof value !== "string") return [];
+    return value
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+/** Parse an optional integer field; empty/non-numeric → null (matches the Int? columns). */
+function intOrNull(value: FormDataEntryValue | null): number | null {
+    if (typeof value !== "string" || value.trim() === "") return null;
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : null;
+}
+
+/** Read a trimmed string field. */
+function str(value: FormDataEntryValue | null): string {
+    return typeof value === "string" ? value.trim() : "";
+}
+
+export async function updateRecipe(formData: FormData) {
+    // Admin-only write. requireUser() handles the logged-out case; we add the role gate.
+    const user = await requireUser();
+    if (user.role !== "ADMIN") redirect("/dashboard");
+
+    const slug = str(formData.get("slug"));
+    if (!slug) throw new Error("Missing recipe slug.");
+
+    await prisma.recipe.update({
+        where: { slug },
+        data: {
+            title: str(formData.get("title")),
+            description: str(formData.get("description")),
+            recipeType: str(formData.get("recipeType")),
+            author: str(formData.get("author")),
+            date: str(formData.get("date")),
+            image: str(formData.get("image")) || null,
+            servings: str(formData.get("servings")),
+            prepTime: intOrNull(formData.get("prepTime")),
+            cookTime: intOrNull(formData.get("cookTime")),
+            readyIn: intOrNull(formData.get("readyIn")),
+            calories: intOrNull(formData.get("calories")),
+            // list fields are JSON strings — SQLite has no array type
+            ingredients: JSON.stringify(lines(formData.get("ingredients"))),
+            steps: JSON.stringify(lines(formData.get("steps"))),
+            gallery: JSON.stringify(lines(formData.get("gallery"))),
+            courses: JSON.stringify(lines(formData.get("courses"))),
+            seasons: JSON.stringify(lines(formData.get("seasons"))),
+            allergens: JSON.stringify(lines(formData.get("allergens"))),
+            cuisines: JSON.stringify(lines(formData.get("cuisines"))),
+            // intentionally NOT touched: slug/id (primary key + public URL) and `ph`
+        },
+    });
+
+    // Make the change show up immediately on the live recipe page and the admin list.
+    revalidatePath(`/recipes/${slug}`);
+    revalidatePath("/admin/recipes");
+
+    // Full-page redirect back to the editor — resets form state, shows the saved banner.
+    redirect(`/admin/recipes/${slug}/edit?saved=1`);
+}

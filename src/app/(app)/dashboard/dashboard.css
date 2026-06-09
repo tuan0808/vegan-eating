@@ -1,0 +1,136 @@
+/* src/app/(app)/dashboard/dashboard.css */
+/* Editorial "back of house" — same brand language as the front end. */
+
+.dash {
+    --d-ink: var(--ink, #1c2317);
+    --d-muted: var(--muted, #6b7264);
+    --d-terra: var(--terra, #c2603a);
+    --d-line: var(--line, #e6e3da);
+    --d-display: var(--display, "Fraunces", serif);
+    --d-card: #fff;
+
+    max-width: 1040px;
+    margin: 0;
+    padding: 4px 0 72px;
+    color: var(--d-ink);
+}
+
+/* ---- masthead ---- */
+.dash-eyebrow {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--d-terra);
+}
+.dash-greeting {
+    font-family: var(--d-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4.6vw, 3rem);
+    line-height: 1.03;
+    margin: 8px 0 0;
+}
+.dash-sub { margin: 12px 0 0; color: var(--d-muted); font-size: 0.98rem; }
+.dash-pill {
+    display: inline-block;
+    margin-left: 8px;
+    background: rgba(91, 107, 63, 0.15);
+    color: #41502a;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+}
+
+/* ---- section divider ---- */
+.dash-sec { display: flex; align-items: center; gap: 16px; margin: 46px 0 18px; }
+.dash-sec h2 {
+    font-family: var(--d-display);
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin: 0;
+    white-space: nowrap;
+}
+.dash-sec::after { content: ""; flex: 1; height: 1px; background: var(--d-line); }
+
+/* ---- library stats ---- */
+.dash-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.stat {
+    background: var(--d-card);
+    border: 1px solid var(--d-line);
+    border-radius: 16px;
+    padding: 22px 22px 20px;
+    box-shadow: 0 1px 2px rgba(28, 35, 23, 0.04);
+}
+.stat-num {
+    display: block;
+    font-family: var(--d-display);
+    font-weight: 600;
+    font-size: 2.7rem;
+    line-height: 1;
+    letter-spacing: -0.01em;
+}
+.stat-rule { display: block; width: 32px; height: 3px; border-radius: 3px; background: var(--d-terra); margin: 14px 0 0; }
+.stat-label {
+    display: block;
+    margin-top: 12px;
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--d-ink);
+    font-weight: 700;
+}
+.stat-note { display: block; margin-top: 3px; font-size: 0.85rem; color: var(--d-muted); }
+
+/* ---- quick actions ---- */
+.dash-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.action {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: var(--d-card);
+    border: 1px solid var(--d-line);
+    border-radius: 16px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: var(--d-ink);
+    box-shadow: 0 1px 2px rgba(28, 35, 23, 0.04);
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.action:hover {
+    border-color: var(--d-terra);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(28, 35, 23, 0.08);
+}
+.action-ico {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--d-terra) 12%, #fff);
+    color: var(--d-terra);
+}
+.action-ico svg { width: 21px; height: 21px; }
+.action-body { flex: 1; min-width: 0; }
+.action-title { display: block; font-family: var(--d-display); font-weight: 600; font-size: 1.05rem; }
+.action-desc { display: block; margin-top: 4px; color: var(--d-muted); font-size: 0.9rem; line-height: 1.45; }
+.action-arrow { align-self: center; color: var(--d-muted); transition: transform 0.15s ease, color 0.15s ease; }
+.action:hover .action-arrow { color: var(--d-terra); transform: translateX(3px); }
+
+.dash-foot-note { margin: 28px 0 0; color: var(--d-muted); font-size: 0.9rem; }
+
+/* ---- responsive ---- */
+@media (max-width: 820px) {
+    .dash-stats { grid-template-columns: 1fr; }
+    .dash-actions { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .action, .action-arrow { transition: none; }
+    .action:hover { transform: none; }
+    .action:hover .action-arrow { transform: none; }
+}

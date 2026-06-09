@@ -14,7 +14,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
     return (
         <>
             <PageHero
-                image="/header/recipes.jpg"
+                image="/header/articles.jpg"
                 kicker="Health & Living"
                 title="We rebuilt the whole thing by hand"
                 dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."

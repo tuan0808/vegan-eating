@@ -40,8 +40,9 @@ export default async function ForumAdminPage({
                     : null;
 
     return (
-        <div style={{ maxWidth: 860 }}>
-            <p style={kicker}>Admin · Forums</p>
+        <div style={{ maxWidth: "none", paddingRight: 40 }}>
+
+        <p style={kicker}>Admin · Forums</p>
             <h1 style={h1}>Categories &amp; boards</h1>
             <p style={{ color: "var(--muted,#6b7264)", marginTop: 8 }}>
                 Add, rename, reorder, or remove the structure of the forum. Changes show on the public board right away.

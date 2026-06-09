@@ -37,7 +37,7 @@ export default async function AdminPage({
                     : null;
 
     return (
-        <div style={{ maxWidth: 900, margin: "0 auto", padding: "56px 24px 90px" }}>
+        <div style={{ maxWidth: "none", paddingRight: 40 }}>
             <p style={kicker}>Admin</p>
             <h1 style={h1}>Members &amp; roles</h1>
             <p style={{ color: "var(--muted, #6b7264)", marginTop: 8 }}>

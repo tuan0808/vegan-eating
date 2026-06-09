@@ -31,7 +31,7 @@ const pillars = [
 export default function AboutPage() {
     return (
         <><PageHero
-            image="/header/recipes.jpg"
+            image="/header/about.jpg"
             kicker="About Us"
             title="We rebuilt the whole thing by hand"
             dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."

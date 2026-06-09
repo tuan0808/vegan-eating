@@ -33,6 +33,7 @@ function toRecipe(r: any): Recipe {
         courses: arr(r.courses), seasons: arr(r.seasons), allergens: arr(r.allergens), cuisines: arr(r.cuisines),
         prepTime: r.prepTime, cookTime: r.cookTime, readyIn: r.readyIn, servings: r.servings, calories: r.calories,
         ingredients: arr(r.ingredients), steps: arr(r.steps), image: r.image, ph: r.ph,
+        gallery: arr(r.gallery),
     };
 }
 

@@ -30,6 +30,7 @@ model Recipe {
   ingredients String   @default("[]")
   steps       String   @default("[]")
   image       String?
+  gallery     String   @default("[]")
   ph          String
   sort        Int      @default(0)     // crawl order, for "latest"
   @@index([recipeType])

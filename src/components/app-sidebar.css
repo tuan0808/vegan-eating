@@ -1,0 +1,108 @@
+/* src/components/app-sidebar.css */
+/* These styles live in a plain CSS file, not styled-jsx, because styled-jsx does
+   not reliably inject for components rendered at layout level (same reason the
+   header uses header-nav.css). All rules are scoped under .sidebar so the generic
+   class names here can't leak onto the rest of the site. */
+
+.sidebar {
+    width: 244px;
+    flex-shrink: 0;
+    min-height: 100%;
+    background: #faf7f0;
+    border-right: 1px solid var(--line, #e6e3da);
+    padding: 28px 16px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sidebar .sec {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+    margin: 0 0 10px 12px;
+}
+
+.sidebar .item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 12px;
+    border-radius: 11px;
+    font-size: 14.5px;
+    color: var(--ink, #1c2317);
+    text-decoration: none;
+    transition: background 0.14s ease, color 0.14s ease;
+}
+.sidebar .item .ico {
+    flex: 0 0 auto;
+    display: inline-flex;
+    color: var(--muted, #6b7264);
+    transition: color 0.14s ease;
+}
+.sidebar .item svg,
+.sidebar .back svg { width: 18px; height: 18px; }
+.sidebar .item .lbl { flex: 1; }
+.sidebar .item:hover { background: rgba(28, 35, 23, 0.05); }
+.sidebar .item:hover .ico { color: var(--ink, #1c2317); }
+.sidebar .item.active {
+    background: var(--terra, #c2603a);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(194, 96, 58, 0.28);
+}
+.sidebar .item.active .ico { color: #fff; }
+.sidebar .item.soon { color: var(--muted, #6b7264); cursor: default; }
+.sidebar .item.soon .ico { opacity: 0.7; }
+
+.sidebar .tag {
+    font-style: normal;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+    background: rgba(28, 35, 23, 0.06);
+    padding: 2px 7px;
+    border-radius: 999px;
+}
+
+.sidebar .foot { margin-top: auto; padding-top: 18px; }
+.sidebar .back {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    border-radius: 11px;
+    font-size: 13.5px;
+    color: var(--muted, #6b7264);
+    text-decoration: none;
+    transition: background 0.14s ease, color 0.14s ease;
+}
+.sidebar .back .ico { display: inline-flex; }
+.sidebar .back:hover { background: rgba(28, 35, 23, 0.05); color: var(--ink, #1c2317); }
+.sidebar .mark {
+    margin: 14px 0 0 12px;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+    opacity: 0.7;
+}
+
+@media (max-width: 760px) {
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-right: none;
+        border-bottom: 1px solid var(--line, #e6e3da);
+        padding: 12px 14px;
+        gap: 6px;
+        min-height: 0;
+    }
+    .sidebar .sec,
+    .sidebar .foot { display: none; }
+}

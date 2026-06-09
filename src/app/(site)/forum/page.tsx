@@ -1,50 +1,68 @@
-// src/app/forum/page.tsx
+// src/app/(site)/forum/page.tsx
 import type { Metadata } from "next";
-import { getForumIndex } from "@/lib/forum";
+import { getForumIndex, getForumStats, getRecentMembers } from "@/lib/forum";
 import ForumIndex from "@/components/ForumIndex";
 import ForumAdminPanel from "@/components/ForumAdminPanel";
-
+import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = {
     title: "Forums — vegan eating",
     description: "Join the conversation: recipes, guides, introductions, and more.",
 };
 
-// Statically rendered and refreshed in the background every 60s, so refreshes
-// are instant instead of re-querying the DB on every request.
 export const revalidate = 60;
 
+const topicIcon = (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="2.4" y="3.4" width="11.2" height="7.2" rx="2" />
+        <path d="M5.6 10.6L4.2 12.6v-2" />
+    </svg>
+);
+const postIcon = (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M4 4.5h8M4 8h8M4 11.5h5" />
+    </svg>
+);
+
 export default async function ForumPage() {
-    const categories = await getForumIndex();
+    const [categories, stats, members] = await Promise.all([
+        getForumIndex(),
+        getForumStats(),
+        getRecentMembers(4),
+    ]);
 
     return (
         <>
-            <section className="recipe-hero">
-                <div className="hero-bg">
-                    {/* Placeholder colour for now — swap this <div> for an <Image fill> later
-              (and add `import Image from "next/image"`). The overlay keeps text legible either way. */}
-                    <div className="ph p3" />
-                    <div
-                        style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: "linear-gradient(180deg, rgba(20,30,20,.35), rgba(20,30,20,.60))",
-                        }}
-                    />
-                </div>
-                <span className="hero-photo-note">Your hero photo here</span>
-                <div className="wrap" style={{ position: "relative", zIndex: 2, color: "#fff" }}>
-                    <span className="kicker" style={{ color: "#A7D98C" }}>The community</span>
-                    <h1 style={{ marginTop: 12, maxWidth: 760 }}>Forums</h1>
-                    <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>
-                        Swap recipes, ask questions, and meet other plant-based eaters. Be kind, read the rules, and dig in.
-                    </p>
-                </div>
-            </section>
+            <PageHero
+                image="/header/forum.jpg"
+                kicker="The Community"
+                title="Forums"
+                dek="Join the conversation — recipes, guides, introductions, and everything plant-based. Pull up a chair and say hello."
+                meta={[
+                    { icon: topicIcon, value: stats.topics.toLocaleString(), label: "topics" },
+                    { icon: postIcon, value: stats.posts.toLocaleString(), label: "posts" },
+                ]}
+                cta={{ label: "Browse the boards →", href: "#boards" }}
+            >
+                {members.length ? (
+                    <div className="phero-people">
+                        <div className="phero-avatars">
+                            {members.map((m, i) => (
+                                <span key={i} className="phero-avatar" style={{ background: m.color }}>
+                  {m.initial}
+                </span>
+                            ))}
+                        </div>
+                        <span className="phero-people-text">
+              <strong>{stats.members.toLocaleString()} members</strong> in the community
+            </span>
+                    </div>
+                ) : null}
+            </PageHero>
 
+            <div id="boards" />
             <ForumIndex categories={categories} />
             <ForumAdminPanel />
-
         </>
     );
 }

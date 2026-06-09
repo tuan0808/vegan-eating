@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import "./about.css";
+import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = {
     title: "About — vegan eating",
@@ -29,15 +30,12 @@ const pillars = [
 
 export default function AboutPage() {
     return (
-        <>
-            <div className="abt-band">
-                <div className="abt-wrap">
-                    <span className="abt-kicker">About us</span>
-                    <h1 className="abt-title">We rebuilt the whole thing by hand</h1>
-                    <p className="abt-sub">No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing.</p>
-                </div>
-            </div>
-
+        <><PageHero
+            image="/header/recipes.jpg"
+            kicker="About Us"
+            title="We rebuilt the whole thing by hand"
+            dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."
+        />
             <div className="abt-wrap abt-story">
                 <figure className="abt-portrait">
                     <div className="abt-portrait-img">

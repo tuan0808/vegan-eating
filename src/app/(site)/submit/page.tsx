@@ -1,26 +1,19 @@
 // src/app/submit/page.tsx
 import type { Metadata } from "next";
+import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = { title: "Submit a recipe — vegan eating" };
 
 export default function SubmitPage() {
     return (
         <>
-            <section className="recipe-hero">
-                <div className="hero-bg">
-                    {/* Placeholder colour for now — swap this <div> for an <Image fill> later. */}
-                    <div className="ph p5" />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(20,30,20,.35), rgba(20,30,20,.60))" }} />
-                </div>
-                <span className="hero-photo-note">Your hero photo here</span>
-                <div className="wrap" style={{ position: "relative", zIndex: 2, color: "#fff" }}>
-                    <span className="kicker" style={{ color: "#A7D98C" }}>In progress</span>
-                    <h1 style={{ marginTop: 12, maxWidth: 760 }}>Submit a recipe</h1>
-                    <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>
-                        Contributors and staff will add recipes through a proper dashboard (a headless CMS) with structured fields, draft/review/publish, and a &ldquo;tested by&rdquo; record. This is a preview of the fields.
-                    </p>
-                </div>
-            </section>
+            <PageHero
+                image="/header/submit2.jpg"
+                kicker="Contribute"
+                title="Submit a Recipe"
+                dek="Share your favorite plant-based dish with the community."
+                minHeight={380}
+            />
 
             <div className="wrap" style={{ paddingBottom: 60 }}>
                 <section style={{ paddingTop: 28 }}>

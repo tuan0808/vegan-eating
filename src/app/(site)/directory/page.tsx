@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import "./directory.css";
+import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = {
     title: "The Directory — vegan eating",
@@ -79,13 +80,12 @@ const collections: Collection[] = [
 export default function DirectoryPage() {
     return (
         <>
-            <div className="dir-band">
-                <div className="dir-wrap">
-                    <span className="dir-kicker">The vegan universe</span>
-                    <h1 className="dir-title">The Directory</h1>
-                    <p className="dir-sub">A hand-kept index of the people and places worth your time — no affiliate links, no rankings, just the ones we actually read and watch.</p>
-                </div>
-            </div>
+            <PageHero
+                image="/header/recipes.jpg"
+                kicker="The vegan universe"
+                title="The Directory"
+                dek="A hand-kept index of the people and places worth your time — no affiliate links, no rankings, just the ones we actually read and watch."
+            />
 
             <div className="dir-wrap dir-intro">
                 <p className="dir-lead">

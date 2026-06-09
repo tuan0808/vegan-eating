@@ -35,7 +35,7 @@ function threadUrl(c: string, f: string, t: string) {
 /** Edit a post. Allowed for the post's author or any moderator/admin. */
 export async function updatePost(formData: FormData) {
     const session = await auth();
-    if (!session?.user) redirect("/login");
+    if (!session?.user) return;
 
     const c = String(formData.get("categorySlug") ?? "");
     const f = String(formData.get("forumSlug") ?? "");
@@ -44,21 +44,22 @@ export async function updatePost(formData: FormData) {
     const back = threadUrl(c, f, t);
 
     const post = await prisma.post.findUnique({ where: { id: postId } });
-    if (!post) redirect(back);
+    if (!post) return;
 
     const owns = post.authorId === session.user.id;
-    if (!owns && !isMod(session.user.role)) redirect(back); // not permitted — bounce silently
+    if (!owns && !isMod(session.user.role)) return; // not permitted — bail silently
 
     const { html, empty } = cleanBody(String(formData.get("body") ?? ""));
-    if (empty) redirect(`${back}?error=empty`);
+    if (empty) return;
 
     await prisma.post.update({
         where: { id: postId },
         data: { body: html, editedAt: new Date() },
     });
 
+    // No redirect: the client closes the editor and calls router.refresh() to pull
+    // the fresh body. revalidatePath busts the cache so that refresh gets new data.
     revalidatePath(back);
-    redirect(back);
 }
 
 /** Delete a post. Author or moderator. Deleting the opening post removes the whole thread. */

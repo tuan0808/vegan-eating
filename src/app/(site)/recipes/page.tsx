@@ -6,6 +6,8 @@ import { listRecipes } from "@/lib/recipes";
 import { pills } from "@/data/site";
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
+import PageHero from "@/components/PageHero";
+
 
 export const metadata: Metadata = { title: "All recipes — vegan eating", description: "Browse every tested plant-based recipe." };
 
@@ -71,33 +73,12 @@ export default async function RecipesPage({ searchParams }: { searchParams: { pa
 
     return (
         <>
-            <section className="recipe-hero">
-                <div className="hero-bg">
-                    {/* Placeholder colour for now — swap this <div> for an <Image fill> later. */}
-                    <div className="ph p3" />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(20,30,20,.35), rgba(20,30,20,.60))" }} />
-                </div>
-                <span className="hero-photo-note">Your hero photo here</span>
-                <div className="wrap" style={{ position: "relative", zIndex: 2, color: "#fff" }}>
-                    {q ? (
-                        <>
-                            <span className="kicker" style={{ color: "#A7D98C" }}>Search results</span>
-                            <h1 style={{ marginTop: 12, maxWidth: 760 }}>&ldquo;{q}&rdquo;</h1>
-                            <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>
-                                {total.toLocaleString()} {total === 1 ? "recipe" : "recipes"} found. <Link href="/recipes" style={{ color: "#fff", textDecoration: "underline" }}>Clear search</Link>
-                            </p>
-                        </>
-                    ) : (
-                        <>
-                            <span className="kicker" style={{ color: "#A7D98C" }}>The recipe index</span>
-                            <h1 style={{ marginTop: 12, maxWidth: 760 }}>{total.toLocaleString()} recipes, all tested</h1>
-                            <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>
-                                Cooked and re-cooked in a real kitchen before they go live. Page {page} of {totalPages}.
-                            </p>
-                        </>
-                    )}
-                </div>
-            </section>
+            <PageHero
+                image="/header/recipes.jpg"
+                kicker="The Kitchen"
+                title="Recipes"
+                dek="Hundreds of plant-based recipes — weeknight dinners, weekend projects, and everything in between."
+            />
 
             <div className="cats" style={{ borderTop: "1px solid var(--line)" }}>
                 <div className="wrap">

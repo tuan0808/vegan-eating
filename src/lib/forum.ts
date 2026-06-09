@@ -275,3 +275,22 @@ export async function getForumStats(): Promise<ForumStats> {
         newestMember: newest ? newest.name ?? newest.username : null,
     };
 }
+/* ===================== Recent members (for the hero avatars) ===================== */
+/* Append to the bottom of src/lib/forum.ts. Reuses prisma + the displayName and
+   avatarColor helpers already defined in that file. */
+
+export type RecentMember = { initial: string; color: string };
+
+export async function getRecentMembers(n = 4): Promise<RecentMember[]> {
+    const users = await prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+        take: n,
+    });
+    return users.map((u) => {
+        const name = displayName(u);
+        return {
+            initial: name.charAt(0).toUpperCase(),
+            color: avatarColor(u.username ?? u.id),
+        };
+    });
+}

@@ -71,39 +71,48 @@
 }
 
 /* ---- Search modal (kitchen-first) ---- */
-.vn-search-modal { max-width: 640px; }
+.vn-search-modal { max-width: 720px; padding: 36px 38px 32px; }
 .vn-sform {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; flex-direction: column; gap: 12px;
+    margin: 18px 0 22px;
+}
+/* Row 1: the input gets the full width to itself. */
+.vn-sform-bar {
+    display: flex; align-items: center; gap: 10px;
     background: var(--paper, #f3f2ea);
     border: 1px solid var(--line, rgba(27,42,29,.14));
     border-radius: 14px;
-    padding: 8px 8px 8px 14px;
-    margin: 16px 0 18px;
+    padding: 4px 16px;
+    transition: border-color .15s;
 }
+.vn-sform-bar:focus-within { border-color: var(--olive, #5c6e3f); }
 .vn-sform-leaf { display: grid; place-items: center; color: var(--olive, #5c6e3f); flex: none; }
-.vn-sform-leaf svg { width: 20px; height: 20px; }
+.vn-sform-leaf svg { width: 22px; height: 22px; }
 .vn-sform input {
     flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
-    font-family: inherit; font-size: 16px; color: var(--ink, #1b2a1d); padding: 8px 4px;
+    font-family: inherit; font-size: 17px; color: var(--ink, #1b2a1d); padding: 14px 2px;
 }
 .vn-sform input::placeholder { color: var(--muted, #6f7468); }
+/* Row 2: actions sit calmly below — Surprise me left, Find recipes right. */
+.vn-sform-actions { display: flex; align-items: center; gap: 10px; }
 .vn-sform-dice {
-    display: inline-flex; align-items: center; gap: 7px; flex: none;
-    background: none; border: 0; cursor: pointer;
-    color: var(--olive, #5c6e3f); font-family: inherit; font-size: 13.5px; font-weight: 600;
-    padding: 8px 12px; border-left: 1px solid var(--line, rgba(27,42,29,.14));
+    display: inline-flex; align-items: center; gap: 7px;
+    background: none; cursor: pointer; margin-right: auto;
+    border: 1px solid var(--line, rgba(27,42,29,.18)); border-radius: 10px;
+    color: var(--olive, #5c6e3f); font-family: inherit; font-size: 14px; font-weight: 600;
+    padding: 11px 16px; transition: color .15s, border-color .15s, background .15s;
 }
 .vn-sform-dice svg { width: 18px; height: 18px; }
-.vn-sform-dice:hover { color: var(--green, #1f4a2f); }
+.vn-sform-dice:hover { color: var(--green, #1f4a2f); border-color: var(--olive, #5c6e3f); background: var(--green-soft, #dfe7da); }
 .vn-sform-go {
-    flex: none; cursor: pointer; white-space: nowrap;
+    cursor: pointer; white-space: nowrap;
     background: var(--green, #1f4a2f); color: #fff; border: 0;
-    font-family: inherit; font-size: 14.5px; font-weight: 600;
-    padding: 12px 20px; border-radius: 10px;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    padding: 12px 24px; border-radius: 10px;
     display: inline-flex; align-items: center; gap: 8px;
 }
 .vn-sform-go:hover { background: #173a25; }
-.vn-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.vn-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
 .vn-chips-label { font-size: 15px; color: var(--muted, #6f7468); font-style: italic; font-family: "Fraunces", serif; margin-right: 2px; }
 .vn-chip {
     cursor: pointer; background: transparent;
@@ -114,10 +123,9 @@
 }
 .vn-chip:hover { border-color: var(--olive, #5c6e3f); background: var(--green-soft, #dfe7da); }
 @media (max-width: 560px) {
-    .vn-sform { flex-wrap: wrap; }
-    .vn-sform input { flex: 1 1 140px; }
-    .vn-sform-dice, .vn-sform-go { flex: 1 1 auto; justify-content: center; }
-    .vn-sform-dice { border-left: 0; }
+    .vn-search-modal { padding: 30px 22px 24px; }
+    .vn-sform-actions { flex-wrap: wrap; }
+    .vn-sform-dice, .vn-sform-go { flex: 1 1 auto; justify-content: center; margin-right: 0; }
 }
 
 /* ---- Subscribe modal ---- */

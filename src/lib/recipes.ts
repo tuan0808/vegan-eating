@@ -8,6 +8,18 @@ const arr = (s: string | null | undefined): string[] => {
     try { const v = JSON.parse(s); return Array.isArray(v) ? v : []; } catch { return []; }
 };
 
+// Cook-along photos: JSON array of { src, step } objects (step is a 0-based index or null).
+const items = (s: string | null | undefined): { src: string; step: number | null }[] => {
+    if (!s) return [];
+    try {
+        const v = JSON.parse(s);
+        if (!Array.isArray(v)) return [];
+        return v
+            .filter((x) => x && typeof x.src === "string" && x.src.trim())
+            .map((x) => ({ src: String(x.src), step: x.step == null ? null : Number(x.step) }));
+    } catch { return []; }
+};
+
 // WordPress pages that were imported into the Recipe table but aren't recipes.
 // Add any other stragglers you spot (about, contact, etc.) to this list.
 const NON_RECIPE_SLUGS = [
@@ -22,8 +34,8 @@ const NON_RECIPE_SLUGS = [
     "sample-page",
 ];
 
-// Reusable Prisma filter that hides the non-recipe pages from every list.
-const recipeWhere = { slug: { notIn: NON_RECIPE_SLUGS } };
+// Reusable Prisma filter that hides the non-recipe pages — and soft-hidden recipes — from every public list.
+const recipeWhere = { slug: { notIn: NON_RECIPE_SLUGS }, hidden: false };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toRecipe(r: any): Recipe {
@@ -34,6 +46,8 @@ function toRecipe(r: any): Recipe {
         prepTime: r.prepTime, cookTime: r.cookTime, readyIn: r.readyIn, servings: r.servings, calories: r.calories,
         ingredients: arr(r.ingredients), steps: arr(r.steps), image: r.image, ph: r.ph,
         gallery: arr(r.gallery),
+        cookalong: items(r.cookalong),
+        hidden: !!r.hidden,
     };
 }
 
@@ -41,6 +55,24 @@ export async function listRecipes(page = 1, perPage = 12, filter: Prisma.RecipeW
     const where: Prisma.RecipeWhereInput = { ...recipeWhere, ...filter };
     const [rows, total] = await Promise.all([
         prisma.recipe.findMany({ where, orderBy: { sort: "asc" }, skip: (page - 1) * perPage, take: perPage }),
+        prisma.recipe.count({ where }),
+    ]);
+    return { items: rows.map(toRecipe), total, page, perPage, totalPages: Math.max(1, Math.ceil(total / perPage)) };
+}
+
+// Admin listing — deliberately does NOT apply recipeWhere, so it includes
+// soft-hidden recipes AND non-recipe junk (e.g. "terms-and-conditions") that
+// editors need to see in order to manage or delete. Pass a composed `where`
+// (search + pill filter) from the admin page.
+export async function listRecipesAdmin(
+    opts: { page?: number; perPage?: number; where?: Prisma.RecipeWhereInput; orderBy?: Prisma.RecipeOrderByWithRelationInput } = {},
+): Promise<{ items: Recipe[]; total: number; page: number; perPage: number; totalPages: number }> {
+    const page = opts.page ?? 1;
+    const perPage = opts.perPage ?? 20;
+    const where: Prisma.RecipeWhereInput = opts.where ?? {};
+    const orderBy: Prisma.RecipeOrderByWithRelationInput = opts.orderBy ?? { sort: "asc" };
+    const [rows, total] = await Promise.all([
+        prisma.recipe.findMany({ where, orderBy, skip: (page - 1) * perPage, take: perPage }),
         prisma.recipe.count({ where }),
     ]);
     return { items: rows.map(toRecipe), total, page, perPage, totalPages: Math.max(1, Math.ceil(total / perPage)) };

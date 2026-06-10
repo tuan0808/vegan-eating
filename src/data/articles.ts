@@ -8,5 +8,7 @@ export type Article = {
     sourceUrl: string;
     date: string;
     image: string | null;
+    hidden: boolean;
     body: string[];
+
 };

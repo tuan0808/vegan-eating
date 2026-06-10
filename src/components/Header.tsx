@@ -96,6 +96,15 @@ const Leaf = () => (
 
 type Featured = { title: string; slug: string; image: string | null };
 
+// Rotating placeholder phrases for the search modal (matches the home page).
+const SEARCH_PHRASES = [
+    "what's in your fridge?",
+    "half a butternut squash…",
+    "a tin of chickpeas…",
+    "leftover spinach + lemon…",
+    "whatever's about to turn…",
+];
+
 export default function Header() {
     const [openKey, setOpenKey] = useState<string | null>(null);
     const [lifted, setLifted] = useState(false);
@@ -109,6 +118,8 @@ export default function Header() {
     const [searchOpen, setSearchOpen] = useState(false);
     const [q, setQ] = useState("");
     const searchRef = useRef<HTMLInputElement | null>(null);
+    const [phPlaceholder, setPhPlaceholder] = useState("");
+    const twState = useRef({ pi: 0, ci: 0, deleting: false });
 
     const SEARCH_CHIPS = ["chickpeas", "spinach", "tofu", "sweet potato", "lentils", "coconut milk", "mushrooms"];
 
@@ -121,7 +132,30 @@ export default function Header() {
         if (searchOpen) searchRef.current?.focus();
     }, [searchOpen]);
 
-    const openSearch = () => { setSearchOpen(true); setMobileOpen(false); };
+    // Typewriter placeholder — only while the modal is open and the field is empty.
+    const searchEmpty = q.length === 0;
+    useEffect(() => {
+        if (!searchOpen || !searchEmpty) return;
+        let timer: ReturnType<typeof setTimeout>;
+        const tick = () => {
+            const s = twState.current;
+            const full = SEARCH_PHRASES[s.pi];
+            setPhPlaceholder(full.slice(0, s.ci));
+            if (!s.deleting && s.ci < full.length) { s.ci++; timer = setTimeout(tick, 70); }
+            else if (!s.deleting && s.ci === full.length) { s.deleting = true; timer = setTimeout(tick, 1500); }
+            else if (s.deleting && s.ci > 0) { s.ci--; timer = setTimeout(tick, 34); }
+            else { s.deleting = false; s.pi = (s.pi + 1) % SEARCH_PHRASES.length; timer = setTimeout(tick, 220); }
+        };
+        tick();
+        return () => clearTimeout(timer);
+    }, [searchOpen, searchEmpty]);
+
+    const openSearch = () => {
+        twState.current = { pi: 0, ci: 0, deleting: false };
+        setPhPlaceholder("");
+        setSearchOpen(true);
+        setMobileOpen(false);
+    };
     const doSearch = (term?: string) => {
         const t = (term ?? q).trim();
         if (!t) return;
@@ -299,15 +333,19 @@ export default function Header() {
                         <span className="vn-modal-kicker">Start with your kitchen</span>
                         <h3>What can you cook tonight?</h3>
                         <form className="vn-sform" onSubmit={submitSearch}>
-              <span className="vn-sform-leaf" aria-hidden>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12" /><path d="M12 12C12 8 9 6 5 6c0 4 3 6 7 6Z" /><path d="M12 14c0-3 2-5 6-5 0 3-2 5-6 5Z" /></svg>
-              </span>
-                            <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="what's in your fridge?" aria-label="Search recipes" />
-                            <button type="button" className="vn-sform-dice" onClick={surprise} aria-label="Surprise me">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="3" width="18" height="18" rx="4" /><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none" /></svg>
-                                <span>Surprise me</span>
-                            </button>
-                            <button type="submit" className="vn-sform-go">Find recipes <span aria-hidden>→</span></button>
+                            <div className="vn-sform-bar">
+                <span className="vn-sform-leaf" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12" /><path d="M12 12C12 8 9 6 5 6c0 4 3 6 7 6Z" /><path d="M12 14c0-3 2-5 6-5 0 3-2 5-6 5Z" /></svg>
+                </span>
+                                <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder={q ? "" : phPlaceholder} aria-label="Search recipes" />
+                            </div>
+                            <div className="vn-sform-actions">
+                                <button type="button" className="vn-sform-dice" onClick={surprise} aria-label="Surprise me">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="3" width="18" height="18" rx="4" /><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none" /></svg>
+                                    <span>Surprise me</span>
+                                </button>
+                                <button type="submit" className="vn-sform-go">Find recipes <span aria-hidden>→</span></button>
+                            </div>
                         </form>
                         <div className="vn-chips">
                             <span className="vn-chips-label">I've got…</span>

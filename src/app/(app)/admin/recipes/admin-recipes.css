@@ -106,13 +106,53 @@
 .ar-list { display: flex; flex-direction: column; }
 .ar-item {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 16px;
     padding: 14px 6px;
     border-bottom: 1px solid var(--ar-line);
     transition: background 0.12s ease;
 }
+.ar-itemtop { display: flex; align-items: center; gap: 16px; }
+
+/* ---- Export / Import toolbar ---- */
+.ar-tools { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; margin: 0 0 20px; }
+.ar-export {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    background: var(--ar-field-bg, #fcf9f2); color: var(--ar-ink);
+    border: 1px solid var(--ar-line); border-radius: 10px; padding: 9px 16px;
+    font-size: 0.92rem; transition: border-color 0.15s, background 0.15s;
+}
+.ar-export:hover { border-color: var(--ar-green); background: #fff; }
+.ar-import { display: flex; flex-direction: column; gap: 8px; }
+.ar-import-btn {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    background: var(--ar-field-bg, #fcf9f2); color: var(--ar-ink);
+    border: 1px solid var(--ar-line); border-radius: 10px; padding: 9px 16px;
+    font: inherit; font-size: 0.92rem; transition: border-color 0.15s, background 0.15s;
+}
+.ar-import-btn:hover { border-color: var(--ar-green); background: #fff; }
+.ar-import-btn:disabled { opacity: 0.6; cursor: default; }
+.ar-import-status { font-size: 0.9rem; color: var(--ar-muted); }
+.ar-import-error { color: #b23b2e; font-size: 0.9rem; margin: 4px 0 0; }
+.ar-import-panel {
+    background: var(--ar-field-bg, #fcf9f2); border: 1px solid var(--ar-line);
+    border-radius: 12px; padding: 14px 16px; max-width: 460px;
+}
+.ar-import-head { margin: 0 0 8px; font-size: 0.92rem; }
+.ar-import-counts { list-style: none; display: flex; gap: 18px; margin: 0 0 12px; padding: 0; font-size: 0.95rem; }
+.ar-import-counts .muted { color: var(--ar-muted); }
+.ar-import-errors { margin: 0 0 10px; font-size: 0.88rem; color: #b23b2e; }
+.ar-import-errors ul { margin: 6px 0 0; padding-left: 18px; }
+.ar-import-actions { display: flex; align-items: center; gap: 12px; }
+.ar-import-apply {
+    background: var(--ar-green); color: #fff; border: 0; border-radius: 9px;
+    padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.ar-import-apply:hover { background: #4a5733; }
+.ar-import-apply:disabled { opacity: 0.6; cursor: default; }
+.ar-import-cancel { background: none; border: 0; color: var(--ar-muted); cursor: pointer; font: inherit; }
+.ar-import-cancel:hover { color: var(--ar-ink); }
+.ar-import-note { margin: 10px 0 0; font-size: 0.88rem; color: var(--ar-muted); }
+.ar-import-done { border-color: var(--ar-green); }
+.ar-import-done p { margin: 0; font-size: 0.95rem; }
 .ar-item:hover { background: rgba(91, 107, 63, 0.06); }
 /* full-row click target -> edit; sits above thumb/meta but below the action links */
 .ar-rowlink { position: absolute; inset: 0; z-index: 1; border-radius: 8px; }
@@ -136,14 +176,108 @@
     font-weight: 600;
     font-size: 1.1rem;
     line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 .ar-item-sub { display: block; color: var(--ar-muted); font-size: 0.85rem; margin-top: 2px; }
-.ar-item-actions { display: flex; gap: 14px; flex: 0 0 auto; }
+.ar-item-actions { display: flex; align-items: center; gap: 14px; flex: 0 0 auto; margin-left: auto; white-space: nowrap; }
 .ar-edit, .ar-view { position: relative; z-index: 2; }
 .ar-edit { color: var(--ar-green); font-weight: 600; text-decoration: none; }
 .ar-edit:hover { text-decoration: underline; }
 .ar-view { color: var(--ar-muted); text-decoration: none; font-size: 0.9rem; }
 .ar-view:hover { color: var(--ar-ink); }
+
+/* ---- Filter bar: pills on the left, date sort on the right ---- */
+.ar-filterbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin: 4px 0 18px; }
+.ar-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.ar-pills-label { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ar-muted); margin-right: 6px; }
+.ar-pill {
+    text-decoration: none; cursor: pointer;
+    border: 1px solid var(--ar-line); border-radius: 999px;
+    padding: 7px 15px; font-size: 14px; color: var(--ar-ink);
+    background: var(--ar-field-bg, #fcf9f2);
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.ar-pill:hover { border-color: var(--ar-green); }
+.ar-pill.active { background: var(--ar-green); border-color: var(--ar-green); color: #fff; font-weight: 600; }
+
+/* ---- Date sort toggle ---- */
+.ar-sort { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.ar-sort-label { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ar-muted); margin-right: 2px; }
+.ar-sortbtn {
+    text-decoration: none; cursor: pointer;
+    border: 1px solid var(--ar-line); border-radius: 999px;
+    padding: 6px 13px; font-size: 13.5px; color: var(--ar-ink);
+    background: var(--ar-field-bg, #fcf9f2);
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.ar-sortbtn:hover { border-color: var(--ar-green); }
+.ar-sortbtn.active { background: var(--ar-green); border-color: var(--ar-green); color: #fff; font-weight: 600; }
+
+/* ---- Hidden badge + dimmed row ---- */
+.ar-badge {
+    display: inline-block; margin-left: 8px; vertical-align: middle;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--ar-muted); background: rgba(27, 35, 23, 0.08);
+    border-radius: 6px; padding: 2px 7px;
+}
+.ar-item.is-hidden { opacity: 0.6; }
+.ar-item.is-hidden:hover { opacity: 1; }
+
+/* ---- Row tools (hide / delete) — must sit above the .ar-rowlink overlay ---- */
+.ar-rowtools { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 10px; }
+.ar-hide, .ar-del, .ar-del-yes, .ar-del-no {
+    background: none; border: 0; cursor: pointer; font: inherit; font-size: 0.9rem; padding: 0;
+}
+.ar-hide { color: var(--ar-muted); }
+.ar-hide:hover { color: var(--ar-ink); }
+.ar-del { color: #b23b2e; }
+.ar-del:hover { text-decoration: underline; }
+.ar-confirm { display: inline-flex; align-items: center; gap: 8px; }
+.ar-del-yes { color: #fff; background: #b23b2e; border-radius: 7px; padding: 4px 10px; font-weight: 600; }
+.ar-del-yes:hover { background: #8f2e23; }
+.ar-del-no { color: var(--ar-muted); }
+.ar-del-no:hover { color: var(--ar-ink); }
+.ar-rowtools button:disabled { opacity: 0.55; cursor: default; }
+
+/* ---- Inline quick edit ---- */
+.ar-item.is-editing { background: rgba(91, 107, 63, 0.05); }
+.ar-quick {
+    background: none; border: 0; cursor: pointer; font: inherit; font-size: 0.9rem;
+    color: var(--ar-green); font-weight: 600; position: relative; z-index: 2; padding: 0;
+}
+.ar-quick:hover { text-decoration: underline; }
+.ar-quickedit {
+    position: relative; z-index: 2;
+    margin-top: 14px; padding-top: 16px; border-top: 1px dashed var(--ar-line);
+}
+.ar-qe-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 14px; }
+.ar-qe-field { display: flex; flex-direction: column; gap: 4px; }
+.ar-qe-field > span { font-size: 12px; font-weight: 600; color: var(--ar-muted); }
+.ar-qe-field > span em { font-weight: 400; font-style: italic; opacity: 0.85; }
+.ar-qe-field input, .ar-qe-field textarea {
+    font: inherit; font-size: 0.95rem; color: var(--ar-ink);
+    background: var(--ar-field-bg, #fcf9f2);
+    border: 1px solid var(--ar-field-border, var(--ar-line));
+    border-radius: 9px; padding: 9px 11px;
+}
+.ar-qe-field textarea { resize: vertical; }
+.ar-qe-field input:focus, .ar-qe-field textarea:focus { outline: none; border-color: var(--ar-green); }
+.ar-qe-wide { grid-column: span 2; }
+.ar-qe-full { grid-column: 1 / -1; }
+.ar-qe-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.ar-qe-save {
+    background: var(--ar-green); color: #fff; border: 0; border-radius: 9px;
+    padding: 9px 18px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.ar-qe-save:hover { background: #4a5733; }
+.ar-qe-save:disabled { opacity: 0.6; cursor: default; }
+.ar-qe-cancel { background: none; border: 0; color: var(--ar-muted); cursor: pointer; font: inherit; }
+.ar-qe-cancel:hover { color: var(--ar-ink); }
+.ar-qe-full-edit { margin-left: auto; color: var(--ar-green); text-decoration: none; font-size: 0.9rem; }
+.ar-qe-full-edit:hover { text-decoration: underline; }
+@media (max-width: 760px) {
+    .ar-qe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 /* ---- pager ---- */
 .ar-pager { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 32px; }
@@ -262,6 +396,21 @@
     border-color: var(--ar-green);
     box-shadow: var(--ar-field-shadow), 0 0 0 3px color-mix(in srgb, var(--ar-green) 16%, transparent);
 }
+.ca-rowmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ca-stepsel {
+    font: inherit;
+    color: var(--ar-ink);
+    background: var(--ar-field-bg);
+    border: 1px solid var(--ar-field-border);
+    box-shadow: var(--ar-field-shadow);
+    border-radius: 10px;
+    padding: 7px 10px;
+}
+.ca-stepsel:focus {
+    outline: none;
+    border-color: var(--ar-green);
+    box-shadow: var(--ar-field-shadow), 0 0 0 3px color-mix(in srgb, var(--ar-green) 16%, transparent);
+}
 .ar-rowctl { flex: 0 0 auto; display: flex; gap: 4px; padding-top: 5px; }
 .ar-rowctl button {
     width: 28px;
@@ -318,8 +467,16 @@
 .ar-cancel { color: var(--ar-muted); text-decoration: none; }
 .ar-cancel:hover { color: var(--ar-ink); }
 
+@media (max-width: 900px) {
+    /* When the row is narrow, drop the actions to their own full-width line
+       below the title (right-aligned) so they never overlap it. */
+    .ar-itemtop { flex-wrap: wrap; align-items: flex-start; }
+    .ar-meta { flex: 1 1 auto; }
+    .ar-item-actions { flex: 1 1 100%; margin-left: 0; margin-top: 10px; justify-content: flex-end; }
+}
+
 @media (max-width: 720px) {
     .ar-row, .ar-row-4 { grid-template-columns: 1fr; }
-    .ar-item { flex-wrap: wrap; }
+    .ar-itemtop { flex-wrap: wrap; }
     .admin-recipes { padding-right: 16px; }
 }

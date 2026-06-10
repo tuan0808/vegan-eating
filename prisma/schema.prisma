@@ -31,8 +31,10 @@ model Recipe {
   steps       String   @default("[]")
   image       String?
   gallery     String   @default("[]")
+  cookalong   String   @default("[]")
   ph          String
-  sort        Int      @default(0)     // crawl order, for "latest"
+  sort        Int      @default(0)
+  hidden      Boolean  @default(false)
   @@index([recipeType])
   @@index([sort])
 }
@@ -46,6 +48,7 @@ model Article {
   image     String?
   body      String  @default("[]")     // JSON array of paragraphs
   sort      Int     @default(0)
+  hidden    Boolean @default(false)
   @@index([sort])
 }
 

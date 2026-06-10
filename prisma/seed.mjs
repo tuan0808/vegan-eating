@@ -23,6 +23,7 @@ for (let i = 0; i < recipes.length; i++) {
     // Harmless today (recipes.json has no `gallery` yet); if you re-run the scraper to
     // write `.recipe-gallery`, those paths import automatically with no further changes.
     gallery: JSON.stringify(r.gallery || []),
+    cookalong: JSON.stringify(r.cookalong || []),
     ph: r.ph || "p1", sort: i,
   };
   await prisma.recipe.upsert({ where: { slug: r.slug }, create: data, update: data });

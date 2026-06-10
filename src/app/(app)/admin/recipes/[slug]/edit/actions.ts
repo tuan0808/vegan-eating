@@ -27,6 +27,24 @@ function str(value: FormDataEntryValue | null): string {
     return typeof value === "string" ? value.trim() : "";
 }
 
+/** Validate the cook-along payload: a JSON array of { src, step } — re-stringified clean. */
+function cookalongJson(value: FormDataEntryValue | null): string {
+    if (typeof value !== "string") return "[]";
+    try {
+        const v = JSON.parse(value);
+        if (!Array.isArray(v)) return "[]";
+        const clean = v
+            .filter((x) => x && typeof x.src === "string" && x.src.trim())
+            .map((x) => ({
+                src: String(x.src).trim(),
+                step: x.step === null || x.step === undefined || x.step === "" ? null : Number(x.step),
+            }));
+        return JSON.stringify(clean);
+    } catch {
+        return "[]";
+    }
+}
+
 export async function updateRecipe(formData: FormData) {
     // Admin-only write. requireUser() handles the logged-out case; we add the role gate.
     const user = await requireUser();
@@ -53,6 +71,7 @@ export async function updateRecipe(formData: FormData) {
             ingredients: JSON.stringify(lines(formData.get("ingredients"))),
             steps: JSON.stringify(lines(formData.get("steps"))),
             gallery: JSON.stringify(lines(formData.get("gallery"))),
+            cookalong: cookalongJson(formData.get("cookalong")),
             courses: JSON.stringify(lines(formData.get("courses"))),
             seasons: JSON.stringify(lines(formData.get("seasons"))),
             allergens: JSON.stringify(lines(formData.get("allergens"))),

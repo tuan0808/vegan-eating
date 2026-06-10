@@ -7,6 +7,8 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import RecipeTools from "@/components/RecipeTools";
 import HeroTitle from "@/components/HeroTitle";
+import RecipeGallery from "@/components/RecipeGallery";
+import MethodSteps from "@/components/MethodSteps";
 
 // First sentence of the description — for the hero blurb.
 function firstSentence(text?: string | null): string {
@@ -82,6 +84,8 @@ export default async function RecipePage({ params }: { params: { slug: string } 
           </div>
         </section>
 
+        <RecipeGallery images={r.gallery} title={r.title} />
+
         <div className="wrap">
           <div className="recipe-body">
             <RecipeTools
@@ -99,7 +103,7 @@ export default async function RecipePage({ params }: { params: { slug: string } 
               <p style={{ color: "var(--muted)", marginBottom: 28 }}>
                 {[r.prepTime ? `${r.prepTime} min prep` : null, r.cookTime ? `${r.cookTime} min cook` : null].filter(Boolean).join(" · ") || "Tested in our kitchen"}
               </p>
-              <ol className="steps">{r.steps.map((s, i) => <li key={i}><p>{s}</p></li>)}</ol>
+              <MethodSteps steps={r.steps} photos={r.cookalong} />
               {r.courses.length > 0 && (
                   <p style={{ marginTop: 30, fontSize: 14, color: "var(--muted)" }}>Courses: {r.courses.map((c) => titleCase(c)).join(", ")}</p>
               )}

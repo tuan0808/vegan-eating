@@ -5,9 +5,24 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { updateRecipe } from "./actions";
 import RecipeListField from "./RecipeListField";
+import CookAlongField from "./CookAlongField";
 import "../../admin-recipes.css";
 
 export const dynamic = "force-dynamic";
+
+/** JSON string column -> [{ src, step }] for the cook-along editor. */
+function toCookalong(json: string | null | undefined): { src: string; step: number | null }[] {
+    if (!json) return [];
+    try {
+        const v = JSON.parse(json);
+        if (!Array.isArray(v)) return [];
+        return v
+            .filter((x) => x && typeof x.src === "string")
+            .map((x) => ({ src: String(x.src), step: x.step == null ? null : Number(x.step) }));
+    } catch {
+        return [];
+    }
+}
 
 /** JSON string column → newline-joined text for a textarea. */
 function toLines(json: string | null | undefined): string {
@@ -177,6 +192,15 @@ export default async function EditRecipePage({
                             placeholder="Describe this step…"
                         />
                     </div>
+                </fieldset>
+
+                {/* Cook-along */}
+                <fieldset className="ar-card">
+                    <legend>Cook-along</legend>
+                    <p className="ar-hint">
+                        Process photos that pin beside the method as readers scroll. Attach each one to the step it illustrates.
+                    </p>
+                    <CookAlongField name="cookalong" initial={toCookalong(recipe.cookalong)} steps={toArray(recipe.steps)} />
                 </fieldset>
 
                 {/* Taxonomy */}

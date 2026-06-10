@@ -23,6 +23,8 @@ export type Recipe = {
   steps: string[];
   image: string | null;
   gallery: string[];
+  cookalong: { src: string; step: number | null }[];
+  hidden: boolean;
   ph: string;
 };
 

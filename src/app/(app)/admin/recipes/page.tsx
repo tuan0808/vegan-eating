@@ -1,9 +1,14 @@
 // src/app/(app)/admin/recipes/page.tsx
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { listRecipesAdmin } from "@/lib/recipes";
+import { slugify, buildWhere } from "@/lib/recipe-filters";
+import { pills } from "@/data/site";
+import RecipeRow from "./RecipeRow";
+import RecipeImport from "./RecipeImport";
 import "./admin-recipes.css";
+import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -12,37 +17,45 @@ const PER_PAGE = 20;
 export default async function AdminRecipesPage({
                                                    searchParams,
                                                }: {
-    searchParams: { q?: string; page?: string };
+    searchParams: { q?: string; page?: string; cat?: string; sort?: string };
 }) {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 
     const q = (searchParams?.q ?? "").trim();
+    const cat = searchParams?.cat || "all";
+    const sort = searchParams?.sort || "default";
     const page = Math.max(1, parseInt(searchParams?.page ?? "1", 10) || 1);
 
-    // NOTE: SQLite `contains` is case-sensitive (Prisma can't do mode:"insensitive" on SQLite).
-    // Good enough for admin search now; becomes case-insensitive for free once we're on Postgres.
-    const where = q ? { title: { contains: q } } : {};
+    // sort=newest|oldest order by date; otherwise the default seed order.
+    const orderBy: Prisma.RecipeOrderByWithRelationInput =
+        sort === "newest" ? { date: "desc" }
+            : sort === "oldest" ? { date: "asc" }
+                : { sort: "asc" };
 
-    const [recipes, total] = await Promise.all([
-        prisma.recipe.findMany({
-            where,
-            orderBy: { sort: "asc" },
-            skip: (page - 1) * PER_PAGE,
-            take: PER_PAGE,
-            select: { slug: true, title: true, recipeType: true, author: true, image: true },
-        }),
-        prisma.recipe.count({ where }),
-    ]);
+    // listRecipesAdmin deliberately skips the public filter, so this shows
+    // hidden recipes AND non-recipe junk (e.g. terms-and-conditions) too.
+    const { items: recipes, total, totalPages } = await listRecipesAdmin({
+        page,
+        perPage: PER_PAGE,
+        where: buildWhere(cat, q),
+        orderBy,
+    });
 
-    const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
     const from = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
     const to = Math.min(page * PER_PAGE, total);
 
-    const pageHref = (p: number) => {
+    // One href builder so pills, sort, search-clear and pager each preserve the others.
+    const hrefWith = (over: { q?: string; cat?: string; sort?: string; page?: number }) => {
+        const qq = over.q !== undefined ? over.q : q;
+        const cc = over.cat !== undefined ? over.cat : cat;
+        const ss = over.sort !== undefined ? over.sort : sort;
+        const pp = over.page !== undefined ? over.page : 1; // any control change resets to page 1 unless told otherwise
         const sp = new URLSearchParams();
-        if (q) sp.set("q", q);
-        if (p > 1) sp.set("page", String(p));
+        if (qq) sp.set("q", qq);
+        if (cc && cc !== "all") sp.set("cat", cc);
+        if (ss && ss !== "default") sp.set("sort", ss);
+        if (pp > 1) sp.set("page", String(pp));
         const qs = sp.toString();
         return qs ? `/admin/recipes?${qs}` : "/admin/recipes";
     };
@@ -55,7 +68,12 @@ export default async function AdminRecipesPage({
                 <p className="ar-dek">{total} recipe{total === 1 ? "" : "s"} in the library.</p>
             </div>
 
-            {/* GET form — keeps search in the URL, no client JS */}
+            <div className="ar-tools">
+                <a href="/api/admin/recipes/export" className="ar-export">⬇ Export to Excel</a>
+                <RecipeImport />
+            </div>
+
+            {/* GET form — keeps search in the URL, no client JS. Preserves filter + sort. */}
             <form className="ar-search" method="get" action="/admin/recipes">
                 <input
                     type="search"
@@ -64,9 +82,41 @@ export default async function AdminRecipesPage({
                     placeholder="Search by title…"
                     aria-label="Search recipes by title"
                 />
+                {cat !== "all" && <input type="hidden" name="cat" value={cat} />}
+                {sort !== "default" && <input type="hidden" name="sort" value={sort} />}
                 <button type="submit">Search</button>
-                {q && <Link href="/admin/recipes" className="ar-clear">Clear</Link>}
+                {(q || cat !== "all") && <Link href={hrefWith({ q: "", cat: "all", page: 1 })} className="ar-clear">Clear</Link>}
             </form>
+
+            <div className="ar-filterbar">
+                {/* Filter pills — mirror the public recipes page. */}
+                <div className="ar-pills">
+                    <span className="ar-pills-label">Filter</span>
+                    {pills.map((p) => {
+                        const slug = slugify(p);
+                        const isActive = !q && slug === cat;
+                        const href = slug === "all"
+                            ? hrefWith({ cat: "all", q: "", page: 1 })
+                            : hrefWith({ cat: slug, q: "", page: 1 });
+                        return (
+                            <Link key={p} href={href} className={`ar-pill${isActive ? " active" : ""}`}>{p}</Link>
+                        );
+                    })}
+                </div>
+
+                {/* Sort by date — clicking the active one returns to default order. */}
+                <div className="ar-sort">
+                    <span className="ar-sort-label">Sort</span>
+                    <Link
+                        href={hrefWith({ sort: sort === "newest" ? "default" : "newest", page: 1 })}
+                        className={`ar-sortbtn${sort === "newest" ? " active" : ""}`}
+                    >Newest</Link>
+                    <Link
+                        href={hrefWith({ sort: sort === "oldest" ? "default" : "oldest", page: 1 })}
+                        className={`ar-sortbtn${sort === "oldest" ? " active" : ""}`}
+                    >Oldest</Link>
+                </div>
+            </div>
 
             <p className="ar-count">
                 {total === 0 ? "No matches." : `Showing ${from}–${to} of ${total}`}
@@ -74,44 +124,41 @@ export default async function AdminRecipesPage({
 
             <div className="ar-list">
                 {recipes.map((r) => (
-                    <div className="ar-item" key={r.slug}>
-                        <Link
-                            href={`/admin/recipes/${r.slug}/edit`}
-                            className="ar-rowlink"
-                            aria-label={`Edit ${r.title}`}
-                        />
-                        <div className="ar-thumb">
-                            {r.image ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={r.image} alt="" />
-                            ) : (
-                                <span className="ar-thumb-empty">🥕</span>
-                            )}
-                        </div>
-                        <div className="ar-meta">
-                            <span className="ar-item-title">{r.title}</span>
-                            <span className="ar-item-sub">
-                {r.recipeType || "—"}{r.author ? ` · ${r.author}` : ""}
-              </span>
-                        </div>
-                        <div className="ar-item-actions">
-                            <Link href={`/admin/recipes/${r.slug}/edit`} className="ar-edit">Edit</Link>
-                            <Link href={`/recipes/${r.slug}`} target="_blank" className="ar-view">View ↗</Link>
-                        </div>
-                    </div>
+                    <RecipeRow
+                        key={r.slug}
+                        recipe={{
+                            slug: r.slug,
+                            title: r.title,
+                            recipeType: r.recipeType,
+                            author: r.author,
+                            image: r.image,
+                            hidden: r.hidden,
+                            date: r.date,
+                            description: r.description,
+                            prepTime: r.prepTime,
+                            cookTime: r.cookTime,
+                            readyIn: r.readyIn,
+                            servings: r.servings,
+                            calories: r.calories,
+                            courses: r.courses,
+                            cuisines: r.cuisines,
+                            allergens: r.allergens,
+                            seasons: r.seasons,
+                        }}
+                    />
                 ))}
             </div>
 
             {totalPages > 1 && (
                 <nav className="ar-pager" aria-label="Pagination">
                     {page > 1 ? (
-                        <Link href={pageHref(page - 1)} className="ar-pagebtn">← Prev</Link>
+                        <Link href={hrefWith({ page: page - 1 })} className="ar-pagebtn">← Prev</Link>
                     ) : (
                         <span className="ar-pagebtn is-disabled">← Prev</span>
                     )}
                     <span className="ar-pageinfo">Page {page} of {totalPages}</span>
                     {page < totalPages ? (
-                        <Link href={pageHref(page + 1)} className="ar-pagebtn">Next →</Link>
+                        <Link href={hrefWith({ page: page + 1 })} className="ar-pagebtn">Next →</Link>
                     ) : (
                         <span className="ar-pagebtn is-disabled">Next →</span>
                     )}

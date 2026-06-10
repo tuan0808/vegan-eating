@@ -59,6 +59,7 @@ export async function updateRecipe(formData: FormData) {
             title: str(formData.get("title")),
             description: str(formData.get("description")),
             recipeType: str(formData.get("recipeType")),
+            category: str(formData.get("category")),
             author: str(formData.get("author")),
             date: str(formData.get("date")),
             image: str(formData.get("image")) || null,

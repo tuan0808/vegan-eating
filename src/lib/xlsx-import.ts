@@ -42,8 +42,8 @@ export async function handleXlsxImport<D extends Record<string, unknown>>(
     let ws: ExcelJS.Worksheet | undefined;
     try {
         const wb = new ExcelJS.Workbook();
-        // @types/node now types Buffer as generic; exceljs expects the base Buffer — cast to bridge.
-        await wb.xlsx.load(Buffer.from(await file.arrayBuffer()) as unknown as Buffer);
+        // @types/node types Buffer as generic now; cast to whatever exceljs's load() actually expects.
+        await wb.xlsx.load(Buffer.from(await file.arrayBuffer()) as unknown as Parameters<typeof wb.xlsx.load>[0]);
         ws = wb.worksheets[0];
     } catch {
         return NextResponse.json({ error: "Could not read that file — is it a valid .xlsx export?" }, { status: 400 });

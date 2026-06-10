@@ -17,6 +17,25 @@ function bodyJson(v: FormDataEntryValue | null): string {
     return JSON.stringify(paragraphs);
 }
 
+// Tags input -> JSON array (comma-separated).
+function tagsJson(v: FormDataEntryValue | null): string {
+    const text = typeof v === "string" ? v : "";
+    return JSON.stringify(text.split(",").map((t) => t.trim()).filter(Boolean));
+}
+
+// Images hidden field (JSON array of paths) -> { hero, galleryJson }.
+// The first image is the hero; everything after it is the article gallery.
+function splitImages(v: FormDataEntryValue | null): { hero: string | null; galleryJson: string } {
+    let all: string[] = [];
+    if (typeof v === "string" && v.trim()) {
+        try {
+            const parsed = JSON.parse(v);
+            if (Array.isArray(parsed)) all = parsed.map((s) => String(s).trim()).filter(Boolean);
+        } catch { /* ignore malformed */ }
+    }
+    return { hero: all[0] ?? null, galleryJson: JSON.stringify(all.slice(1)) };
+}
+
 export async function updateArticle(formData: FormData): Promise<void> {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
@@ -24,13 +43,18 @@ export async function updateArticle(formData: FormData): Promise<void> {
     const slug = str(formData.get("slug"));
     if (!slug) return;
 
+    const { hero, galleryJson } = splitImages(formData.get("images"));
+
     await prisma.article.update({
         where: { slug },
         data: {
             title: str(formData.get("title")),
             sourceUrl: str(formData.get("sourceUrl")),
             date: str(formData.get("date")),
-            image: str(formData.get("image")) || null,
+            image: hero,
+            gallery: galleryJson,
+            category: str(formData.get("category")),
+            tags: tagsJson(formData.get("tags")),
             body: bodyJson(formData.get("body")),
             hidden: formData.get("hidden") === "on",
         },

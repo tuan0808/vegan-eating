@@ -10,5 +10,8 @@ export type Article = {
     image: string | null;
     hidden: boolean;
     body: string[];
+    tags: string[];
+    category: string;
+    gallery: string[];
 
 };

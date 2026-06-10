@@ -8,7 +8,7 @@ import { slugify } from "@/lib/recipe-filters";
 // Column order in the sheet. Each is also the DB field name (except none excluded
 // here — id is intentionally omitted; slug is the key).
 export const COLUMNS = [
-    "slug", "sourceUrl", "title", "recipeType", "author", "date", "description",
+    "slug", "sourceUrl", "title", "recipeType", "category", "author", "date", "description",
     "courses", "seasons", "allergens", "cuisines",
     "prepTime", "cookTime", "readyIn", "servings", "calories",
     "ingredients", "steps", "image", "gallery", "cookalong", "ph", "sort", "hidden",
@@ -63,6 +63,7 @@ export function recipeToRow(r: Record<string, unknown>): Record<Col, string | nu
         sourceUrl: (r.sourceUrl as string) ?? "",
         title: (r.title as string) ?? "",
         recipeType: (r.recipeType as string) ?? "",
+        category: (r.category as string) ?? "",
         author: (r.author as string) ?? "",
         date: (r.date as string) ?? "",
         description: (r.description as string) ?? "",
@@ -115,6 +116,7 @@ export type RecipeData = {
     sourceUrl: string;
     title: string;
     recipeType: string;
+    category: string;
     author: string;
     date: string;
     description: string;
@@ -146,6 +148,7 @@ export function rowToData(row: Record<string, unknown>): { slug: string; title: 
         sourceUrl: cellStr(row.sourceUrl),
         title,
         recipeType: cellStr(row.recipeType),
+        category: cellStr(row.category),
         author: cellStr(row.author),
         date: cellStr(row.date),
         description: cellStr(row.description),

@@ -130,6 +130,7 @@ export default async function AdminRecipesPage({
                             slug: r.slug,
                             title: r.title,
                             recipeType: r.recipeType,
+                            category: r.category,
                             author: r.author,
                             image: r.image,
                             hidden: r.hidden,

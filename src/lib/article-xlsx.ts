@@ -3,9 +3,11 @@
 // Single source of truth for the article spreadsheet schema (export + import).
 import { slugify } from "@/lib/recipe-filters";
 
-export const COLUMNS = ["slug", "sourceUrl", "title", "date", "image", "body", "sort", "hidden"] as const;
+export const COLUMNS = ["slug", "sourceUrl", "title", "date", "image", "gallery", "category", "tags", "body", "sort", "hidden"] as const;
 export type Col = (typeof COLUMNS)[number];
 
+const PIPE = " | ";
+const PIPE_SPLIT = /\s*\|\s*/;
 const PARA_SPLIT = /\n\s*\n/; // blank line separates paragraphs
 
 function jsonArr(s: string | null | undefined): string[] {
@@ -47,6 +49,9 @@ export function articleToRow(a: Record<string, unknown>): Record<Col, string | n
         title: (a.title as string) ?? "",
         date: (a.date as string) ?? "",
         image: (a.image as string) ?? "",
+        gallery: jsonArr(a.gallery as string).join(PIPE),
+        category: (a.category as string) ?? "",
+        tags: jsonArr(a.tags as string).join(PIPE),
         body: jsonArr(a.body as string).join("\n\n"),
         sort: (a.sort as number) ?? null,
         hidden: !!a.hidden,
@@ -59,6 +64,9 @@ export type ArticleData = {
     title: string;
     date: string;
     image: string | null;
+    gallery: string; // pipe-joined image paths (gallery, excludes hero)
+    category: string;
+    tags: string; // JSON array of tags
     body: string; // JSON array of paragraphs
     hidden: boolean;
 };
@@ -71,12 +79,21 @@ export function rowToData(row: Record<string, unknown>): { slug: string; title: 
     const bodyText = cellStr(row.body);
     const paragraphs = bodyText ? bodyText.split(PARA_SPLIT).map((p) => p.trim()).filter(Boolean) : [];
 
+    const tagsText = cellStr(row.tags);
+    const tags = tagsText ? tagsText.split(PIPE_SPLIT).map((t) => t.trim()).filter(Boolean) : [];
+
+    const galleryText = cellStr(row.gallery);
+    const gallery = galleryText ? galleryText.split(PIPE_SPLIT).map((g) => g.trim()).filter(Boolean) : [];
+
     const data: ArticleData = {
         slug,
         sourceUrl: cellStr(row.sourceUrl),
         title,
         date: cellStr(row.date),
         image: cellStr(row.image) || null,
+        gallery: JSON.stringify(gallery),
+        category: cellStr(row.category),
+        tags: JSON.stringify(tags),
         body: JSON.stringify(paragraphs),
         hidden: cellBool(row.hidden),
     };

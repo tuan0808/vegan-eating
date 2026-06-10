@@ -35,6 +35,7 @@ model Recipe {
   ph          String
   sort        Int      @default(0)
   hidden      Boolean  @default(false)
+  category  String  @default("")
   @@index([recipeType])
   @@index([sort])
 }
@@ -46,9 +47,12 @@ model Article {
   sourceUrl String
   date      String
   image     String?
-  body      String  @default("[]")     // JSON array of paragraphs
+  body      String  @default("[]")
+  tags      String  @default("[]")
+  category  String  @default("")
   sort      Int     @default(0)
   hidden    Boolean @default(false)
+  gallery   String @default("[]")
   @@index([sort])
 }
 

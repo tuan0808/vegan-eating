@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { updateArticle } from "./actions";
+import { ARTICLE_CATEGORIES } from "@/lib/categories";
+import ArticleImagesField from "./ArticleImagesField";
 import "../../../recipes/admin-recipes.css";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +16,17 @@ function toBodyText(json: string | null | undefined): string {
     try {
         const v = JSON.parse(json);
         return Array.isArray(v) ? v.join("\n\n") : "";
+    } catch {
+        return "";
+    }
+}
+
+// JSON array of tags -> comma-separated text.
+function toTagsText(json: string | null | undefined): string {
+    if (!json) return "";
+    try {
+        const v = JSON.parse(json);
+        return Array.isArray(v) ? v.join(", ") : "";
     } catch {
         return "";
     }
@@ -33,6 +46,9 @@ export default async function EditArticlePage({
     if (!article) notFound();
 
     const saved = searchParams?.saved === "1";
+
+    const gallery = (() => { try { const v = JSON.parse(article.gallery || "[]"); return Array.isArray(v) ? (v as string[]) : []; } catch { return []; } })();
+    const initialImages = [article.image, ...gallery].filter((s): s is string => !!s && s.trim() !== "");
 
     return (
         <div className="admin-recipes">
@@ -62,20 +78,31 @@ export default async function EditArticlePage({
                         <input name="title" defaultValue={article.title} required />
                     </label>
 
-                    <div className="ar-row">
-                        <label className="ar-field">
-                            <span>Date</span>
-                            <input name="date" defaultValue={article.date} />
-                        </label>
-                        <label className="ar-field">
-                            <span>Image path</span>
-                            <input name="image" defaultValue={article.image ?? ""} placeholder="/uploads/…" />
-                        </label>
-                    </div>
+                    <label className="ar-field">
+                        <span>Date</span>
+                        <input name="date" defaultValue={article.date} />
+                    </label>
+
+                    <ArticleImagesField name="images" initial={initialImages} />
 
                     <label className="ar-field">
                         <span>Source URL</span>
                         <input name="sourceUrl" defaultValue={article.sourceUrl} />
+                    </label>
+
+                    <label className="ar-field">
+                        <span>Category</span>
+                        <select name="category" defaultValue={article.category ?? ""}>
+                            <option value="">— None —</option>
+                            {ARTICLE_CATEGORIES.map((c) => (
+                                <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className="ar-field">
+                        <span>Tags <em>(comma-separated)</em></span>
+                        <input name="tags" defaultValue={toTagsText(article.tags)} placeholder="air fryer, instant pot, sous-vide" />
                     </label>
 
                     <label className="ar-check">

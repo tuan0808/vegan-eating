@@ -25,6 +25,7 @@ export type Recipe = {
   gallery: string[];
   cookalong: { src: string; step: number | null }[];
   hidden: boolean;
+  category: string;
   ph: string;
 };
 

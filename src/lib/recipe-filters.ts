@@ -23,13 +23,15 @@ export const CATEGORY_KEYWORDS: Record<string, string[]> = {
 export function catFilter(slug?: string): Prisma.RecipeWhereInput {
     if (!slug || slug === "all") return {};
     if (slug === "30-minutes") return { readyIn: { lte: 30 } }; // readyIn is minutes
+    // Explicit category wins; keyword match on courses/recipeType is the legacy fallback.
+    const OR: Prisma.RecipeWhereInput[] = [{ category: slug }];
     const kws = CATEGORY_KEYWORDS[slug];
-    if (!kws) return {};
-    const OR: Prisma.RecipeWhereInput[] = [];
-    kws.forEach((k) => {
-        OR.push({ courses: { contains: k } });
-        OR.push({ recipeType: { contains: k } });
-    });
+    if (kws) {
+        kws.forEach((k) => {
+            OR.push({ courses: { contains: k } });
+            OR.push({ recipeType: { contains: k } });
+        });
+    }
     return { OR };
 }
 

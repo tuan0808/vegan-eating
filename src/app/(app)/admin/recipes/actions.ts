@@ -40,6 +40,7 @@ export async function quickUpdateRecipe(
     data: {
         title: string;
         recipeType: string;
+        category: string;
         author: string;
         date: string;
         servings: string;
@@ -62,6 +63,7 @@ export async function quickUpdateRecipe(
         data: {
             title: data.title,
             recipeType: data.recipeType,
+            category: data.category,
             author: data.author,
             date: data.date,
             servings: data.servings,

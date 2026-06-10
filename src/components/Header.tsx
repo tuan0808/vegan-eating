@@ -62,14 +62,18 @@ const MENU: Item[] = [
         label: "Health", href: "/articles", key: "health",
         cols: [
             { heading: "Read up", links: [
-                    { label: "Nutrition basics", href: "/articles" },
-                    { label: "Myths, debunked", href: "/articles" },
-                    { label: "Meal planning", href: "/articles" },
+                    { label: "Health & Nutrition", href: "/articles?cat=health-nutrition" },
+                    { label: "Special Diets", href: "/articles?cat=special-diets" },
+                    { label: "Ingredients", href: "/articles?cat=ingredients" },
+                    { label: "Budget & Sustainability", href: "/articles?cat=budget-sustainability" },
+                    { label: "Occasions & Lifestyle", href: "/articles?cat=occasions-lifestyle" },
                 ] },
             { heading: "Guides", links: [
-                    { label: "Going vegan", href: "/articles" },
-                    { label: "Reading labels", href: "/articles" },
-                    { label: "Eating out", href: "/articles" },
+                    { label: "Cooking Techniques", href: "/articles?cat=cooking-techniques" },
+                    { label: "Equipment & Appliances", href: "/articles?cat=equipment-appliances" },
+                    { label: "Baking", href: "/articles?cat=baking" },
+                    { label: "DIY & Fermenting", href: "/articles?cat=diy-fermenting" },
+                    { label: "World Cuisines", href: "/articles?cat=world-cuisines" },
                 ] },
         ],
         feature: { kicker: "This week's read", title: "The truth about B12", href: "/articles", gradient: "linear-gradient(135deg,#2f6b43,#5BB35F)" },
@@ -111,6 +115,7 @@ export default function Header() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [expanded, setExpanded] = useState<string | null>(null);
     const [featured, setFeatured] = useState<Featured | null>(null);
+    const [featuredArticle, setFeaturedArticle] = useState<Featured | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Search
@@ -196,6 +201,10 @@ export default function Header() {
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => { if (on && d && d.slug) setFeatured(d); })
             .catch(() => {});
+        fetch("/api/featured-article")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (on && d && d.slug) setFeaturedArticle(d); })
+            .catch(() => {});
         return () => { on = false; };
     }, []);
 
@@ -216,6 +225,18 @@ export default function Header() {
                         {featured?.image ? <img className="vn-ph-img" src={featured.image} alt="" /> : null}
                     </div>
                     <div className="vn-cap"><span className="vn-k">Featured recipe</span><h5>{title}</h5></div>
+                </Link>
+            );
+        }
+        if (it.key === "health") {
+            const href = featuredArticle ? `/articles/${featuredArticle.slug}` : it.feature!.href;
+            const title = featuredArticle ? featuredArticle.title : it.feature!.title;
+            return (
+                <Link className="vn-feature" href={href} onClick={() => setOpenKey(null)}>
+                    <div className="vn-ph" style={{ background: it.feature!.gradient || "linear-gradient(135deg,#2f6b43,#5BB35F)" }}>
+                        {featuredArticle?.image ? <img className="vn-ph-img" src={featuredArticle.image} alt="" /> : null}
+                    </div>
+                    <div className="vn-cap"><span className="vn-k">{it.feature!.kicker}</span><h5>{title}</h5></div>
                 </Link>
             );
         }

@@ -33,7 +33,7 @@ export async function deleteArticle(slug: string): Promise<void> {
 /** Inline quick-edit: metadata only. The body lives in the full editor. */
 export async function quickUpdateArticle(
     slug: string,
-    data: { title: string; sourceUrl: string; date: string; image: string },
+    data: { title: string; sourceUrl: string; date: string; image: string; category: string; tags: string[] },
 ): Promise<void> {
     await requireAdmin();
     if (!slug) return;
@@ -44,6 +44,8 @@ export async function quickUpdateArticle(
             sourceUrl: data.sourceUrl,
             date: data.date,
             image: data.image || null,
+            category: data.category,
+            tags: JSON.stringify(data.tags),
         },
     });
     revalidatePath("/admin/articles");

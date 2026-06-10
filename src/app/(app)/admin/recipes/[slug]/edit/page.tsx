@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth-helpers";
 import { updateRecipe } from "./actions";
 import RecipeListField from "./RecipeListField";
 import CookAlongField from "./CookAlongField";
+import { RECIPE_CATEGORIES } from "@/lib/categories";
 import "../../admin-recipes.css";
 
 export const dynamic = "force-dynamic";
@@ -97,6 +98,16 @@ export default async function EditRecipePage({
                     <label className="ar-field">
                         <span>Description</span>
                         <textarea name="description" rows={3} defaultValue={recipe.description} />
+                    </label>
+
+                    <label className="ar-field">
+                        <span>Category</span>
+                        <select name="category" defaultValue={recipe.category ?? ""}>
+                            <option value="">— None —</option>
+                            {RECIPE_CATEGORIES.map((c) => (
+                                <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                        </select>
                     </label>
 
                     <div className="ar-row">

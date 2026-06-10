@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { listArticlesAdmin } from "@/lib/articles";
+import { ARTICLE_CATEGORIES } from "@/lib/categories";
+import { slugify } from "@/lib/recipe-filters";
 import ArticleRow from "./ArticleRow";
 import ArticleImport from "./ArticleImport";
 import "../recipes/admin-recipes.css";
@@ -15,34 +17,44 @@ const PER_PAGE = 20;
 export default async function AdminArticlesPage({
                                                     searchParams,
                                                 }: {
-    searchParams: { q?: string; page?: string; sort?: string };
+    searchParams: { q?: string; page?: string; sort?: string; cat?: string };
 }) {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 
     const q = (searchParams?.q ?? "").trim();
     const sort = searchParams?.sort || "default";
+    const activeCat = searchParams?.cat || "all";
     const page = Math.max(1, parseInt(searchParams?.page ?? "1", 10) || 1);
+
+    // Pills carry a slug in the URL; the stored category is the human label, so map back.
+    const catLabel =
+        activeCat === "all" ? "" : (ARTICLE_CATEGORIES.find((c) => slugify(c.value) === activeCat)?.value ?? "");
 
     const orderBy: Prisma.ArticleOrderByWithRelationInput =
         sort === "newest" ? { date: "desc" }
             : sort === "oldest" ? { date: "asc" }
                 : { sort: "asc" };
 
-    const where: Prisma.ArticleWhereInput = q ? { title: { contains: q } } : {};
+    const where: Prisma.ArticleWhereInput = {
+        ...(q ? { title: { contains: q } } : {}),
+        ...(catLabel ? { category: catLabel } : {}),
+    };
 
     const { items: articles, total, totalPages } = await listArticlesAdmin({ page, perPage: PER_PAGE, where, orderBy });
 
     const from = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
     const to = Math.min(page * PER_PAGE, total);
 
-    const hrefWith = (over: { q?: string; sort?: string; page?: number }) => {
+    const hrefWith = (over: { q?: string; sort?: string; cat?: string; page?: number }) => {
         const qq = over.q !== undefined ? over.q : q;
         const ss = over.sort !== undefined ? over.sort : sort;
+        const cc = over.cat !== undefined ? over.cat : activeCat;
         const pp = over.page !== undefined ? over.page : 1;
         const sp = new URLSearchParams();
         if (qq) sp.set("q", qq);
         if (ss && ss !== "default") sp.set("sort", ss);
+        if (cc && cc !== "all") sp.set("cat", cc);
         if (pp > 1) sp.set("page", String(pp));
         const qs = sp.toString();
         return qs ? `/admin/articles?${qs}` : "/admin/articles";
@@ -65,11 +77,21 @@ export default async function AdminArticlesPage({
                 <input type="search" name="q" defaultValue={q} placeholder="Search by title…" aria-label="Search articles by title" />
                 {sort !== "default" && <input type="hidden" name="sort" value={sort} />}
                 <button type="submit">Search</button>
-                {q && <Link href={hrefWith({ q: "", page: 1 })} className="ar-clear">Clear</Link>}
+                {(q || activeCat !== "all") && <Link href={hrefWith({ q: "", cat: "all", page: 1 })} className="ar-clear">Clear</Link>}
             </form>
 
             <div className="ar-filterbar">
-                <span className="ar-pills-label">All articles</span>
+                <div className="ar-pills">
+                    <span className="ar-pills-label">Filter</span>
+                    <Link href={hrefWith({ cat: "all", q: "", page: 1 })} className={`ar-pill${activeCat === "all" ? " active" : ""}`}>All</Link>
+                    {ARTICLE_CATEGORIES.map((c) => {
+                        const slug = slugify(c.value);
+                        const isActive = !q && slug === activeCat;
+                        return (
+                            <Link key={c.value} href={hrefWith({ cat: slug, q: "", page: 1 })} className={`ar-pill${isActive ? " active" : ""}`}>{c.label}</Link>
+                        );
+                    })}
+                </div>
                 <div className="ar-sort">
                     <span className="ar-sort-label">Sort</span>
                     <Link href={hrefWith({ sort: sort === "newest" ? "default" : "newest", page: 1 })} className={`ar-sortbtn${sort === "newest" ? " active" : ""}`}>Newest</Link>
@@ -90,6 +112,8 @@ export default async function AdminArticlesPage({
                             date: a.date,
                             image: a.image,
                             hidden: a.hidden,
+                            category: a.category,
+                            tags: a.tags,
                         }}
                     />
                 ))}

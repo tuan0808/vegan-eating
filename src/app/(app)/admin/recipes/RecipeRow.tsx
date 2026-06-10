@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { quickUpdateRecipe } from "./actions";
 import RecipeRowActions from "./RecipeRowActions";
+import { RECIPE_CATEGORIES } from "@/lib/categories";
 
 type QuickRecipe = {
     slug: string;
     title: string;
     recipeType: string | null;
+    category: string | null;
     author: string | null;
     image: string | null;
     hidden: boolean;
@@ -29,6 +31,7 @@ type QuickRecipe = {
 const initForm = (r: QuickRecipe) => ({
     title: r.title ?? "",
     recipeType: r.recipeType ?? "",
+    category: r.category ?? "",
     author: r.author ?? "",
     date: r.date ?? "",
     servings: r.servings ?? "",
@@ -59,7 +62,7 @@ export default function RecipeRow({ recipe }: { recipe: QuickRecipe }) {
     const [isPending, start] = useTransition();
 
     const editHref = `/admin/recipes/${recipe.slug}/edit`;
-    const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
         setF((s) => ({ ...s, [k]: e.target.value }));
 
     const save = () =>
@@ -67,6 +70,7 @@ export default function RecipeRow({ recipe }: { recipe: QuickRecipe }) {
             await quickUpdateRecipe(recipe.slug, {
                 title: f.title.trim(),
                 recipeType: f.recipeType.trim(),
+                category: f.category,
                 author: f.author.trim(),
                 date: f.date.trim(),
                 servings: f.servings.trim(),
@@ -133,6 +137,13 @@ export default function RecipeRow({ recipe }: { recipe: QuickRecipe }) {
                             <input value={f.title} onChange={set("title")} /></label>
                         <label className="ar-qe-field"><span>Recipe type</span>
                             <input value={f.recipeType} onChange={set("recipeType")} /></label>
+                        <label className="ar-qe-field"><span>Category</span>
+                            <select value={f.category} onChange={set("category")}>
+                                <option value="">— None —</option>
+                                {RECIPE_CATEGORIES.map((c) => (
+                                    <option key={c.value} value={c.value}>{c.label}</option>
+                                ))}
+                            </select></label>
                         <label className="ar-qe-field"><span>Author</span>
                             <input value={f.author} onChange={set("author")} /></label>
                         <label className="ar-qe-field"><span>Date</span>

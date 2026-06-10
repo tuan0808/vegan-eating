@@ -48,6 +48,7 @@ function toRecipe(r: any): Recipe {
         gallery: arr(r.gallery),
         cookalong: items(r.cookalong),
         hidden: !!r.hidden,
+        category: r.category ?? "",
     };
 }
 

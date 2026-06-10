@@ -114,6 +114,8 @@
 
 /* ---- Export / Import toolbar ---- */
 .ar-tools { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; margin: 0 0 20px; }
+.ar-check { display: flex; align-items: center; gap: 9px; margin-top: 12px; font-size: 0.92rem; color: var(--ar-ink); cursor: pointer; }
+.ar-check input { width: 16px; height: 16px; accent-color: var(--ar-green); }
 .ar-export {
     display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
     background: var(--ar-field-bg, #fcf9f2); color: var(--ar-ink);

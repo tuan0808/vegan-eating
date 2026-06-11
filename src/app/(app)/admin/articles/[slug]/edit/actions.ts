@@ -10,11 +10,18 @@ function str(v: FormDataEntryValue | null): string {
     return typeof v === "string" ? v.trim() : "";
 }
 
-// Body textarea -> JSON array of paragraphs (blank line separates paragraphs).
-function bodyJson(v: FormDataEntryValue | null): string {
-    const text = typeof v === "string" ? v : "";
-    const paragraphs = text.split(/\r?\n\s*\r?\n/).map((p) => p.trim()).filter(Boolean);
-    return JSON.stringify(paragraphs);
+// Body editor -> Tiptap JSON doc, stored verbatim. The editor submits a
+// stringified ProseMirror doc; we only accept a valid { type: "doc" } object,
+// otherwise we store an empty doc rather than corrupt the column.
+function bodyDoc(v: FormDataEntryValue | null): string {
+    const raw = typeof v === "string" ? v : "";
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && parsed.type === "doc") {
+            return JSON.stringify(parsed);
+        }
+    } catch { /* malformed — fall through to empty doc */ }
+    return JSON.stringify({ type: "doc", content: [] });
 }
 
 // Tags input -> JSON array (comma-separated).
@@ -55,7 +62,7 @@ export async function updateArticle(formData: FormData): Promise<void> {
             gallery: galleryJson,
             category: str(formData.get("category")),
             tags: tagsJson(formData.get("tags")),
-            body: bodyJson(formData.get("body")),
+            body: bodyDoc(formData.get("body")),
             hidden: formData.get("hidden") === "on",
         },
     });

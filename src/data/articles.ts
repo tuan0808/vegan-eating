@@ -1,5 +1,6 @@
 // src/data/articles.ts
 // Type only. Data comes from the database (see src/lib/articles.ts).
+import type { TiptapDoc } from "@/lib/article-body";
 
 export type Article = {
     id?: number;
@@ -9,7 +10,7 @@ export type Article = {
     date: string;
     image: string | null;
     hidden: boolean;
-    body: string[];
+    body: TiptapDoc;
     tags: string[];
     category: string;
     gallery: string[];

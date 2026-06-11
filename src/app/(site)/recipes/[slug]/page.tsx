@@ -9,6 +9,9 @@ import RecipeTools from "@/components/RecipeTools";
 import HeroTitle from "@/components/HeroTitle";
 import RecipeGallery from "@/components/RecipeGallery";
 import MethodSteps from "@/components/MethodSteps";
+import ArticleBody from "@/app/(site)/articles/[slug]/ArticleBody";
+import { parseBody, tiptapText } from "@/lib/article-body";
+import "@/app/(site)/articles/[slug]/article-content.css";
 
 // First sentence of the description — for the hero blurb.
 function firstSentence(text?: string | null): string {
@@ -27,7 +30,7 @@ function imgSrc(src?: string | null): string | null {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const r = await getRecipeBySlug(params.slug);
   if (!r) return { title: "Recipe not found — vegan eating" };
-  return { title: `${r.title} — vegan eating`, description: (r.description ?? "").slice(0, 155) };
+  return { title: `${r.title} — vegan eating`, description: tiptapText(parseBody(r.description)).slice(0, 155) };
 }
 
 export default async function RecipePage({ params }: { params: { slug: string } }) {
@@ -36,6 +39,8 @@ export default async function RecipePage({ params }: { params: { slug: string } 
 
   const heroImg = imgSrc(r.image);
   const baseServings = parseServings(r.servings);
+  const descDoc = parseBody(r.description);
+  const descText = tiptapText(descDoc);
   const timing = [
     r.prepTime ? `${r.prepTime} min prep` : null,
     r.cookTime ? `${r.cookTime} min cook` : null,
@@ -44,7 +49,7 @@ export default async function RecipePage({ params }: { params: { slug: string } 
 
   const jsonLd = {
     "@context": "https://schema.org", "@type": "Recipe",
-    name: r.title, description: r.description, recipeCategory: r.recipeType,
+    name: r.title, description: descText, recipeCategory: r.recipeType,
     recipeYield: r.servings || undefined,
     prepTime: r.prepTime ? `PT${r.prepTime}M` : undefined,
     cookTime: r.cookTime ? `PT${r.cookTime}M` : undefined,
@@ -67,7 +72,7 @@ export default async function RecipePage({ params }: { params: { slug: string } 
           <div className="wrap" style={{ position: "relative", zIndex: 2, color: "#fff" }}>
             <span className="kicker" style={{ color: "#A7D98C" }}>{r.recipeType || "Recipe"}</span>
             <HeroTitle title={r.title} style={{ fontSize: "clamp(38px,5vw,68px)", margin: "16px 0 14px", maxWidth: 760 }} />
-            <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>{firstSentence(r.description)}</p>
+            <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>{firstSentence(descText)}</p>
             <div className="hero-meta">
               {r.readyIn ? <span>⏱ <b>{fmtTime(r.readyIn)}</b></span> : null}
               {r.servings ? <span>🍽 <b>{r.servings}</b></span> : null}
@@ -97,7 +102,9 @@ export default async function RecipePage({ params }: { params: { slug: string } 
             />
             <div>
               <span className="kicker">About this recipe</span>
-              <p style={{ margin: "10px 0 32px", fontSize: 17, lineHeight: 1.7 }}>{r.description}</p>
+              <div style={{ margin: "10px 0 32px" }}>
+                <ArticleBody doc={descDoc} lead={false} />
+              </div>
 
               <h2 style={{ fontSize: 32, marginBottom: 8 }}>Method</h2>
               <p style={{ color: "var(--muted)", marginBottom: 28 }}>

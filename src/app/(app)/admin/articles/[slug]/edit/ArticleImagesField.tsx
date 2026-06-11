@@ -12,91 +12,74 @@ function imgSrc(s: string): string {
     return "/" + v.replace(/^\.?\//, "");
 }
 
+// Hero image only. In-article images now live in the body (added via the editor),
+// so this field manages just the banner photo. It still serializes as a single-item
+// array under the same `name`, so the server action (images[0] = hero) and the
+// edit page are unchanged — saving simply leaves the gallery empty.
 export default function ArticleImagesField({ name, initial }: Props) {
-    const [rows, setRows] = useState<string[]>(initial);
+    const [hero, setHero] = useState<string>(initial[0]?.trim() || "");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    const update = (i: number, val: string) =>
-        setRows((r) => r.map((row, idx) => (idx === i ? val : row)));
-    const remove = (i: number) => setRows((r) => r.filter((_, idx) => idx !== i));
-    const move = (i: number, dir: -1 | 1) =>
-        setRows((r) => {
-            const j = i + dir;
-            if (j < 0 || j >= r.length) return r;
-            const next = [...r];
-            [next[i], next[j]] = [next[j], next[i]];
-            return next;
-        });
-
-    async function handleFiles(files: FileList | null) {
-        if (!files || files.length === 0) return;
+    async function handleFile(files: FileList | null) {
+        const f = files?.[0];
+        if (!f) return;
         setBusy(true);
         setError(null);
-        const added: string[] = [];
-        for (const f of Array.from(files)) {
-            try {
-                const fd = new FormData();
-                fd.append("file", f);
-                const res = await fetch("/api/upload", { method: "POST", body: fd });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) { setError(data?.error || "Upload failed."); continue; }
-                if (data?.path) added.push(data.path);
-            } catch {
-                setError("Upload failed — check your connection and try again.");
-            }
+        try {
+            const fd = new FormData();
+            fd.append("file", f);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data?.path) { setError(data?.error || "Upload failed."); return; }
+            setHero(String(data.path));
+        } catch {
+            setError("Upload failed — check your connection and try again.");
+        } finally {
+            setBusy(false);
+            if (fileRef.current) fileRef.current.value = "";
         }
-        if (added.length) setRows((r) => [...r, ...added]);
-        setBusy(false);
-        if (fileRef.current) fileRef.current.value = "";
     }
 
-    // First non-empty image is the hero; the rest are the article gallery.
-    const serialized = JSON.stringify(rows.map((s) => s.trim()).filter(Boolean));
+    const serialized = JSON.stringify(hero.trim() ? [hero.trim()] : []);
 
     return (
         <div className="ar-listfield">
-            <span className="ar-field-label">Images</span>
+            <span className="ar-field-label">Hero image</span>
             <input type="hidden" name={name} value={serialized} />
-            <p className="ar-hint">The first image is the hero. Any others appear in the article below it. Drag order with ↑ ↓.</p>
-            <ol className="ar-rows">
-                {rows.map((src, i) => (
-                    <li className="ar-rowitem" key={i}>
-            <span className="ar-rowthumb">
-              {src.trim() ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={imgSrc(src)} alt="" />
-              ) : (
-                  <span className="ar-rowthumb-empty">🥕</span>
-              )}
-            </span>
-                        <div className="ar-img-main">
-                            {i === 0 && <span className="ar-hero-badge">Hero image</span>}
-                            <input
-                                className="ar-rowinput"
-                                type="text"
-                                value={src}
-                                placeholder="/uploads/2026/06/photo.jpg"
-                                onChange={(e) => update(i, e.target.value)}
-                            />
-                        </div>
-                        <span className="ar-rowctl">
-              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">↑</button>
-              <button type="button" onClick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Move down">↓</button>
-              <button type="button" className="ar-rowdel" onClick={() => remove(i)} aria-label="Remove image">×</button>
-            </span>
-                    </li>
-                ))}
-            </ol>
+            <p className="ar-hint">The banner photo at the top of the article. Images <em>inside</em> the article are added in the editor below.</p>
+
+            <div className="ar-rowitem">
+                <span className="ar-rowthumb">
+                    {hero.trim() ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={imgSrc(hero)} alt="" />
+                    ) : (
+                        <span className="ar-rowthumb-empty">🥕</span>
+                    )}
+                </span>
+                <div className="ar-img-main">
+                    <input
+                        className="ar-rowinput"
+                        type="text"
+                        value={hero}
+                        placeholder="/uploads/2026/06/photo.jpg"
+                        onChange={(e) => setHero(e.target.value)}
+                    />
+                </div>
+                <span className="ar-rowctl">
+                    {hero.trim() && (
+                        <button type="button" className="ar-rowdel" onClick={() => setHero("")} aria-label="Remove hero image">×</button>
+                    )}
+                </span>
+            </div>
+
             <div className="ar-listactions">
-                <button type="button" className="ar-addrow" onClick={() => setRows((r) => [...r, ""])}>
-                    + Add image
-                </button>
                 <button type="button" className="ar-upload" disabled={busy} onClick={() => fileRef.current?.click()}>
-                    {busy ? "Uploading…" : "⬆ Upload images"}
+                    {busy ? "Uploading…" : hero.trim() ? "⬆ Replace hero" : "⬆ Upload hero"}
                 </button>
-                <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => handleFiles(e.target.files)} />
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => handleFile(e.target.files)} />
             </div>
             {error && <p className="ar-upload-error">{error}</p>}
         </div>

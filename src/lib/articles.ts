@@ -2,6 +2,7 @@
 import { prisma } from "./prisma";
 import type { Article } from "@/data/articles";
 import type { Prisma } from "@prisma/client";
+import { parseBody } from "./article-body";
 
 const arr = (s: string | null | undefined): string[] => {
     if (!s) return [];
@@ -10,7 +11,7 @@ const arr = (s: string | null | undefined): string[] => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toArticle = (a: any): Article => ({
     id: a.id, slug: a.slug, title: a.title, sourceUrl: a.sourceUrl,
-    date: a.date, image: a.image, body: arr(a.body), hidden: !!a.hidden, tags: arr(a.tags), category: a.category ?? "", gallery: arr(a.gallery),
+    date: a.date, image: a.image, body: parseBody(a.body, arr(a.gallery)), hidden: !!a.hidden, tags: arr(a.tags), category: a.category ?? "", gallery: arr(a.gallery),
 });
 
 // Public lists hide soft-hidden articles.

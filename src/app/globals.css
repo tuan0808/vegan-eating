@@ -23,6 +23,9 @@
   --maxw:1200px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* Text selection — brand orange */
+::selection{background:var(--carrot);color:#fff}
+::-moz-selection{background:var(--carrot);color:#fff}
 html{scroll-behavior:smooth}
 body{
   font-family:'Hanken Grotesk',sans-serif;

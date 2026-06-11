@@ -10,7 +10,8 @@ import HeroTitle from "@/components/HeroTitle";
 import ShareButtons from "./ShareButtons";
 import OtherPosts from "./OtherPosts";
 import NewsletterForm from "./NewsletterForm";
-import ArticleFigure from "./ArticleFigure";
+import ArticleBody from "./ArticleBody";
+import { tiptapText, firstParagraphText } from "@/lib/article-body";
 import "./article-content.css";
 
 function imgSrc(src?: string | null): string | null {
@@ -19,62 +20,9 @@ function imgSrc(src?: string | null): string | null {
     return "/" + src.replace(/^\.?\//, "");
 }
 
-function readingMinutes(body: string[]): number {
-    const words = body.join(" ").trim().split(/\s+/).filter(Boolean).length;
+function readingMinutes(text: string): number {
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
     return Math.max(1, Math.round(words / 220));
-}
-
-// --- Body blocks: drop-cap lead, normal paragraphs, and full-width images
-// woven in — first image directly after paragraph 1, the rest spread evenly
-// downward. Short single-sentence "1-liner" paragraphs become pull-quotes. -----
-type Block =
-    | { kind: "lead"; text: string }
-    | { kind: "para"; text: string }
-    | { kind: "quote"; text: string }
-    | { kind: "imageFull"; src: string };
-
-// A "1-liner": one short sentence on its own — reads like a pull-quote.
-function isOneLiner(text: string): boolean {
-    const t = text.trim();
-    if (!t) return false;
-    const words = t.split(/\s+/).length;
-    const sentences = (t.match(/[.!?](?:\s|$)/g) || []).length;
-    return words <= 16 && sentences <= 1;
-}
-
-function buildArticleBlocks(body: string[], gallery: string[]): Block[] {
-    const blocks: Block[] = [];
-    const imgs = gallery.map((s) => s.trim()).filter(Boolean);
-    const paras = body.map((p) => (p ?? "").trim()).filter(Boolean);
-    const n = paras.length;
-    const m = imgs.length;
-
-    if (n === 0) {
-        imgs.forEach((src) => blocks.push({ kind: "imageFull", src }));
-        return blocks;
-    }
-
-    // Insert image j *after* paragraph index positions[j]. First image goes
-    // right after paragraph 1 (index 0); the rest spread across the article.
-    const positions: number[] = [];
-    for (let j = 0; j < m; j++) {
-        let pos = j === 0 ? 0 : Math.round((j * (n - 1)) / m);
-        if (positions.length) pos = Math.max(pos, positions[positions.length - 1] + 1);
-        positions.push(Math.min(pos, n - 1));
-    }
-
-    let ip = 0;
-    for (let i = 0; i < n; i++) {
-        const text = paras[i];
-        if (i === 0) blocks.push({ kind: "lead", text });
-        else blocks.push(isOneLiner(text) ? { kind: "quote", text } : { kind: "para", text });
-        while (ip < m && positions[ip] === i) {
-            blocks.push({ kind: "imageFull", src: imgs[ip] });
-            ip++;
-        }
-    }
-    while (ip < m) { blocks.push({ kind: "imageFull", src: imgs[ip] }); ip++; }
-    return blocks;
 }
 
 function Rail({ title, items }: { title: string; items: Article[] }) {
@@ -107,7 +55,7 @@ function Rail({ title, items }: { title: string; items: Article[] }) {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
     const a = await getArticleBySlug(params.slug);
     if (!a) return { title: "Article not found — vegan eating" };
-    return { title: `${a.title} — vegan eating`, description: (a.body[0] || "").slice(0, 155) };
+    return { title: `${a.title} — vegan eating`, description: firstParagraphText(a.body).slice(0, 155) };
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
@@ -115,8 +63,8 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     if (!a) notFound();
 
     const img = imgSrc(a.image);
-    const mins = readingMinutes(a.body);
-    const blocks = buildArticleBlocks(a.body, a.gallery ?? []);
+    const bodyText = tiptapText(a.body);
+    const mins = readingMinutes(bodyText);
 
     const [related, popular, recent] = await Promise.all([
         listRelatedArticles(a.category, a.slug, 6),
@@ -131,7 +79,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         headline: a.title,
         image: img ? [img] : undefined,
         datePublished: a.date || undefined,
-        articleBody: a.body.join("\n\n"),
+        articleBody: bodyText,
         mainEntityOfPage: a.sourceUrl || undefined,
         author: { "@type": "Organization", name: "vegan eating" },
         publisher: { "@type": "Organization", name: "vegan eating" },
@@ -173,25 +121,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                     </aside>
 
                     <div>
-                        <div className="article-body">
-                            {blocks.map((b, i) => {
-                                switch (b.kind) {
-                                    case "lead":
-                                        return (
-                                            <p key={i} className="art-lead">
-                                                <span className="art-dropcap">{b.text.charAt(0)}</span>
-                                                {b.text.slice(1)}
-                                            </p>
-                                        );
-                                    case "para":
-                                        return <p key={i} className="art-p">{b.text}</p>;
-                                    case "quote":
-                                        return <blockquote key={i} className="art-quote">{b.text}</blockquote>;
-                                    case "imageFull":
-                                        return <ArticleFigure key={i} src={b.src} className="art-img art-full" sizes="(max-width:1024px) 90vw, 680px" />;
-                                }
-                            })}
-                        </div>
+                        <ArticleBody doc={a.body} />
 
                         <hr className="art-sep" />
 
@@ -216,7 +146,24 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                                     Every guide here is written and edited by the vegan eating team.
                                 </p>
                                 <div className="art-author-links">
-                                    <a href="#">Instagram</a><span>|</span><a href="#">Pinterest</a><span>|</span><a href="#">Newsletter</a>
+                                    <a href="#" aria-label="Instagram">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                            <rect x="3" y="3" width="18" height="18" rx="5" />
+                                            <circle cx="12" cy="12" r="4" />
+                                            <circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none" />
+                                        </svg>
+                                    </a>
+                                    <a href="#" aria-label="Pinterest">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                                            <path d="M12 2C6.5 2 4 5.6 4 8.6c0 1.8.7 3.4 2.2 4 .2.1.4 0 .5-.3l.2-.8c.1-.2 0-.3-.1-.5-.4-.5-.7-1.1-.7-2 0-2.6 1.9-4.9 5-4.9 2.7 0 4.2 1.7 4.2 3.9 0 2.9-1.3 5.4-3.2 5.4-1 0-1.8-.9-1.6-1.9.3-1.3.8-2.6.8-3.5 0-.8-.4-1.5-1.3-1.5-1.1 0-1.9 1.1-1.9 2.6 0 .9.3 1.6.3 1.6s-1.1 4.5-1.3 5.3c-.3 1.4 0 3.1 0 3.3 0 .1.2.2.3.1.1-.1 1.5-1.9 2-3.6l.7-2.7c.4.7 1.4 1.3 2.5 1.3 3.3 0 5.6-3 5.6-7.1C20 5.1 16.7 2 12 2z" />
+                                        </svg>
+                                    </a>
+                                    <a href="#" aria-label="Newsletter">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                            <rect x="3" y="5" width="18" height="14" rx="2" />
+                                            <path d="M3 7l9 6 9-6" />
+                                        </svg>
+                                    </a>
                                 </div>
                             </div>
                         </div>

@@ -68,6 +68,16 @@ npm run build
 npm run start
 ```
 
+To run after updating from home to dev or vice versa:
+```bash
+unset DATABASE_URL
+npx prisma db push
+rm -rf node_modules/.prisma && npx prisma generate
+rm -rf .next
+npm run build
+npm run dev
+```
+
 ---
 
 ## Opening it in WebStorm

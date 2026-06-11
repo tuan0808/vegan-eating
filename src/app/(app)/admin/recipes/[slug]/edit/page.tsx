@@ -7,7 +7,10 @@ import { updateRecipe } from "./actions";
 import RecipeListField from "./RecipeListField";
 import CookAlongField from "./CookAlongField";
 import { RECIPE_CATEGORIES } from "@/lib/categories";
+import DescriptionEditor from "./DescriptionEditor";
+import { parseBody } from "@/lib/article-body";
 import "../../admin-recipes.css";
+import "@/app/(app)/admin/articles/[slug]/edit/article-editor.css";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +65,9 @@ export default async function EditRecipePage({
 
     const saved = searchParams?.saved === "1";
 
+    // Hero + gallery as one list — first image is the hero, the rest is the collage.
+    const galleryList = [recipe.image, ...toArray(recipe.gallery)].filter((s): s is string => !!s && s.trim() !== "");
+
     return (
         <div className="admin-recipes">
             <div className="ar-topline">
@@ -96,11 +102,6 @@ export default async function EditRecipePage({
                     </label>
 
                     <label className="ar-field">
-                        <span>Description</span>
-                        <textarea name="description" rows={3} defaultValue={recipe.description} />
-                    </label>
-
-                    <label className="ar-field">
                         <span>Category</span>
                         <select name="category" defaultValue={recipe.category ?? ""}>
                             <option value="">— None —</option>
@@ -131,31 +132,28 @@ export default async function EditRecipePage({
                             <input name="servings" defaultValue={recipe.servings} />
                         </label>
                     </div>
-
-                    <label className="ar-field">
-                        <span>Image path</span>
-                        <input name="image" defaultValue={recipe.image ?? ""} placeholder="/2025/01/example.jpeg" />
-                    </label>
-                    {recipe.image && (
-                        // Plain img is fine here — admin preview, and the optimizer is off in WSL anyway.
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img className="ar-preview" src={recipe.image} alt="" />
-                    )}
                 </fieldset>
 
-                {/* Gallery */}
+                {/* Description (rich editor) */}
                 <fieldset className="ar-card">
-                    <legend>Gallery</legend>
+                    <legend>Description</legend>
+                    <p className="ar-hint">The “About this recipe” intro. Use the toolbar or “/” for headings, lists, links, and images.</p>
+                    <DescriptionEditor name="description" initial={parseBody(recipe.description)} />
+                </fieldset>
+
+                {/* Gallery (first image = hero) */}
+                <fieldset className="ar-card">
+                    <legend>Photos</legend>
                     <p className="ar-hint">
-                        Extra photos shown on the recipe page. One image path per row — the first row is the lead shot.
+                        The <strong>first image is the hero</strong> (the big banner). The rest appear in the gallery below it. Drag order with ↑ ↓.
                     </p>
                     <RecipeListField
                         name="gallery"
-                        label="Gallery images"
+                        label="Images"
                         noun="image"
                         preview
                         uploadable
-                        initial={toArray(recipe.gallery)}
+                        initial={galleryList}
                         placeholder="/2025/01/photo.jpg"
                     />
                 </fieldset>

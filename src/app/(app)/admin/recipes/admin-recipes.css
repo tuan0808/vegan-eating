@@ -256,14 +256,14 @@
 .ar-qe-field { display: flex; flex-direction: column; gap: 4px; }
 .ar-qe-field > span { font-size: 12px; font-weight: 600; color: var(--ar-muted); }
 .ar-qe-field > span em { font-weight: 400; font-style: italic; opacity: 0.85; }
-.ar-qe-field input, .ar-qe-field textarea {
+.ar-qe-field input, .ar-qe-field textarea, .ar-qe-field select {
     font: inherit; font-size: 0.95rem; color: var(--ar-ink);
     background: var(--ar-field-bg, #fcf9f2);
     border: 1px solid var(--ar-field-border, var(--ar-line));
     border-radius: 9px; padding: 9px 11px;
 }
 .ar-qe-field textarea { resize: vertical; }
-.ar-qe-field input:focus, .ar-qe-field textarea:focus { outline: none; border-color: var(--ar-green); }
+.ar-qe-field input:focus, .ar-qe-field textarea:focus, .ar-qe-field select:focus { outline: none; border-color: var(--ar-green); }
 .ar-qe-wide { grid-column: span 2; }
 .ar-qe-full { grid-column: 1 / -1; }
 .ar-qe-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
@@ -319,7 +319,8 @@
     color: var(--ar-muted);
 }
 .ar-field input,
-.ar-field textarea {
+.ar-field textarea,
+.ar-field select {
     font: inherit;
     color: var(--ar-ink);
     background: var(--ar-field-bg);
@@ -331,7 +332,8 @@
 }
 .ar-field textarea { resize: vertical; line-height: 1.5; }
 .ar-field input:focus,
-.ar-field textarea:focus {
+.ar-field textarea:focus,
+.ar-field select:focus {
     outline: none;
     border-color: var(--ar-green);
     box-shadow: var(--ar-field-shadow), 0 0 0 3px color-mix(in srgb, var(--ar-green) 16%, transparent);
@@ -399,6 +401,16 @@
     box-shadow: var(--ar-field-shadow), 0 0 0 3px color-mix(in srgb, var(--ar-green) 16%, transparent);
 }
 .ca-rowmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ar-img-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.ar-img-main input { flex: 1; min-width: 0; resize: none; }
+.ar-hero-badge {
+    align-self: center;
+    flex: none; white-space: nowrap;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--ar-green); background: color-mix(in srgb, var(--ar-green) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ar-green) 35%, transparent);
+    border-radius: 999px; padding: 2px 9px;
+}
 .ca-stepsel {
     font: inherit;
     color: var(--ar-ink);

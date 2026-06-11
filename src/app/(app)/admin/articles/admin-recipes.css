@@ -401,8 +401,11 @@
     box-shadow: var(--ar-field-shadow), 0 0 0 3px color-mix(in srgb, var(--ar-green) 16%, transparent);
 }
 .ca-rowmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ar-img-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.ar-img-main textarea { flex: 1; min-width: 0; }
 .ar-hero-badge {
-    align-self: flex-start;
+    align-self: center;
+    flex: none; white-space: nowrap;
     font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
     color: var(--ar-green); background: color-mix(in srgb, var(--ar-green) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--ar-green) 35%, transparent);

@@ -48,3 +48,35 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 export async function articleCount(): Promise<number> {
     return prisma.article.count({ where: articleWhere });
 }
+
+// Articles in the same category (the "Related" rails). Falls back to recent
+// visible articles when the current article has no category set.
+export async function listRelatedArticles(category: string, excludeSlug: string, limit = 4): Promise<Article[]> {
+    const where: Prisma.ArticleWhereInput = category
+        ? { hidden: false, category, slug: { not: excludeSlug } }
+        : { hidden: false, slug: { not: excludeSlug } };
+    const rows = await prisma.article.findMany({ where, orderBy: { sort: "asc" }, take: limit });
+    return rows.map(toArticle);
+}
+
+// Most-popular rail. NOTE: there is no view tracking yet, so this is a
+// placeholder ordering by `sort`. Swap the orderBy once a `views` column exists.
+export async function listPopularArticles(excludeSlug: string, limit = 5): Promise<Article[]> {
+    const rows = await prisma.article.findMany({
+        where: { hidden: false, slug: { not: excludeSlug } },
+        orderBy: { sort: "asc" },
+        take: limit,
+    });
+    return rows.map(toArticle);
+}
+
+// Recent visible articles — used as a placeholder for the "More from Author"
+// tab until articles carry a real author field.
+export async function listRecentArticles(excludeSlug: string, limit = 6): Promise<Article[]> {
+    const rows = await prisma.article.findMany({
+        where: { hidden: false, slug: { not: excludeSlug } },
+        orderBy: { date: "desc" },
+        take: limit,
+    });
+    return rows.map(toArticle);
+}

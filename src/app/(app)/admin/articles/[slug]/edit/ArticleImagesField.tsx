@@ -71,11 +71,11 @@ export default function ArticleImagesField({ name, initial }: Props) {
                   <span className="ar-rowthumb-empty">🥕</span>
               )}
             </span>
-                        <div className="ca-rowmain">
+                        <div className="ar-img-main">
                             {i === 0 && <span className="ar-hero-badge">Hero image</span>}
-                            <textarea
+                            <input
                                 className="ar-rowinput"
-                                rows={1}
+                                type="text"
                                 value={src}
                                 placeholder="/uploads/2026/06/photo.jpg"
                                 onChange={(e) => update(i, e.target.value)}

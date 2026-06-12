@@ -1,0 +1,37 @@
+/* src/components/admin/settings.css */
+
+.settings-page { max-width: 720px; }
+
+.settings-head { margin-bottom: 2rem; }
+.settings-eyebrow {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--green);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+}
+.settings-title {
+    font-family: var(--display);
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+    line-height: 1.1;
+}
+.settings-desc { color: var(--muted); margin: 0; line-height: 1.55; }
+
+.settings-section { margin-bottom: 2rem; }
+.settings-section-head { margin-bottom: 1rem; }
+.settings-section-head h2 {
+    font-family: var(--display);
+    font-size: 1.3rem;
+    color: var(--ink);
+    margin: 0 0 0.3rem;
+}
+.settings-section-head p {
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    max-width: 52ch;
+}

@@ -71,7 +71,14 @@ export default function ForumIndex({ categories }: { categories: CategoryBlock[]
                     padding: 8px 28px 90px;
                     display: flex;
                     flex-direction: column;
-                    gap: 28px;
+                    gap: 22px;
+                }
+
+                /* Kill any global <section> margin — the flex gap above is the only
+                   thing that should separate categories. This is what was creating
+                   the oversized gaps. */
+                .cat {
+                    margin: 0;
                 }
 
                 /* ---- Category heading ---- */

@@ -30,7 +30,7 @@ const icoChevRight = I(<path d="M9 6l6 6-6 6" />);
 const ACCOUNT: Item[] = [
     { href: "/dashboard", label: "Dashboard", icon: icoDashboard },
     { label: "My activity", soon: true, icon: icoActivity },
-    { label: "Settings", soon: true, icon: icoSettings },
+    { href: "/settings", label: "Settings", icon: icoSettings },
 ];
 
 const ADMIN: Item[] = [

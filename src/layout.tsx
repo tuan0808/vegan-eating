@@ -1,5 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
+import { isMaintenanceBlocked } from "@/lib/maintenance";
+import MaintenanceScreen from "@/components/maintenance/MaintenanceScreen";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,7 +10,9 @@ export const metadata: Metadata = {
         "Eat green, feel green. Honest, tested vegan recipes for everyday cooking, plus a community to cook them with. No ads, no life story.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    const blocked = await isMaintenanceBlocked();
+
     return (
         <html lang="en">
         <head>
@@ -19,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 rel="stylesheet"
             />
         </head>
-        <body>{children}</body>
+        <body>{blocked ? <MaintenanceScreen /> : children}</body>
         </html>
     );
 }

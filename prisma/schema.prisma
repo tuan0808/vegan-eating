@@ -142,4 +142,7 @@ model Post {
   @@index([threadId, createdAt])
 }
 
-// ======================== COPY TO HERE ========================
+model Setting {
+  key   String @id
+  value String
+}

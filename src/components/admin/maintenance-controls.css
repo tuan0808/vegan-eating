@@ -1,0 +1,102 @@
+/* src/components/admin/maintenance-controls.css */
+
+.mc-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 640px;
+}
+
+.mc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.mc-row-title {
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.15rem;
+}
+.mc-row-sub { font-size: 0.88rem; color: var(--muted); }
+
+/* Switch */
+.mc-switch {
+    position: relative;
+    width: 52px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.18s ease, border-color 0.18s ease;
+    flex: none;
+}
+.mc-switch.on {
+    background: var(--green);
+    border-color: var(--green);
+}
+.mc-switch:disabled { opacity: 0.6; cursor: default; }
+.mc-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 1px 3px rgba(30, 27, 22, 0.25);
+    transition: transform 0.18s ease;
+}
+.mc-switch.on .mc-knob { transform: translateX(22px); }
+
+/* Fields */
+.mc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.mc-field > span {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+.mc-field input,
+.mc-field textarea {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    color: var(--ink);
+    font: inherit;
+    resize: vertical;
+}
+.mc-field input:focus,
+.mc-field textarea:focus {
+    outline: none;
+    border-color: var(--green);
+}
+
+.mc-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+.mc-save {
+    background: var(--green);
+    color: var(--card);
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+.mc-save:disabled { opacity: 0.65; cursor: default; }
+.mc-saved { font-size: 0.85rem; color: var(--muted); }

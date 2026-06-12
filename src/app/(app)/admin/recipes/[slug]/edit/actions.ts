@@ -27,6 +27,18 @@ function str(value: FormDataEntryValue | null): string {
     return typeof value === "string" ? value.trim() : "";
 }
 
+/** The description now arrives as a Tiptap JSON doc — store it verbatim, guard against junk. */
+function bodyJson(value: FormDataEntryValue | null): string {
+    const empty = JSON.stringify({ type: "doc", content: [] });
+    if (typeof value !== "string" || !value.trim()) return empty;
+    try {
+        JSON.parse(value);
+        return value;
+    } catch {
+        return empty;
+    }
+}
+
 /** Validate the cook-along payload: a JSON array of { src, step } — re-stringified clean. */
 function cookalongJson(value: FormDataEntryValue | null): string {
     if (typeof value !== "string") return "[]";
@@ -53,16 +65,22 @@ export async function updateRecipe(formData: FormData) {
     const slug = str(formData.get("slug"));
     if (!slug) throw new Error("Missing recipe slug.");
 
+    // One uploader drives both: the FIRST image is the hero, the rest is the gallery collage.
+    // (RecipeListField submits newline-joined values, so we read it through lines().)
+    const imgs = lines(formData.get("gallery"));
+    const heroImage = imgs[0] ?? null;
+    const galleryRest = JSON.stringify(imgs.slice(1));
+
     await prisma.recipe.update({
         where: { slug },
         data: {
             title: str(formData.get("title")),
-            description: str(formData.get("description")),
+            description: bodyJson(formData.get("description")), // Tiptap JSON doc
             recipeType: str(formData.get("recipeType")),
             category: str(formData.get("category")),
             author: str(formData.get("author")),
             date: str(formData.get("date")),
-            image: str(formData.get("image")) || null,
+            image: heroImage,        // first uploaded image
             servings: str(formData.get("servings")),
             prepTime: intOrNull(formData.get("prepTime")),
             cookTime: intOrNull(formData.get("cookTime")),
@@ -71,7 +89,7 @@ export async function updateRecipe(formData: FormData) {
             // list fields are JSON strings — SQLite has no array type
             ingredients: JSON.stringify(lines(formData.get("ingredients"))),
             steps: JSON.stringify(lines(formData.get("steps"))),
-            gallery: JSON.stringify(lines(formData.get("gallery"))),
+            gallery: galleryRest,    // everything after the hero
             cookalong: cookalongJson(formData.get("cookalong")),
             courses: JSON.stringify(lines(formData.get("courses"))),
             seasons: JSON.stringify(lines(formData.get("seasons"))),

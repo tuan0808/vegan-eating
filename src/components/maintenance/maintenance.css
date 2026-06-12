@@ -1,85 +1,84 @@
 /* src/components/maintenance/maintenance.css */
 
 .mnt {
+    position: relative;
     min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    overflow: hidden;
+    background: var(--paper);
+}
+
+/* ── Full-viewport background image ──────────────────────────────────
+   PLACEHOLDER: warm oat gradient.
+   TO INSERT YOUR IMAGE: drop a file at  public/maintenance-bg.jpg
+   then replace the line below with:  background-image: url("/maintenance-bg.jpg");
+*/
+.mnt-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: linear-gradient(160deg, #e9e4d6 0%, #d6cfbd 55%, #cfc7b2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Tonal scrim above the image, below the content — like the hero overlays.
+   Drop or raise these alphas to taste. */
+.mnt-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(28, 35, 23, 0.28) 0%, rgba(28, 35, 23, 0.52) 100%);
 }
 
 .mnt-card {
+    position: relative;
+    z-index: 2;
     width: 100%;
-    max-width: 560px;
+    max-width: 540px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 3rem 2.5rem;
-    box-shadow: 0 24px 60px rgba(30, 27, 22, 0.08);
-    text-align: left;
+    border-radius: 24px;
+    padding: 3.25rem 3rem 2.75rem;
+    box-shadow: 0 30px 70px rgba(20, 18, 12, 0.28);
+    text-align: center;
+    animation: mnt-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
-.mnt-mark {
-    font-family: var(--display);
-    font-size: 1.05rem;
-    letter-spacing: 0.02em;
-    color: var(--green);
-    margin: 0 0 1.75rem;
-}
+/* sprout */
+.mnt-sprout { width: 58px; height: 64px; margin: 0 auto 1.1rem; display: block; transform-origin: 50% 100%; animation: mnt-grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both; }
+.mnt-stem { stroke: var(--green); stroke-width: 2.2; stroke-linecap: round; }
+.mnt-leafshape { stroke: var(--green); stroke-width: 1.8; fill: rgba(91, 107, 63, 0.12); stroke-linejoin: round; }
+.mnt-seed { fill: var(--terra); }
 
-.mnt-title {
-    font-family: var(--display);
-    font-size: clamp(1.9rem, 4vw, 2.6rem);
-    line-height: 1.1;
-    color: var(--ink);
-    margin: 0 0 1rem;
-}
+.mnt-mark { font-family: var(--display); font-size: 1rem; color: var(--green); margin: 0 0 1.5rem; }
+.mnt-mark span { margin-right: 3px; }
 
-.mnt-copy {
-    font-size: 1.02rem;
-    line-height: 1.6;
-    color: var(--muted);
-    margin: 0 0 2.25rem;
-    max-width: 44ch;
-}
+.mnt-title { font-family: var(--display); font-style: italic; font-weight: 500; font-size: clamp(1.9rem, 4.5vw, 2.6rem); line-height: 1.12; color: var(--ink); margin: 0 0 0.9rem; }
 
-.mnt-clock {
-    display: flex;
-    gap: 0.75rem;
-    margin: 0 0 1.25rem;
-}
+.mnt-copy { font-size: 1.02rem; line-height: 1.6; color: var(--muted); margin: 0 auto 2.25rem; max-width: 40ch; }
 
-.mnt-cell {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 1rem 0.5rem;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-}
+.mnt-clock { display: flex; gap: 0.6rem; justify-content: center; margin: 0 0 0.9rem; }
+.mnt-cell { flex: 1; max-width: 88px; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.85rem 0.4rem; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
+.mnt-num { font-family: var(--display); font-size: clamp(1.5rem, 5vw, 2rem); font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1; }
+.mnt-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.mnt-eta { font-size: 0.9rem; color: var(--muted); margin: 0; }
+.mnt-back { font-family: var(--display); font-style: italic; font-size: 1.3rem; color: var(--green); margin: 0; }
 
-.mnt-num {
-    font-family: var(--display);
-    font-size: clamp(1.6rem, 5vw, 2.2rem);
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    line-height: 1;
-}
+.mnt-tag { font-family: var(--display); font-style: italic; font-size: 0.95rem; color: var(--muted); margin: 1.9rem 0 0; padding-top: 1.5rem; border-top: 1px solid var(--line); }
 
-.mnt-label {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-}
-
-.mnt-eta { font-size: 0.92rem; color: var(--muted); margin: 0; }
-.mnt-back { font-family: var(--display); font-size: 1.3rem; color: var(--green); margin: 0; }
+@keyframes mnt-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mnt-grow { from { opacity: 0; transform: scaleY(0.6) translateY(6px); } to { opacity: 1; transform: scaleY(1) translateY(0); } }
 
 @media (max-width: 480px) {
-    .mnt-card { padding: 2.25rem 1.5rem; }
-    .mnt-clock { gap: 0.5rem; }
+    .mnt-card { padding: 2.5rem 1.6rem 2rem; border-radius: 20px; }
+    .mnt-clock { gap: 0.45rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mnt-card, .mnt-sprout { animation: none; }
 }

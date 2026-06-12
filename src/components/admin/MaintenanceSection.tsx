@@ -1,5 +1,6 @@
 // src/components/admin/MaintenanceSection.tsx
 import MaintenanceControls from "./MaintenanceControls";
+import MaintenanceBgUploader from "./MaintenanceBgUploader";
 import { getMaintenance } from "@/lib/maintenance";
 import "./settings.css";
 
@@ -16,6 +17,7 @@ export default async function MaintenanceSection() {
                 </p>
             </div>
             <MaintenanceControls initial={state} />
+            <MaintenanceBgUploader />
         </section>
     );
 }

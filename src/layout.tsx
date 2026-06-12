@@ -1,6 +1,5 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
-import { isMaintenanceBlocked } from "@/lib/maintenance";
+import { isMaintenanceBlocked, getMaintenance } from "@/lib/maintenance";
 import MaintenanceScreen from "@/components/maintenance/MaintenanceScreen";
 import "./globals.css";
 
@@ -11,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    const state = await getMaintenance();
     const blocked = await isMaintenanceBlocked();
 
     return (

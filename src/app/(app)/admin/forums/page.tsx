@@ -42,7 +42,7 @@ export default async function ForumAdminPage({
     return (
         <div style={{ maxWidth: "none", paddingRight: 40 }}>
 
-        <p style={kicker}>Admin · Forums</p>
+            <p style={kicker}>Admin · Forums</p>
             <h1 style={h1}>Categories &amp; boards</h1>
             <p style={{ color: "var(--muted,#6b7264)", marginTop: 8 }}>
                 Add, rename, reorder, or remove the structure of the forum. Changes show on the public board right away.
@@ -92,7 +92,7 @@ export default async function ForumAdminPage({
                         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                             {cat.forums.map((f) => (
                                 <div key={f.id} style={boardRow}>
-                                    <form action={updateForum} style={{ display: "flex", gap: 8, flex: 1 }}>
+                                    <form action={updateForum} style={{ display: "flex", gap: 8, flex: 1, alignItems: "center" }}>
                                         <input type="hidden" name="id" value={f.id} />
                                         <input name="name" defaultValue={f.name} style={input} />
                                         <input
@@ -101,6 +101,14 @@ export default async function ForumAdminPage({
                                             placeholder="Description"
                                             style={{ ...input, flex: 2 }}
                                         />
+                                        <label style={permLabel} title="Who can post in this board">
+                                            <span style={{ opacity: 0.7 }}>Post:</span>
+                                            <select name="postMinRole" defaultValue={f.postMinRole} style={select}>
+                                                <option value="MEMBER">Everyone</option>
+                                                <option value="MODERATOR">Mods &amp; admins</option>
+                                                <option value="ADMIN">Admins only</option>
+                                            </select>
+                                        </label>
                                         <button style={btnGhost}>Save</button>
                                     </form>
                                     <span style={countTag}>{f._count.threads} threads</span>
@@ -123,6 +131,14 @@ export default async function ForumAdminPage({
                                 <input type="hidden" name="categoryId" value={cat.id} />
                                 <input name="name" placeholder="New board name" required style={input} />
                                 <input name="description" placeholder="Description (optional)" style={{ ...input, flex: 2 }} />
+                                <label style={permLabel} title="Who can post in this board">
+                                    <span style={{ opacity: 0.7 }}>Post:</span>
+                                    <select name="postMinRole" defaultValue="MEMBER" style={select}>
+                                        <option value="MEMBER">Everyone</option>
+                                        <option value="MODERATOR">Mods &amp; admins</option>
+                                        <option value="ADMIN">Admins only</option>
+                                    </select>
+                                </label>
                                 <button style={btnPrimary}>Add board</button>
                             </form>
                         </div>
@@ -162,3 +178,5 @@ const btnPrimary: React.CSSProperties = { border: "none", borderRadius: 999, pad
 const btnGhost: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 999, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: "transparent", color: "var(--ink,#1c2317)", cursor: "pointer" };
 const btnDanger: React.CSSProperties = { border: "1px solid rgba(194,96,58,0.4)", borderRadius: 999, padding: "8px 12px", fontSize: 13, fontWeight: 600, background: "transparent", color: "#9a3f1f", cursor: "pointer" };
 const btnArrow: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 8, width: 30, height: 30, fontSize: 14, background: "#fff", color: "var(--ink,#1c2317)", cursor: "pointer" };
+const select: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 8, padding: "7px 8px", fontSize: 13, background: "#fff", color: "var(--ink,#1c2317)", cursor: "pointer" };
+const permLabel: React.CSSProperties = { display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--muted,#6b7264)", whiteSpace: "nowrap" };

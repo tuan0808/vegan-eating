@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import type { ThreadView as ThreadViewType } from "@/lib/forum";
 import RichEditor from "@/components/RichEditor";
 import ReplyError from "@/components/ReplyError";
+import SubmitTimer from "@/components/SubmitTimer";
 
 type Action = (formData: FormData) => Promise<void>;
 
@@ -153,7 +154,7 @@ export default function ThreadView({
                                                     <form action={lockAction} className="tool-form">
                                                         {slugFields}
                                                         <button type="submit" className="tool">
-                                                            {Icon.lock} {view.locked ? "Reopen" : "Close"}
+                                                            {Icon.lock} {view.locked ? "Unlock" : "Lock"}
                                                         </button>
                                                     </form>
                                                 </>
@@ -203,6 +204,7 @@ export default function ThreadView({
                             <input type="text" name="website" tabIndex={-1} autoComplete="off" />
                         </label>
                     </div>
+                    <SubmitTimer />
                     <label className="reply-label">Leave a reply</label>
                     <RichEditor name="body" placeholder="Write your reply…" />
                     <div className="reply-actions">

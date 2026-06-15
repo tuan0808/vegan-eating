@@ -1,7 +1,7 @@
 // src/components/CommentForm.tsx
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
 import { createComment } from '@/app/actions/comments'
 import type { CommentTarget, CommentFormState } from '@/lib/comments'
@@ -19,21 +19,21 @@ function SubmitButton({ compact }: { compact: boolean }) {
                 {pending ? 'Posting…' : compact ? 'Reply' : 'Post comment'}
             </button>
             <style jsx>{`
-        .submit {
-          align-self: flex-start;
-          background: var(--green);
-          color: var(--paper);
-          border: none;
-          border-radius: 999px;
-          padding: 0.5rem 1.3rem;
-          font-size: 0.9rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: opacity 0.15s ease;
-        }
-        .submit:hover { opacity: 0.88; }
-        .submit:disabled { opacity: 0.55; cursor: default; }
-      `}</style>
+                .submit {
+                    align-self: flex-start;
+                    background: var(--green);
+                    color: var(--paper);
+                    border: none;
+                    border-radius: 999px;
+                    padding: 0.5rem 1.3rem;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: opacity 0.15s ease;
+                }
+                .submit:hover { opacity: 0.88; }
+                .submit:disabled { opacity: 0.55; cursor: default; }
+            `}</style>
         </>
     )
 }
@@ -44,6 +44,7 @@ interface CommentFormProps {
     parentId?: string | null
     onPosted?: () => void
     compact?: boolean
+    withRating?: boolean
 }
 
 export default function CommentForm({
@@ -52,13 +53,21 @@ export default function CommentForm({
                                         parentId = null,
                                         onPosted,
                                         compact = false,
+                                        withRating = false,
                                     }: CommentFormProps) {
     const [state, formAction] = useFormState(createComment, initialState)
     const formRef = useRef<HTMLFormElement>(null)
+    const [score, setScore] = useState(0)
+    const [hover, setHover] = useState(0)
+
+    // Stars only make sense on a top-level comment for a ratable target (recipes).
+    const showRating = withRating && !parentId
 
     useEffect(() => {
         if (state.success) {
             formRef.current?.reset()
+            setScore(0)
+            setHover(0)
             onPosted?.()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,6 +79,30 @@ export default function CommentForm({
             {'articleId' in target && <input type="hidden" name="articleId" value={target.articleId} />}
             {parentId && <input type="hidden" name="parentId" value={parentId} />}
             <input type="hidden" name="path" value={path} />
+
+            {showRating && (
+                <div className="rate">
+                    <span className="rate-label">Your rating</span>
+                    <div className="stars" role="radiogroup" aria-label="Your rating">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                            <button
+                                key={n}
+                                type="button"
+                                className={`star ${n <= (hover || score) ? 'on' : ''}`}
+                                aria-label={`${n} star${n === 1 ? '' : 's'}`}
+                                aria-pressed={score === n}
+                                onMouseEnter={() => setHover(n)}
+                                onMouseLeave={() => setHover(0)}
+                                onClick={() => setScore((s) => (s === n ? 0 : n))}
+                            >
+                                ★
+                            </button>
+                        ))}
+                        <span className="rate-opt">optional</span>
+                    </div>
+                    <input type="hidden" name="rating" value={score || ''} />
+                </div>
+            )}
 
             {/* No name field — identity comes from the signed-in account, server-side. */}
             <textarea
@@ -110,6 +143,22 @@ export default function CommentForm({
                     border-color: var(--green);
                 }
                 .body { resize: vertical; line-height: 1.5; }
+                .rate { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+                .rate-label { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+                .stars { display: inline-flex; align-items: center; gap: 0.1rem; }
+                .star {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0 0.05rem;
+                    font-size: 1.45rem;
+                    line-height: 1;
+                    color: var(--line);
+                    transition: color 0.12s ease, transform 0.12s ease;
+                }
+                .star:hover { transform: scale(1.1); }
+                .star.on { color: #e0a23b; }
+                .rate-opt { font-size: 0.78rem; color: var(--muted); margin-left: 0.4rem; }
                 .err {
                     color: var(--terra);
                     font-size: 0.85rem;

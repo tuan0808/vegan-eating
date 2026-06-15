@@ -15,7 +15,10 @@ import Comments from "@/components/Comments";
 import RecipeViews from "@/components/RecipeViews";
 import ArticleBody from "@/app/(site)/articles/[slug]/ArticleBody";
 import { parseBody, tiptapText } from "@/lib/article-body";
+import RecipeCardActions from "@/components/kitchen/RecipeCardActions";
+import { savedRecipeIds } from "@/lib/kitchen";
 import "@/app/(site)/articles/[slug]/article-content.css";
+import "@/styles/kitchen.css";
 
 // First sentence of the description — for the hero blurb.
 function firstSentence(text?: string | null): string {
@@ -55,6 +58,9 @@ export default async function RecipePage({
   const views = await viewSummary("recipe", r.id);
   const session = await auth();
   const viewerKey = session?.user?.id ?? session?.user?.email ?? "anon";
+  const userId = session?.user?.id ?? null;
+  const savedSet = userId ? await savedRecipeIds(userId, [r.id]) : new Set<string>();
+  const isSaved = savedSet.has(r.id);
   const timing = [
     r.prepTime ? `${r.prepTime} min prep` : null,
     r.cookTime ? `${r.cookTime} min cook` : null,
@@ -94,6 +100,9 @@ export default async function RecipePage({
               {r.allergens.length ? <span>🏷 <b>{r.allergens.slice(0, 3).join(", ")}</b></span> : null}
             </div>
             <RecipeViews kind="recipe" slug={r.slug} count={views.count} initials={views.initials} viewerKey={viewerKey} log />
+            <div style={{ marginTop: 18 }}>
+              <RecipeCardActions recipeId={r.id} initialSaved={isSaved} />
+            </div>
           </div>
         </section>
 
@@ -122,7 +131,6 @@ export default async function RecipePage({
               {r.courses.length > 0 && (
                   <p style={{ marginTop: 30, fontSize: 14, color: "var(--muted)" }}>Courses: {r.courses.map((c) => titleCase(c)).join(", ")}</p>
               )}
-
 
               <Comments
                   target={{ recipeId: r.id }}

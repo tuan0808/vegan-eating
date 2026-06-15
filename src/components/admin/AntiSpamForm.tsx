@@ -52,6 +52,35 @@ export default function AntiSpamForm({ config }: { config: AntiSpamConfig }) {
                 </label>
             </div>
 
+            <p className="as-form-head as-form-head--spaced">New accounts &amp; content</p>
+
+            <div className="as-grid">
+                <label>
+                    <span>Probation window <em>(hours)</em></span>
+                    <input type="number" name="probationHours" min={0} max={720} defaultValue={config.probationHours} />
+                </label>
+                <label>
+                    <span>Probation posts per hour</span>
+                    <input type="number" name="probationHourly" min={1} max={1000} defaultValue={config.probationHourly} />
+                </label>
+                <label>
+                    <span>Links allowed — new accounts</span>
+                    <input type="number" name="probationMaxLinks" min={0} max={50} defaultValue={config.probationMaxLinks} />
+                </label>
+                <label>
+                    <span>Links allowed — established</span>
+                    <input type="number" name="trustedMaxLinks" min={0} max={50} defaultValue={config.trustedMaxLinks} />
+                </label>
+                <label>
+                    <span>Minimum submit time <em>(seconds)</em></span>
+                    <input type="number" name="minSubmitSec" min={0} max={120} defaultValue={config.minSubmitSec} />
+                </label>
+                <label>
+                    <span>Hold first N posts for review <em>(0 = off)</em></span>
+                    <input type="number" name="holdFirstN" min={0} max={20} defaultValue={config.holdFirstN} />
+                </label>
+            </div>
+
             <div className="as-form-foot">
                 <SaveButton />
                 {flash?.message ? (

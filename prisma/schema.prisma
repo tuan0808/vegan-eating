@@ -33,6 +33,9 @@ model Recipe {
   image       String?
   gallery     String    @default("[]")
   comments    Comment[]
+  bookmarks     Bookmark[]
+  ratings       Rating[]
+  shoppingItems ShoppingItem[]
   cookalong   String    @default("[]")
   ph          String
   sort        Int       @default(0)
@@ -72,16 +75,30 @@ model User {
   name          String?
   avatarUrl     String?
   bio           String?
+  // --- public profile, all opt-in ---
+  location      String?
+  website       String?
+  showActivity  Boolean   @default(true) // show thread/post stats + recent threads on public profile
   emailVerified DateTime?
   signupIp      String?
   role          String    @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
   banned        Boolean   @default(false)
   createdAt     DateTime  @default(now())
+  onboardedAt   DateTime? // set when they read the welcome thread; gates posting
 
   emailTokens EmailVerificationToken[]
   comments    Comment[]
   threads     Thread[]
   posts       Post[]
+
+  // --- direct messaging ---
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  // --- recipe interactions ---
+  bookmarks     Bookmark[]
+  ratings       Rating[]
+  shoppingItems ShoppingItem[]
 
   @@index([signupIp])
 }
@@ -109,6 +126,7 @@ model Forum {
   name        String
   slug        String
   description String?
+  postMinRole String   @default("MEMBER") // MEMBER | MODERATOR | ADMIN — min role to post here
   position    Int      @default(0)
   createdAt   DateTime @default(now())
 
@@ -148,6 +166,7 @@ model Post {
   threadId  String
   authorId  String
   body      String
+  status    String    @default("APPROVED") // APPROVED | PENDING
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   editedAt  DateTime?
@@ -158,6 +177,7 @@ model Post {
   author User   @relation(fields: [authorId], references: [id])
 
   @@index([threadId, createdAt])
+  @@index([status])
 }
 
 model Setting {
@@ -170,6 +190,7 @@ model Comment {
   body       String
   authorName String
   status     String @default("APPROVED") // APPROVED | HIDDEN | SPAM
+  rating     Int?   // 1..5 when this comment is also a recipe review; null = plain comment
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -213,6 +234,26 @@ model EmailVerificationToken {
 
   @@index([userId])
 }
+
+// Direct messages between two users. Flat table — a "conversation" is just
+// the set of rows between two userIds, grouped in the query layer. Keeps the
+// inbox simple; no separate Conversation table to maintain.
+model Message {
+  id          String    @id @default(cuid())
+  senderId    String
+  recipientId String
+  body        String
+  readAt      DateTime? // null = unread by the recipient
+  createdAt   DateTime  @default(now())
+
+  sender    User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt]) // unread badge
+  @@index([senderId])
+  @@index([createdAt])
+}
+
 model ItemView {
   id       String   @id @default(cuid())
   kind     String   // "recipe" | "article"
@@ -224,6 +265,7 @@ model ItemView {
   @@unique([kind, itemId, userId])
   @@index([kind, itemId])
 }
+
 model RecipeSubmission {
   id         String   @id @default(cuid())
   title      String
@@ -241,4 +283,58 @@ model RecipeSubmission {
   threadSlug String?  // set on approval — links back to the created thread
   reviewedAt DateTime?
   recipeSlug String?  // set when promoted into the Recipe library
+}
+
+// ======================== RECIPE INTERACTIONS ========================
+
+// Saved / bookmarked recipes. One row per (user, recipe).
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  recipeId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@index([userId, createdAt])
+}
+
+// A star rating (1–5) with an optional written review. One per (user, recipe),
+// editable — re-rating updates the existing row.
+model Rating {
+  id        String   @id @default(cuid())
+  userId    String
+  recipeId  String
+  score     Int // 1..5
+  review    String? // optional written review
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@index([recipeId])
+  @@index([userId, createdAt])
+}
+
+// One line on a member's shopping list. Items carry the recipe they came from
+// (denormalised title too) so the list groups nicely and survives recipe edits.
+// recipeId null = a manually added item.
+model ShoppingItem {
+  id          String   @id @default(cuid())
+  userId      String
+  text        String
+  recipeId    String?
+  recipeTitle String?
+  checked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([userId, checked])
+  @@index([userId, recipeId])
 }

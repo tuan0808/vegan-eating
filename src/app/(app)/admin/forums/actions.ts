@@ -15,6 +15,12 @@ function slugify(s: string) {
     return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
+const ROLES = ["MEMBER", "MODERATOR", "ADMIN"];
+function normRole(v: unknown): string {
+    const s = String(v ?? "MEMBER");
+    return ROLES.includes(s) ? s : "MEMBER";
+}
+
 async function uniqueCategorySlug(base: string) {
     let slug = base || "category";
     let n = 2;
@@ -105,6 +111,7 @@ export async function createForum(formData: FormData) {
             name,
             slug: await uniqueForumSlug(categoryId, slugify(name)),
             description,
+            postMinRole: normRole(formData.get("postMinRole")),
             position: (max._max.position ?? -1) + 1,
         },
     });
@@ -117,7 +124,10 @@ export async function updateForum(formData: FormData) {
     const name = String(formData.get("name") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim() || null;
     if (!id || !name) done("name");
-    await prisma.forum.update({ where: { id }, data: { name, description } });
+    await prisma.forum.update({
+        where: { id },
+        data: { name, description, postMinRole: normRole(formData.get("postMinRole")) },
+    });
     done();
 }
 

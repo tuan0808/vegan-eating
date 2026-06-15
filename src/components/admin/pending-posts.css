@@ -1,0 +1,121 @@
+/* src/components/admin/pending-posts.css */
+.pp-panel {
+    background: var(--card, #fff);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 16px;
+    padding: 22px 24px;
+}
+.pp-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.pp-title {
+    font-family: var(--display, "Fraunces", serif);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink, #1c2317);
+    margin: 0;
+}
+.pp-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--terra, #c2603a);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+.pp-empty {
+    color: var(--muted, #6b7264);
+    font-size: 14px;
+    margin: 0;
+}
+.pp-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.pp-item {
+    border: 1px solid var(--line, #ece9de);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #faf8f1;
+}
+.pp-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted, #6b7264);
+    margin-bottom: 8px;
+}
+.pp-author {
+    font-weight: 700;
+    color: var(--ink, #1c2317);
+}
+.pp-new {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--terra, #c2603a);
+    border: 1px solid var(--terra, #c2603a);
+    border-radius: 999px;
+    padding: 1px 8px;
+}
+.pp-dot {
+    opacity: 0.5;
+}
+.pp-thread {
+    color: var(--green, #5b6b3f);
+    text-decoration: none;
+    font-weight: 600;
+}
+.pp-thread:hover {
+    text-decoration: underline;
+}
+.pp-body {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink, #2a2f24);
+    margin: 0 0 12px;
+}
+.pp-actions {
+    display: flex;
+    gap: 10px;
+}
+.pp-actions form {
+    margin: 0;
+}
+.pp-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 7px 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+.pp-btn.approve {
+    background: var(--green, #5b6b3f);
+    color: #fff;
+}
+.pp-btn.reject {
+    background: transparent;
+    color: var(--muted, #6b7264);
+    border: 1px solid var(--line, #ddd9cd);
+}
+.pp-btn.reject:hover {
+    color: #b23b1e;
+    border-color: #e7c3b6;
+}

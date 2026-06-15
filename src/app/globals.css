@@ -203,6 +203,11 @@ section{padding:74px 0}
 .thread .t-meta{font-size:13px;color:var(--muted)}
 .thread .t-stats{text-align:right;font-size:13px;color:var(--muted);white-space:nowrap}
 .thread .t-stats b{display:block;font-family:'Fraunces',serif;font-size:20px;color:var(--ink);line-height:1}
+/* board thread rows (ThreadList) — same hover feel as the home .thread cards */
+.thread-row{border-radius:14px;transition:background .16s ease,box-shadow .16s ease,transform .16s ease}
+.thread-row .title{transition:color .16s ease}
+.thread-row:hover{background:var(--card,#fffdf7);box-shadow:0 12px 30px -16px rgba(28,35,23,.4);transform:translateY(-1px)}
+.thread-row:hover .title{color:var(--terra)}
 
 /* CONTRIBUTORS */
 .cooks{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}

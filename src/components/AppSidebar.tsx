@@ -17,6 +17,8 @@ const I = (d: ReactNode) => (
 );
 const icoDashboard = I(<><rect x="3" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" /></>);
 const icoActivity = I(<path d="M3 12h3.5l2.5 7 4-15 2.5 8H21" />);
+const icoMessages = I(<><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></>);
+const icoCart = I(<><circle cx="9" cy="20" r="1.1" /><circle cx="18" cy="20" r="1.1" /><path d="M2 3h3l2.3 12.2a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L21 7H6" /></>);
 const icoSettings = I(<><circle cx="12" cy="12" r="3.2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>);
 const icoMembers = I(<><circle cx="9.5" cy="8" r="3.2" /><path d="M3 20c0-3.6 2.9-6.5 6.5-6.5S16 16.4 16 20" /><path d="M16 5.5a3 3 0 0 1 0 5.6" /><path d="M21 20c0-2.6-1.6-4.8-3.8-5.7" /></>);
 const icoRecipes = I(<><path d="M4 5a2 2 0 0 1 2-2h6v16H6a2 2 0 0 0-2 2V5Z" /><path d="M20 5a2 2 0 0 0-2-2h-6v16h6a2 2 0 0 1 2 2V5Z" /></>);
@@ -24,13 +26,16 @@ const icoArticles = I(<><path d="M6 3h9l4 4v14H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
 const icoForums = I(<path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20.5l1.9-5.4A8 8 0 1 1 21 11.5Z" />);
 const icoModeration = I(<path d="M12 3l7 3v5c0 4.6-3 8.5-7 9.8C8 19.5 5 15.6 5 11V6l7-3Z" />);
 const icoSecurity = I(<><rect x="4.5" y="10.5" width="15" height="9" rx="2" /><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" /><path d="M12 14v2" /></>);
+const icoMaintenance = I(<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />);
 const icoBack = I(<path d="M19 12H5M11 6l-6 6 6 6" />);
 const icoChevLeft = I(<path d="M15 6l-6 6 6 6" />);
 const icoChevRight = I(<path d="M9 6l6 6-6 6" />);
 
 const ACCOUNT: Item[] = [
     { href: "/dashboard", label: "Dashboard", icon: icoDashboard },
-    { label: "My activity", soon: true, icon: icoActivity },
+    { href: "/activity", label: "My activity", icon: icoActivity },
+    { href: "/messages", label: "Messages", icon: icoMessages },
+    { href: "/shopping-list", label: "Shopping list", icon: icoCart },
     { href: "/settings", label: "Settings", icon: icoSettings },
 ];
 
@@ -41,6 +46,7 @@ const ADMIN: Item[] = [
     { href: "/admin/forums", label: "Forums", icon: icoForums },
     { href: "/admin/comments", label: "Moderation", icon: icoModeration },
     { href: "/admin/security", label: "Security", icon: icoSecurity },
+    { href: "/admin/maintenance", label: "Maintenance", icon: icoMaintenance },
 ];
 
 export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {

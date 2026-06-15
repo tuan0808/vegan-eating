@@ -1,5 +1,5 @@
 // src/components/Comments.tsx
-import { getComments, type CommentTarget } from '@/lib/comments'
+import { getComments, getRatingSummary, type CommentTarget } from '@/lib/comments'
 import { auth } from '@/auth'
 import CommentForm from './CommentForm'
 import CommentItem from './CommentItem'
@@ -12,21 +12,41 @@ interface CommentsProps {
 }
 
 export default async function Comments({ target, path, page = 1 }: CommentsProps) {
-    const [{ comments, total, totalPages, page: current }, session] = await Promise.all([
+    const [{ comments, total, totalPages, page: current }, session, rating] = await Promise.all([
         getComments(target, page),
         auth(),
+        getRatingSummary(target),
     ])
     const canComment = !!session?.user?.id
+    const isRecipe = 'recipeId' in target
     const loginHref = `/login?callbackUrl=${encodeURIComponent(`${path}#comments`)}`
+    const rounded = Math.round(rating.average)
 
     return (
         <section id="comments" className="comments">
             <h2 className="title">
-                {total === 0 ? 'Comments' : `${total} comment${total === 1 ? '' : 's'}`}
+                {isRecipe ? 'Reviews & comments' : total === 0 ? 'Comments' : `${total} comment${total === 1 ? '' : 's'}`}
             </h2>
 
+            {isRecipe && (
+                <div style={{ margin: '-2px 0 16px', fontSize: '0.95rem', color: 'var(--muted)' }}>
+                    {rating.count > 0 ? (
+                        <span>
+                            <span style={{ color: '#e0a23b', letterSpacing: '1px' }} aria-hidden="true">
+                                {'★'.repeat(rounded)}
+                                <span style={{ color: 'var(--line)' }}>{'★'.repeat(5 - rounded)}</span>
+                            </span>{' '}
+                            <b style={{ color: 'var(--ink)' }}>{rating.average.toFixed(1)}</b> · {rating.count} rating
+                            {rating.count === 1 ? '' : 's'}
+                        </span>
+                    ) : (
+                        'No ratings yet — be the first.'
+                    )}
+                </div>
+            )}
+
             {canComment ? (
-                <CommentForm target={target} path={path} />
+                <CommentForm target={target} path={path} withRating={isRecipe} />
             ) : (
                 <div className="signin">
                     <p>Join the conversation — sign in to leave a comment.</p>

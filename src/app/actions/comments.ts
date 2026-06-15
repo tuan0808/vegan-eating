@@ -59,9 +59,18 @@ export async function createComment(
         if (!parent) return { error: 'That comment no longer exists.', success: false }
     }
 
+    // A "review" is a comment that carries 1–5 stars. Only recipes can be rated,
+    // and only at the top level (replies can't be reviews). Anything else → null.
+    let rating: number | null = null
+    const ratingRaw = formData.get('rating')
+    if ('recipeId' in target && !parentId && ratingRaw != null && String(ratingRaw) !== '') {
+        const n = Number(ratingRaw)
+        if (Number.isInteger(n) && n >= 1 && n <= 5) rating = n
+    }
+
     try {
         await prisma.comment.create({
-            data: { body, authorName, userId, ipAddress: ip, userAgent, parentId, ...target },
+            data: { body, authorName, userId, ipAddress: ip, userAgent, parentId, rating, ...target },
         })
     } catch {
         return { error: 'Could not post your comment. Try again.', success: false }

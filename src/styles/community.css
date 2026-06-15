@@ -1,0 +1,269 @@
+/* src/styles/community.css */
+/* Warm editorial styling for the member dashboard surfaces.
+   Plain CSS (not styled-jsx) per the layout-level rule. Uses the project
+   tokens --ink / --muted / --line / --display with fallbacks; the green
+   accent is local so it doesn't depend on a token that may not exist. */
+
+.cm {
+    --accent: #5b6b3f;
+    --accent-soft: #eef0e7;
+    --paper: #fffdf8;
+    --oat: #f7f4ec;
+    max-width: 920px;
+    color: var(--ink, #20231d);
+}
+
+/* Stretch to the full content column next to the sidebar, like the admin
+   pages. Stays left-aligned (no auto margins). Add to any .cm page that
+   should run full width. */
+.cm-wide {
+    max-width: none;
+}
+.cm-wide .cm-form {
+    max-width: 720px;
+}
+
+.cm-kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+}
+.cm-h1 {
+    font-family: var(--display, Georgia, serif);
+    font-size: 34px;
+    line-height: 1.1;
+    margin: 0;
+    color: var(--ink, #20231d);
+}
+.cm-sub {
+    color: var(--muted, #6b7264);
+    margin-top: 8px;
+    line-height: 1.55;
+}
+
+/* section heading */
+.cm-sec {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 34px 0 14px;
+    gap: 12px;
+}
+.cm-sec h2 {
+    font-family: var(--display, Georgia, serif);
+    font-size: 20px;
+    margin: 0;
+    color: var(--ink, #20231d);
+}
+.cm-sec a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+}
+.cm-sec a:hover { text-decoration: underline; }
+
+/* stat row */
+.cm-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+}
+.cm-stat {
+    background: var(--paper);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.cm-stat .n {
+    font-family: var(--display, Georgia, serif);
+    font-size: 30px;
+    line-height: 1;
+    color: var(--accent);
+}
+.cm-stat .l {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+    margin-top: 6px;
+}
+.cm-stat .badge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 8px;
+    vertical-align: middle;
+}
+
+/* card list */
+.cm-list { display: flex; flex-direction: column; gap: 10px; }
+.cm-card {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    background: var(--paper);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: inherit;
+}
+.cm-card:hover { border-color: var(--accent); }
+.cm-thumb {
+    width: 56px; height: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--oat);
+    flex: none;
+}
+.cm-card .meta { min-width: 0; flex: 1; }
+.cm-card .t {
+    font-weight: 600;
+    color: var(--ink, #20231d);
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cm-card .d {
+    font-size: 13px;
+    color: var(--muted, #6b7264);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* unread dot + pill */
+.cm-unread {
+    flex: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    min-width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    padding: 0 6px;
+}
+.cm-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 3px 9px;
+}
+
+/* avatar / monogram */
+.cm-av {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: none;
+    background: var(--accent-soft);
+}
+.cm-mono {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-family: var(--display, Georgia, serif);
+}
+
+/* empty state */
+.cm-empty {
+    background: var(--oat);
+    border: 1px dashed var(--line, #d8d4c8);
+    border-radius: 12px;
+    padding: 22px;
+    color: var(--muted, #6b7264);
+    text-align: center;
+}
+
+/* ---- forms (settings / profile) ---- */
+.cm-form { max-width: 560px; display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
+.cm-field { display: flex; flex-direction: column; gap: 6px; }
+.cm-field label { font-size: 13px; font-weight: 600; color: var(--ink, #20231d); }
+.cm-field .hint { font-size: 12px; color: var(--muted, #6b7264); }
+.cm-input, .cm-textarea {
+    font: inherit;
+    width: 100%;
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fffefb;
+    color: var(--ink, #20231d);
+}
+.cm-input:focus, .cm-textarea:focus { outline: none; border-color: var(--accent); }
+.cm-textarea { min-height: 96px; resize: vertical; }
+.cm-check { display: flex; align-items: flex-start; gap: 10px; }
+.cm-check input { margin-top: 3px; }
+
+.cm-btn {
+    align-self: flex-start;
+    font: inherit;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 22px;
+}
+.cm-btn:hover { filter: brightness(1.05); }
+.cm-btn.ghost {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+.cm-ok { color: var(--accent); font-size: 13px; font-weight: 600; }
+.cm-err { color: #a23b2c; font-size: 13px; font-weight: 600; }
+
+/* ---- conversation thread ---- */
+.cm-convo { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+.cm-bub {
+    max-width: 72%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.cm-bub.me { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+.cm-bub.them { align-self: flex-start; background: var(--oat); color: var(--ink, #20231d); border-bottom-left-radius: 4px; }
+.cm-bub time { display: block; font-size: 11px; opacity: 0.7; margin-top: 4px; }
+.cm-compose { display: flex; gap: 10px; align-items: flex-end; border-top: 1px solid var(--line, #e6e3da); padding-top: 14px; }
+.cm-compose .cm-textarea { min-height: 52px; }
+
+/* ---- public profile header ---- */
+.cm-phead { display: flex; gap: 18px; align-items: center; }
+.cm-phead .big-av { width: 84px; height: 84px; font-size: 30px; }
+.cm-phead h1 { font-family: var(--display, Georgia, serif); font-size: 30px; margin: 0; }
+.cm-phead .since { color: var(--muted, #6b7264); font-size: 14px; margin-top: 2px; }
+.cm-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.cm-row a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+@media (max-width: 620px) {
+    .cm-stats { grid-template-columns: 1fr; }
+    .cm-bub { max-width: 86%; }
+}

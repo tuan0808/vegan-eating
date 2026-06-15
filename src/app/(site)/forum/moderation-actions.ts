@@ -11,6 +11,18 @@ function isMod(role?: string | null) {
     return role === "ADMIN" || role === "MODERATOR";
 }
 
+// Resolve the signed-in user's id + role from the DB. We read the role from the
+// database rather than session.user.role, because the session token doesn't
+// always carry the role inside a server action — which would make every mod
+// action silently fail (or bounce to /login).
+async function currentActor(): Promise<{ id: string; role: string } | null> {
+    const session = await auth();
+    const id = session?.user?.id;
+    if (!id) return null;
+    const u = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true } });
+    return u ? { id: u.id, role: u.role } : null;
+}
+
 // Same allowlist as the posting actions — the only HTML we ever trust is what
 // survives this filter, applied server-side on every write.
 const POST_SANITIZE: sanitizeHtml.IOptions = {
@@ -34,8 +46,8 @@ function threadUrl(c: string, f: string, t: string) {
 
 /** Edit a post. Allowed for the post's author or any moderator/admin. */
 export async function updatePost(formData: FormData) {
-    const session = await auth();
-    if (!session?.user) return;
+    const me = await currentActor();
+    if (!me) return;
 
     const c = String(formData.get("categorySlug") ?? "");
     const f = String(formData.get("forumSlug") ?? "");
@@ -46,8 +58,8 @@ export async function updatePost(formData: FormData) {
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) return;
 
-    const owns = post.authorId === session.user.id;
-    if (!owns && !isMod(session.user.role)) return; // not permitted — bail silently
+    const owns = post.authorId === me.id;
+    if (!owns && !isMod(me.role)) return; // not permitted — bail silently
 
     const { html, empty } = cleanBody(String(formData.get("body") ?? ""));
     if (empty) return;
@@ -64,14 +76,14 @@ export async function updatePost(formData: FormData) {
 
 /** Delete a post. Author or moderator. Deleting the opening post removes the whole thread. */
 export async function deletePost(formData: FormData) {
-    const session = await auth();
-    if (!session?.user) redirect("/login");
-
     const c = String(formData.get("categorySlug") ?? "");
     const f = String(formData.get("forumSlug") ?? "");
     const t = String(formData.get("threadSlug") ?? "");
     const postId = String(formData.get("postId") ?? "");
     const back = threadUrl(c, f, t);
+
+    const me = await currentActor();
+    if (!me) redirect(back);
 
     const post = await prisma.post.findUnique({
         where: { id: postId },
@@ -79,8 +91,8 @@ export async function deletePost(formData: FormData) {
     });
     if (!post) redirect(back);
 
-    const owns = post.authorId === session.user.id;
-    if (!owns && !isMod(session.user.role)) redirect(back);
+    const owns = post.authorId === me.id;
+    if (!owns && !isMod(me.role)) redirect(back);
 
     const isOpeningPost = post.thread.posts[0]?.id === post.id;
     if (isOpeningPost) {
@@ -99,12 +111,12 @@ export async function deletePost(formData: FormData) {
 
 /** Pin / unpin a thread. Moderators only. */
 export async function togglePin(formData: FormData) {
-    const session = await auth();
     const c = String(formData.get("categorySlug") ?? "");
     const f = String(formData.get("forumSlug") ?? "");
     const t = String(formData.get("threadSlug") ?? "");
     const back = threadUrl(c, f, t);
-    if (!isMod(session?.user?.role)) redirect(back);
+    const me = await currentActor();
+    if (!isMod(me?.role)) redirect(back);
 
     const thread = await prisma.thread.findUnique({ where: { slug: t } });
     if (!thread) redirect(back);
@@ -117,12 +129,12 @@ export async function togglePin(formData: FormData) {
 
 /** Close (lock) / reopen a thread. Moderators only. */
 export async function toggleLock(formData: FormData) {
-    const session = await auth();
     const c = String(formData.get("categorySlug") ?? "");
     const f = String(formData.get("forumSlug") ?? "");
     const t = String(formData.get("threadSlug") ?? "");
     const back = threadUrl(c, f, t);
-    if (!isMod(session?.user?.role)) redirect(back);
+    const me = await currentActor();
+    if (!isMod(me?.role)) redirect(back);
 
     const thread = await prisma.thread.findUnique({ where: { slug: t } });
     if (!thread) redirect(back);

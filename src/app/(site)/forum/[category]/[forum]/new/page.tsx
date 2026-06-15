@@ -7,19 +7,23 @@ import { currentUser } from "@/lib/auth-helpers";
 import type { CSSProperties } from "react";
 import RichEditor from "@/components/RichEditor";
 import PageHero from "@/components/PageHero";
+import SubmitTimer from "@/components/SubmitTimer";
 import { createThread } from "../../../actions";
 
 export const metadata: Metadata = { title: "New thread — Forums — vegan eating" };
 
 // Maps the ?error=<code> the createThread action can redirect with to a message.
-// Note: "signin" and "unverified" never land here — the action sends those to
-// /login and /dashboard?verify=1 respectively.
+// Note: "signin" never lands here — the action sends that to /login.
 const ERR: Record<string, string> = {
     missing: "Please add a title (at least 3 characters) and a message before posting.",
     cooldown: "You're posting a little fast — give it a minute before starting another thread.",
     hourly: "You've hit the hourly posting limit. Try again later.",
     blocked: "Unable to post from this connection.",
     banned: "Your account is not able to post.",
+    unverified: "Please verify your email before posting — check your inbox for the link, or resend it from your dashboard.",
+    too_fast: "That was quick — take a moment and try again.",
+    links: "New accounts can’t post links yet, and established accounts are capped — remove some links and try again.",
+    duplicate: "That looks almost identical to something you just posted.",
 };
 
 const labelStyle: CSSProperties = {
@@ -114,6 +118,7 @@ export default async function NewThreadPage({
                 <form action={createThread}>
                     <input type="hidden" name="categorySlug" value={view.category.slug} />
                     <input type="hidden" name="forumSlug" value={view.forum.slug} />
+                    <SubmitTimer />
 
                     {/* Honeypot — hidden from people, irresistible to dumb bots. Leave empty. */}
                     <div aria-hidden style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>

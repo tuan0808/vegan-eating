@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import sanitizeHtml from "sanitize-html";
 import { prisma } from "@/lib/prisma";
 import { guardCommunityPost, type GuardFail } from "@/lib/anti-spam";
+import { getAntiSpamConfig } from "@/lib/antispam-config";
 
 // "new" is a real route segment (the New-thread page), so a thread can't own it
 // as a slug or it'd be unreachable. Reserve it.
@@ -49,23 +50,25 @@ function cleanBody(raw: string): { html: string; empty: boolean } {
 // Translate a failed guard into the right redirect for the forum's flow.
 function redirectForGuard(guard: GuardFail, formUrl: string): never {
     if (guard.reason === "signin") redirect("/login");
-    if (guard.reason === "unverified") redirect("/dashboard?verify=1");
-    // banned / blocked / cooldown / hourly -> back to the form with a code
+    // Everything else (unverified / banned / blocked / cooldown / hourly /
+    // too_fast / links / duplicate) stays on the form with an inline message,
+    // so the user understands why instead of being bounced elsewhere.
     redirect(`${formUrl}?error=${guard.reason}`);
 }
 
-// Rate-limit lookup for the forum: count this user's posts (openers + replies).
+// Rate-limit lookup for the forum: count this user's posts (openers + replies)
+// and return the last body so the guard can catch near-duplicate reposts.
 async function recentForumActivity(userId: string) {
     const hourAgo = new Date(Date.now() - 3_600_000);
     const [last, lastHourCount] = await Promise.all([
         prisma.post.findFirst({
             where: { authorId: userId },
             orderBy: { createdAt: "desc" },
-            select: { createdAt: true },
+            select: { createdAt: true, body: true },
         }),
         prisma.post.count({ where: { authorId: userId, createdAt: { gte: hourAgo } } }),
     ]);
-    return { lastAt: last?.createdAt ?? null, lastHourCount };
+    return { lastAt: last?.createdAt ?? null, lastHourCount, lastBody: last?.body ?? null };
 }
 
 /**
@@ -83,14 +86,21 @@ export async function createThread(formData: FormData) {
         redirect(`/forum/${categorySlug}/${forumSlug}`);
     }
 
-    // Shared gate: sign-in + verified + not-banned + IP blocklist + rate limit.
-    // Thread thresholds come from the admin-tunable config (the "thread" surface).
-    const guard = await guardCommunityPost(recentForumActivity, { surface: "thread" });
-    if (!guard.ok) redirectForGuard(guard, `/forum/${categorySlug}/${forumSlug}/new`);
-    const { userId, ip, userAgent } = guard;
-
+    // Shared gate: sign-in + verified + not-banned + IP blocklist + rate limit,
+    // plus content checks (too-fast / link cap / duplicate). Thread thresholds
+    // come from the admin-tunable config (the "thread" surface).
     const title = String(formData.get("title") ?? "").trim();
     const { html: body, empty } = cleanBody(String(formData.get("body") ?? ""));
+    const tsRaw = Number(formData.get("ts"));
+    const submittedAtMs = Number.isFinite(tsRaw) && tsRaw > 0 ? tsRaw : null;
+
+    const guard = await guardCommunityPost(
+        recentForumActivity,
+        { surface: "thread" },
+        { body, submittedAtMs },
+    );
+    if (!guard.ok) redirectForGuard(guard, `/forum/${categorySlug}/${forumSlug}/new`);
+    const { userId, ip, userAgent } = guard;
 
     const forum = await prisma.forum.findFirst({
         where: { slug: forumSlug, category: { slug: categorySlug } },
@@ -132,25 +142,48 @@ export async function createReply(formData: FormData) {
         redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
     }
 
-    const guard = await guardCommunityPost(recentForumActivity); // default knobs for replies
-    if (!guard.ok) redirectForGuard(guard, `/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
-    const { userId, ip, userAgent } = guard;
-
     const { html: body, empty } = cleanBody(String(formData.get("body") ?? ""));
+    const tsRaw = Number(formData.get("ts"));
+    const submittedAtMs = Number.isFinite(tsRaw) && tsRaw > 0 ? tsRaw : null;
+
+    const guard = await guardCommunityPost(recentForumActivity, undefined, { body, submittedAtMs });
+    if (!guard.ok) redirectForGuard(guard, `/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
+    const { userId, ip, userAgent, isProbation } = guard;
 
     const thread = await prisma.thread.findUnique({ where: { slug: threadSlug } });
     if (!thread) redirect("/forum");
     if (thread.locked) redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
     if (empty) redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}?error=empty`);
 
+    const base = `/forum/${categorySlug}/${forumSlug}/${threadSlug}`;
+
+    // Hold the first few replies from a brand-new account for moderator review.
+    let status = "APPROVED";
+    if (isProbation) {
+        const cfg = await getAntiSpamConfig();
+        if (cfg.holdFirstN > 0) {
+            const approved = await prisma.post.count({ where: { authorId: userId, status: "APPROVED" } });
+            if (approved < cfg.holdFirstN) status = "PENDING";
+        }
+    }
+
+    if (status === "PENDING") {
+        // Held: it isn't live, so don't bump lastPostAt; tell the user it's pending.
+        await prisma.post.create({
+            data: { threadId: thread.id, authorId: userId, body, status, ipAddress: ip, userAgent },
+        });
+        revalidatePath("/dashboard");
+        redirect(`${base}?pending=1`);
+    }
+
     const now = new Date();
     await prisma.$transaction([
-        prisma.post.create({ data: { threadId: thread.id, authorId: userId, body, ipAddress: ip, userAgent } }),
+        prisma.post.create({ data: { threadId: thread.id, authorId: userId, body, status, ipAddress: ip, userAgent } }),
         prisma.thread.update({ where: { id: thread.id }, data: { lastPostAt: now } }),
     ]);
 
-    revalidatePath(`/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
+    revalidatePath(base);
     revalidatePath(`/forum/${categorySlug}/${forumSlug}`);
     revalidatePath("/forum");
-    redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
+    redirect(base);
 }

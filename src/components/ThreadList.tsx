@@ -82,11 +82,9 @@ export default function ThreadList({
                     text-decoration: none;
                     color: inherit;
                     border-radius: 14px;
-                    transition: background 0.16s ease;
                 }
-                .thread-row:hover {
-                    background: rgba(0, 0, 0, 0.025);
-                }
+                /* hover/lift + green title live in globals.css (.thread-row), so a
+                   scoped :hover here can't out-specify and override them. */
                 .row-inner {
                     display: flex;
                     align-items: flex-start;
@@ -137,6 +135,7 @@ export default function ThreadList({
                     font-weight: 600;
                     color: var(--ink, #1c2317);
                     line-height: 1.2;
+                    transition: color 0.16s ease;
                 }
                 .lock {
                     color: var(--muted, #6b7264);

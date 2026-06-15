@@ -20,6 +20,12 @@ function Bubble({ comment }: { comment: Comment }) {
                 <span className="who">{comment.authorName}</span>
                 <span className="when">{fmt(comment.createdAt)}</span>
             </div>
+            {comment.rating ? (
+                <div className="stars-ro" aria-label={`${comment.rating} out of 5 stars`}>
+                    {'★'.repeat(comment.rating)}
+                    <span className="empty">{'★'.repeat(5 - comment.rating)}</span>
+                </div>
+            ) : null}
             <p className="body">{comment.body}</p>
 
             <style jsx>{`
@@ -37,6 +43,14 @@ function Bubble({ comment }: { comment: Comment }) {
                 }
                 .who { font-weight: 600; color: var(--ink); font-size: 0.95rem; }
                 .when { color: var(--muted); font-size: 0.8rem; }
+                .stars-ro {
+                    color: #e0a23b;
+                    font-size: 0.95rem;
+                    letter-spacing: 1px;
+                    line-height: 1;
+                    margin: 0 0 0.5rem;
+                }
+                .stars-ro .empty { color: var(--line); }
                 .body { margin: 0; color: var(--ink); line-height: 1.6; white-space: pre-wrap; }
             `}</style>
         </div>

@@ -102,15 +102,17 @@
 .ar-clear:hover { color: var(--ar-green); }
 .ar-count { color: var(--ar-muted); font-size: 0.88rem; margin: 0 0 18px; }
 
-/* ---- list ---- */
-.ar-list { display: flex; flex-direction: column; }
+/* ---- list (cards) ---- */
+.ar-list { display: flex; flex-direction: column; gap: 10px; }
 .ar-item {
     position: relative;
-    padding: 14px 6px;
-    border-bottom: 1px solid var(--ar-line);
-    transition: background 0.12s ease;
+    padding: 12px 14px;
+    background: #fffdf8;
+    border: 1px solid var(--ar-line);
+    border-radius: 12px;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
-.ar-itemtop { display: flex; align-items: center; gap: 16px; }
+.ar-itemtop { display: flex; align-items: center; gap: 14px; }
 
 /* ---- Export / Import toolbar ---- */
 .ar-tools { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; margin: 0 0 20px; }
@@ -155,15 +157,14 @@
 .ar-import-note { margin: 10px 0 0; font-size: 0.88rem; color: var(--ar-muted); }
 .ar-import-done { border-color: var(--ar-green); }
 .ar-import-done p { margin: 0; font-size: 0.95rem; }
-.ar-item:hover { background: rgba(91, 107, 63, 0.06); }
+.ar-item:hover { border-color: var(--ar-green); box-shadow: 0 2px 8px rgba(35, 41, 29, 0.05); }
 /* full-row click target -> edit; sits above thumb/meta but below the action links */
-.ar-rowlink { position: absolute; inset: 0; z-index: 1; border-radius: 8px; }
-.ar-item:first-child { border-top: 1px solid var(--ar-line); }
+.ar-rowlink { position: absolute; inset: 0; z-index: 1; border-radius: 12px; }
 .ar-thumb {
-    width: 64px;
-    height: 64px;
-    flex: 0 0 64px;
-    border-radius: 10px;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    border-radius: 8px;
     overflow: hidden;
     background: #efe8d9;
     display: grid;
@@ -174,10 +175,10 @@
 .ar-meta { flex: 1; min-width: 0; }
 .ar-item-title {
     display: block;
-    font-family: var(--ar-display);
     font-weight: 600;
-    font-size: 1.1rem;
-    line-height: 1.2;
+    font-size: 1rem;
+    line-height: 1.25;
+    color: var(--ar-ink);
     overflow-wrap: anywhere;
 }
 .ar-item-sub { display: block; color: var(--ar-muted); font-size: 0.85rem; margin-top: 2px; }

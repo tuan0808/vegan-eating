@@ -1,0 +1,72 @@
+/* src/components/Comments.css */
+.comments {
+    max-width: 720px;
+    margin: 3rem 0;
+    scroll-margin-top: 90px;
+}
+/* Higher specificity than a bare `h2` so the display font isn't overridden
+   by heading rules from other stylesheets loaded on the page. */
+.comments h2.title {
+    font-family: var(--display, "Fraunces", Georgia, serif);
+    font-weight: 700;
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+}
+.comments .signin {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.1rem 1.1rem;
+    margin-top: 1rem;
+}
+.comments .signin p {
+    margin: 0 0 0.85rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+.comments .signin-btn {
+    display: inline-block;
+    background: var(--green);
+    color: var(--paper);
+    border-radius: 999px;
+    padding: 0.5rem 1.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+.comments .signin-btn:hover {
+    opacity: 0.88;
+}
+.comments .list {
+    margin: 2rem 0 0;
+    padding: 0;
+}
+.comments .empty {
+    color: var(--muted);
+    margin: 1.5rem 0 0;
+}
+.comments .pager {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+}
+.comments .pager a {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+.comments .pager a:hover {
+    text-decoration: underline;
+}
+.comments .pager .off {
+    color: var(--muted);
+    opacity: 0.5;
+}
+.comments .pager .count {
+    color: var(--muted);
+}

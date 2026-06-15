@@ -29,21 +29,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                     background: "#faf8f1",
                 }}
             >
+                {/* This bar is a light surface, so it uses the ink wordmark variant
+                    (/logo/logo-ink.svg) — the standard /logo/logo.svg is white-on-dark
+                    and would vanish here. */}
                 <Link
                     href="/"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}
+                    aria-label="vegan eating home"
+                    style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
                 >
-                    <span aria-hidden style={{ fontSize: 20 }}>🥕</span>
-                    <span
-                        style={{
-                            fontFamily: 'var(--display,"Fraunces",serif)',
-                            fontSize: 19,
-                            fontWeight: 600,
-                            color: "var(--ink,#1c2317)",
-                        }}
-                    >
-            vegan eating
-          </span>
+                    <img
+                        src="/logo/logo-ink.svg"
+                        alt="vegan eating"
+                        width={128}
+                        height={34}
+                        style={{ height: 34, width: "auto", display: "block" }}
+                    />
                 </Link>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 18 }}>

@@ -1,0 +1,117 @@
+/* src/components/admin/ip-activity.css */
+.ip-panel {
+    background: var(--card, #faf8f1);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 16px;
+    padding: 1.25rem 1.4rem;
+}
+.ip-panel .ip-kicker {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green, #5b6b3f);
+    font-weight: 700;
+}
+.ip-panel .ip-title {
+    font-family: var(--display, "Fraunces", Georgia, serif);
+    font-size: 1.5rem;
+    color: var(--ink, #1c2317);
+    margin: 0.15rem 0 0;
+}
+.ip-panel .ip-sub {
+    color: var(--muted, #6b7264);
+    font-size: 0.9rem;
+    margin: 0.35rem 0 1.1rem;
+}
+.ip-panel .ip-empty {
+    color: var(--muted, #6b7264);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+.ip-panel .ip-empty code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    background: var(--paper, #fff);
+    padding: 1px 5px;
+    border-radius: 5px;
+    border: 1px solid var(--line, #e6e3da);
+}
+.ip-scroll {
+    overflow-x: auto;
+}
+.ip-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+.ip-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+    font-weight: 700;
+    padding: 0 0.9rem 0.6rem;
+    border-bottom: 1px solid var(--line, #e6e3da);
+}
+.ip-table td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--line, #ece9de);
+    color: var(--ink, #1c2317);
+    vertical-align: middle;
+}
+.ip-table tr.is-blocked td {
+    opacity: 0.62;
+}
+.ip-addr {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.86rem;
+}
+.ip-when {
+    color: var(--muted, #6b7264);
+    white-space: nowrap;
+}
+.ip-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+}
+.ip-badge.ok {
+    background: rgba(91, 107, 63, 0.14);
+    color: var(--green, #5b6b3f);
+}
+.ip-badge.blocked {
+    background: rgba(180, 90, 60, 0.16);
+    color: var(--terra, #c2603a);
+}
+.ip-action {
+    text-align: right;
+}
+.ip-action form {
+    margin: 0;
+}
+.ip-btn {
+    border: 1px solid var(--line, #d9d5c8);
+    background: var(--paper, #fff);
+    border-radius: 8px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.ip-btn.block:hover {
+    background: var(--terra, #c2603a);
+    color: #fff;
+    border-color: var(--terra, #c2603a);
+}
+.ip-btn.unblock:hover {
+    background: rgba(91, 107, 63, 0.12);
+    color: var(--green, #5b6b3f);
+    border-color: var(--green, #5b6b3f);
+}

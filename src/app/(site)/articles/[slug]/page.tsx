@@ -2,11 +2,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getArticleBySlug, listRelatedArticles, listPopularArticles, listRecentArticles } from "@/lib/articles";
+import { viewSummary } from "@/lib/views";
+import { auth } from "@/auth";
 import type { Article } from "@/data/articles";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReadingProgress from "@/components/ReadingProgress";
 import HeroTitle from "@/components/HeroTitle";
+import RecipeViews from "@/components/RecipeViews";
 import ShareButtons from "./ShareButtons";
 import OtherPosts from "./OtherPosts";
 import NewsletterForm from "./NewsletterForm";
@@ -65,6 +68,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     const img = imgSrc(a.image);
     const bodyText = tiptapText(a.body);
     const mins = readingMinutes(bodyText);
+    const views = await viewSummary("article", String(a.id));
+    const session = await auth();
+    const viewerKey = session?.user?.id ?? session?.user?.email ?? "anon";
 
     const [related, popular, recent] = await Promise.all([
         listRelatedArticles(a.category, a.slug, 6),
@@ -107,6 +113,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                         {a.date ? <span>{a.date}</span> : null}
                         <span>⏱ <b>{mins} min read</b></span>
                     </div>
+                    <RecipeViews kind="article" slug={a.slug} count={views.count} initials={views.initials} viewerKey={viewerKey} log />
                 </div>
             </section>
 

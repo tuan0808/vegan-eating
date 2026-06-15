@@ -1,0 +1,213 @@
+/* src/app/(app)/admin/comments/comments-admin.css */
+.admin-comments {
+    width: 100%;
+}
+.admin-comments .ac-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.admin-comments .ac-kicker {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+.admin-comments .ac-title {
+    font-family: var(--display, "Fraunces", Georgia, serif);
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+.admin-comments .ac-subtitle {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+.admin-comments .ac-subtitle a,
+.admin-comments .ac-back {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+.admin-comments .ac-back {
+    display: inline-block;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Tabs */
+.admin-comments .ac-tabs {
+    display: flex;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.5rem;
+}
+.admin-comments .ac-tabs a {
+    padding: 0 0 0.6rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+.admin-comments .ac-tabs a.on {
+    color: var(--ink);
+    border-bottom-color: var(--green);
+}
+
+/* Comment cards */
+.admin-comments .ac-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.admin-comments .ac-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+.admin-comments .ac-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+.admin-comments .ac-who {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 0.95rem;
+}
+.admin-comments .ac-when {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-left: auto;
+}
+.admin-comments .ac-reply {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.admin-comments .ac-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+}
+.admin-comments .ac-badge.approved { background: rgba(91, 107, 63, 0.14); color: var(--green); }
+.admin-comments .ac-badge.hidden   { background: var(--line); color: var(--muted); }
+.admin-comments .ac-badge.spam     { background: rgba(180, 90, 60, 0.16); color: var(--terra); }
+.admin-comments .ac-body {
+    margin: 0 0 0.7rem;
+    color: var(--ink);
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+.admin-comments .ac-foot {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.82rem;
+}
+.admin-comments .ac-target {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+.admin-comments .ac-target.muted { color: var(--muted); font-style: italic; }
+.admin-comments .ac-ip {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+}
+
+/* Action buttons */
+.admin-comments .mod-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.admin-comments .mod-actions form { margin: 0; }
+.admin-comments .mod-btn {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.admin-comments .mod-btn.approve:hover { background: rgba(91, 107, 63, 0.12); color: var(--green); border-color: var(--green); }
+.admin-comments .mod-btn.hide:hover    { background: var(--line); }
+.admin-comments .mod-btn.spam:hover     { background: rgba(180, 90, 60, 0.12); color: var(--terra); border-color: var(--terra); }
+.admin-comments .mod-btn.delete:hover   { background: var(--terra); color: var(--paper); border-color: var(--terra); }
+
+/* By-content list */
+.admin-comments .ac-content {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.admin-comments .ac-content-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 0.6rem;
+    text-decoration: none;
+}
+.admin-comments .ac-content-row:hover { border-color: var(--green); }
+.admin-comments .ac-content-title {
+    font-weight: 600;
+    color: var(--ink);
+}
+.admin-comments .ac-content-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+.admin-comments .ac-type { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.7rem; }
+.admin-comments .ac-count {
+    background: var(--green);
+    color: var(--paper);
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+    font-weight: 700;
+}
+
+/* Pager + empty */
+.admin-comments .ac-pager {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+.admin-comments .ac-pager a { color: var(--green); text-decoration: none; font-weight: 600; }
+.admin-comments .ac-pager .off { color: var(--muted); opacity: 0.5; }
+.admin-comments .ac-pager .count { color: var(--muted); }
+.admin-comments .ac-empty { color: var(--muted); }

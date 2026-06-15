@@ -4,13 +4,13 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"          // swap to "postgresql" later; same queries
+  provider = "sqlite" // swap to "postgresql" later; same queries
   url      = env("DATABASE_URL")
 }
 
 model Recipe {
-  id          String   @id            // slug
-  slug        String   @unique
+  id          String    @id // slug
+  slug        String    @unique
   title       String
   sourceUrl   String
   date        String
@@ -18,62 +18,76 @@ model Recipe {
   recipeType  String
   author      String
   // SQLite has no array type, so list fields are stored as JSON strings
-  courses     String   @default("[]")
-  seasons     String   @default("[]")
-  allergens   String   @default("[]")
-  cuisines    String   @default("[]")
+  views       Int       @default(0)
+  courses     String    @default("[]")
+  seasons     String    @default("[]")
+  allergens   String    @default("[]")
+  cuisines    String    @default("[]")
   prepTime    Int?
   cookTime    Int?
   readyIn     Int?
-  servings    String   @default("")
+  servings    String    @default("")
   calories    Int?
-  ingredients String   @default("[]")
-  steps       String   @default("[]")
+  ingredients String    @default("[]")
+  steps       String    @default("[]")
   image       String?
-  gallery     String   @default("[]")
-  cookalong   String   @default("[]")
+  gallery     String    @default("[]")
+  comments    Comment[]
+  cookalong   String    @default("[]")
   ph          String
-  sort        Int      @default(0)
-  hidden      Boolean  @default(false)
-  category  String  @default("")
+  sort        Int       @default(0)
+  hidden      Boolean   @default(false)
+  category    String    @default("")
+
   @@index([recipeType])
   @@index([sort])
 }
 
 model Article {
-  id        Int     @id @default(autoincrement())
-  slug      String  @unique
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
   title     String
   sourceUrl String
   date      String
   image     String?
-  body      String  @default("[]")
-  tags      String  @default("[]")
-  category  String  @default("")
-  sort      Int     @default(0)
-  hidden    Boolean @default(false)
-  gallery   String @default("[]")
+  views     Int       @default(0)
+  body      String    @default("[]")
+  tags      String    @default("[]")
+  category  String    @default("")
+  sort      Int       @default(0)
+  hidden    Boolean   @default(false)
+  gallery   String    @default("[]")
+  comments  Comment[]
+
   @@index([sort])
 }
 
 // ======================== COPY FROM HERE ========================
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   @unique
-  password  String?
-  name      String?
-  avatarUrl String?
-  bio       String?
-  role      String   @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String?
+  name          String?
+  avatarUrl     String?
+  bio           String?
+  emailVerified DateTime?
+  signupIp      String?
+  role          String    @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
+  banned        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
 
-  threads Thread[]
-  posts   Post[]
+  emailTokens EmailVerificationToken[]
+  comments    Comment[]
+  threads     Thread[]
+  posts       Post[]
+
+  @@index([signupIp])
 }
 
 // Top level: General, Vegan, Vegetarians, Around the World, Help
+
 model Category {
   id          String   @id @default(cuid())
   name        String
@@ -88,6 +102,7 @@ model Category {
 // Sub-category / board: News, Introductions, Recipes, Guides, Rules, etc.
 // Names repeat across categories (Vegan→Recipes and Vegetarians→Recipes),
 // so the slug is only unique *within* a category and we route by both.
+
 model Forum {
   id          String   @id @default(cuid())
   categoryId  String
@@ -106,6 +121,7 @@ model Forum {
 
 // A topic. Its opening message is the first Post (everything is a Post),
 // which keeps editing/quoting uniform later.
+
 model Thread {
   id         String   @id @default(cuid())
   forumId    String
@@ -135,6 +151,8 @@ model Post {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   editedAt  DateTime?
+  ipAddress String?
+  userAgent String?
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   author User   @relation(fields: [authorId], references: [id])
@@ -145,4 +163,82 @@ model Post {
 model Setting {
   key   String @id
   value String
+}
+
+model Comment {
+  id         String @id @default(cuid())
+  body       String
+  authorName String
+  status     String @default("APPROVED") // APPROVED | HIDDEN | SPAM
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ipAddress String? // captured from proxy headers for the audit trail
+  userAgent String?
+
+  recipeId  String?
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  articleId Int?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([recipeId])
+  @@index([articleId])
+  @@index([parentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BlockedIp {
+  id        String   @id @default(cuid())
+  ip        String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+model ItemView {
+  id       String   @id @default(cuid())
+  kind     String   // "recipe" | "article"
+  itemId   String   // recipe.id (cuid) or article.id as a string
+  userId   String   // user.id, or email as a fallback key
+  userName String   @default("")
+  viewedAt DateTime @default(now())
+
+  @@unique([kind, itemId, userId])
+  @@index([kind, itemId])
+}
+model RecipeSubmission {
+  id         String   @id @default(cuid())
+  title      String
+  dietType   String   // "VEGAN" | "VEGETARIAN"
+  ingredients String  // raw multiline text, reviewer maps to a real Recipe
+  method     String
+  prepMin    Int?
+  cookMin    Int?
+  readyMin   Int?
+  images     String   @default("[]")  // JSON array of /uploads/... paths
+  status     String   @default("PENDING")
+  userId     String?  // plain field, no relation — keeps the change to one model
+  authorName String?
+  createdAt  DateTime @default(now())
+  threadSlug String?  // set on approval — links back to the created thread
+  reviewedAt DateTime?
+  recipeSlug String?  // set when promoted into the Recipe library
 }

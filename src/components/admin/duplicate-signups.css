@@ -1,0 +1,88 @@
+/* src/components/admin/duplicate-signups.css */
+.dup-panel {
+    background: var(--card, #faf8f1);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 16px;
+    padding: 1.25rem 1.4rem;
+}
+.dup-panel .dup-kicker {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--terra, #c2603a);
+    font-weight: 700;
+}
+.dup-panel .dup-title {
+    font-family: var(--display, "Fraunces", Georgia, serif);
+    font-size: 1.5rem;
+    color: var(--ink, #1c2317);
+    margin: 0.15rem 0 0;
+}
+.dup-panel .dup-sub {
+    color: var(--muted, #6b7264);
+    font-size: 0.9rem;
+    margin: 0.35rem 0 1.1rem;
+    max-width: 620px;
+}
+.dup-panel .dup-empty {
+    color: var(--muted, #6b7264);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+.dup-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.dup-cluster {
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    background: var(--paper, #fff);
+}
+.dup-cluster.is-blocked {
+    opacity: 0.7;
+}
+.dup-cluster-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+}
+.dup-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--terra, #c2603a);
+    background: rgba(194, 96, 58, 0.12);
+    border-radius: 999px;
+    padding: 0.12rem 0.6rem;
+}
+.dup-action {
+    margin-left: auto;
+}
+.dup-action form {
+    margin: 0;
+}
+.dup-users {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.5rem;
+}
+.dup-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--ink, #1c2317);
+    background: var(--card, #faf8f1);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 8px;
+    padding: 0.2rem 0.55rem;
+}

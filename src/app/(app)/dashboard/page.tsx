@@ -1,23 +1,33 @@
 // src/app/(app)/dashboard/page.tsx
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth-helpers";
+import SubmissionsPanel from "@/components/admin/SubmissionsPanel";
 
 export const metadata: Metadata = { title: "Dashboard — vegan eating" };
 
 export default async function DashboardPage() {
     const user = await requireUser();
+    const isAdmin = user.role === "ADMIN";
 
     return (
-        <div style={{ maxWidth: 820 }}>
+        <div style={{ maxWidth: "none" }}>
             <p style={kicker}>Dashboard</p>
             <h1 style={h1}>Hi, {user.name ?? user.username}</h1>
             <p style={{ color: "var(--muted,#6b7264)", marginTop: 8 }}>
                 Signed in as <strong>{user.email}</strong> · role{" "}
                 <span style={pill}>{user.role}</span>
             </p>
+
+            {/* Admins see the moderation queue right on landing; members don't. */}
+            {isAdmin ? (
+                <div style={{ marginTop: 28, maxWidth: "none", }}>
+                    <SubmissionsPanel />
+                </div>
+            ) : null}
+
             <p style={{ marginTop: 28, color: "var(--muted,#6b7264)", maxWidth: 560, lineHeight: 1.6 }}>
                 This is your account home. Soon it'll show your threads, your replies, and profile
-                settings. Use the sidebar to get around{user.role === "ADMIN" ? " — admin tools are under Admin." : "."}
+                settings. Use the sidebar to get around{isAdmin ? " — more admin tools are under Admin." : "."}
             </p>
         </div>
     );

@@ -24,13 +24,10 @@ export default async function MaintenanceScreen() {
                 </svg>
 
                 <p className="mnt-mark"><span aria-hidden="true">🥕</span> vegan eating</p>
-                <h1 className="mnt-title">We’re tending the garden.</h1>
-                <p className="mnt-copy">
-                    {message ||
-                        "Just a short break to plant something new. Eat green, feel green — we’ll be serving again soon."}
-                </p>
 
                 <Countdown target={endsAt} />
+
+                {message ? <p className="mnt-copy">{message}</p> : null}
 
                 <p className="mnt-tag">eat green, feel green</p>
             </div>

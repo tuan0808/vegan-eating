@@ -14,5 +14,5 @@ export type Article = {
     tags: string[];
     category: string;
     gallery: string[];
-
+    views: number;
 };

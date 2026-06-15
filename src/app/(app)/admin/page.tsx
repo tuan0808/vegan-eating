@@ -1,11 +1,12 @@
-// src/app/admin/page.tsx
+// src/app/(app)/admin/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { setUserRole } from "./actions";
 
-export const metadata: Metadata = { title: "Admin — vegan eating" };
+
+export const metadata: Metadata = { title: "Members & roles — admin" };
 export const dynamic = "force-dynamic"; // always show live roles
 
 const ROLES = ["MEMBER", "MODERATOR", "ADMIN"];

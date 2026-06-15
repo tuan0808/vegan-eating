@@ -63,8 +63,8 @@ export default async function AdminRecipesPage({
     return (
         <div className="admin-recipes">
             <div className="ar-head">
-                <span className="ar-kicker">Content</span>
-                <h1 className="ar-title">Recipes</h1>
+                <p style={kicker}>Content</p>
+                <h1 style={h1}>Recipes</h1>
                 <p className="ar-dek">{total} recipe{total === 1 ? "" : "s"} in the library.</p>
             </div>
 
@@ -168,3 +168,16 @@ export default async function AdminRecipesPage({
         </div>
     );
 }
+const kicker: React.CSSProperties = {
+    fontSize: 12.5,
+    fontWeight: 700,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "var(--terra, #c2603a)",
+};
+const h1: React.CSSProperties = {
+    fontFamily: 'var(--display, "Fraunces", serif)',
+    fontSize: 32,
+    color: "var(--ink, #1c2317)",
+    margin: "8px 0 0",
+};

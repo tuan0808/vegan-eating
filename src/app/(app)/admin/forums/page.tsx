@@ -54,7 +54,7 @@ export default async function ForumAdminPage({
 
             {/* Add category */}
             <form action={createCategory} style={addBar}>
-                <input name="name" placeholder="New category name" required style={input} />
+                <input name="name" className="forum-input" placeholder="New category name" required style={input} />
                 <input name="description" placeholder="Description (optional)" style={{ ...input, flex: 2 }} />
                 <button style={btnPrimary}>Add category</button>
             </form>

@@ -1,0 +1,134 @@
+/* src/components/admin/antispam-panel.css */
+.as-panel {
+    background: var(--card, #faf8f1);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 16px;
+    padding: 1.25rem 1.4rem;
+}
+.as-panel .as-kicker {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green, #5b6b3f);
+    font-weight: 700;
+}
+.as-panel .as-title {
+    font-family: var(--display, "Fraunces", Georgia, serif);
+    font-size: 1.5rem;
+    color: var(--ink, #1c2317);
+    margin: 0.15rem 0 0;
+}
+.as-panel .as-stats {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1.1rem 0 1.4rem;
+}
+.as-panel .as-stat {
+    flex: 1;
+    background: var(--paper, #fff);
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.as-panel .as-num {
+    font-family: var(--display, "Fraunces", Georgia, serif);
+    font-size: 1.8rem;
+    line-height: 1;
+    font-weight: 700;
+    color: var(--ink, #1c2317);
+}
+.as-panel .as-lbl {
+    font-size: 0.78rem;
+    color: var(--muted, #6b7264);
+}
+.as-panel .as-form-head {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted, #6b7264);
+    font-weight: 700;
+    margin: 0 0 0.7rem;
+}
+.as-panel .as-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+}
+.as-panel .as-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.as-panel .as-grid label span {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink, #1c2317);
+}
+.as-panel .as-grid label span em {
+    font-style: normal;
+    color: var(--muted, #6b7264);
+    font-weight: 400;
+}
+.as-panel .as-grid input {
+    border: 1px solid var(--line, #d9d5c8);
+    border-radius: 9px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.95rem;
+    background: var(--paper, #fff);
+    color: var(--ink, #1c2317);
+    outline: none;
+    width: 100%;
+}
+.as-panel .as-grid input:focus {
+    border-color: var(--green, #5b6b3f);
+}
+.as-panel .as-save {
+    margin-top: 1.1rem;
+    background: var(--green, #5b6b3f);
+    color: var(--paper, #fff);
+    border: none;
+    border-radius: 999px;
+    padding: 0.55rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+.as-panel .as-save:hover {
+    opacity: 0.9;
+}
+@media (max-width: 560px) {
+    .as-panel .as-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* save feedback */
+.as-panel .as-form-foot {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.1rem;
+}
+.as-panel .as-form-foot .as-save {
+    margin-top: 0;
+}
+.as-panel .as-flash {
+    font-size: 0.88rem;
+    font-weight: 600;
+    animation: as-flash-in 0.18s ease;
+}
+.as-panel .as-flash.ok {
+    color: var(--green, #5b6b3f);
+}
+.as-panel .as-flash.err {
+    color: var(--terra, #c2603a);
+}
+@keyframes as-flash-in {
+    from { opacity: 0; transform: translateX(-4px); }
+    to { opacity: 1; transform: translateX(0); }
+}

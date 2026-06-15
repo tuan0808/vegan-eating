@@ -1,8 +1,9 @@
 // src/components/Sections.tsx
 import Link from "next/link";
 import { promise } from "@/data/site";
-import { Logo } from "./Header";
 import HeroTitle from "./HeroTitle";
+import RecipeViews from "./RecipeViews";
+import { viewSummary } from "@/lib/views";
 import type { Recipe } from "@/data/recipes";
 
 const Arrow = () => (
@@ -41,7 +42,7 @@ function servingsLabel(s?: string | null): string | null {
     return /^\d+$/.test(v) ? `Serves ${v}` : v;
 }
 
-export function Hero({ recipe }: { recipe?: Recipe }) {
+export async function Hero({ recipe }: { recipe?: Recipe }) {
     const title = recipe?.title ?? "Slow-roasted tomato and almond-ricotta galette";
     const dek = firstSentence(recipe?.description) ||
         "A free-form summer tart with a buttery, flaky crust — built for the height of tomato season and almost impossible to get wrong.";
@@ -50,6 +51,9 @@ export function Hero({ recipe }: { recipe?: Recipe }) {
     const ph = recipe?.ph || "p5";
     const time = timeLabel(recipe?.readyIn);
     const servings = servingsLabel(recipe?.servings);
+    // Display-only on the home hero — the visitor isn't actually viewing the
+    // recipe here, so we read the summary but don't log (no `log` prop below).
+    const views = recipe ? await viewSummary("recipe", recipe.id) : null;
 
     return (
         <section className="hero">
@@ -79,19 +83,19 @@ export function Hero({ recipe }: { recipe?: Recipe }) {
                     <Link href={href} className="btn-primary">
                         Read the recipe <Arrow />
                     </Link>
-                    <div className="hero-social">
-                        <div className="stack">
-                            <span className="avatar a2">R</span><span className="avatar a3">K</span>
-                            <span className="avatar a4">M</span><span className="avatar a5">J</span>
+                    {recipe && views ? (
+                        <RecipeViews kind="recipe" slug={recipe.slug} count={views.count} initials={views.initials} />
+                    ) : (
+                        <div className="hero-social">
+                            <div className="stack">
+                                <span className="avatar a2">V</span>
+                            </div>
+                            <p><b>1</b> cook has viewed this</p>
                         </div>
-                        <p><b>212 members</b> cooked this &amp; left notes</p>
-                    </div>
+                    )}
                 </div>
             </div>
             <a href="#promise" className="scroll-cue" aria-label="Scroll down"><span /></a>
-            <svg className="hero-curve" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M0,90 L0,40 C360,86 1080,4 1440,46 L1440,90 Z" fill="var(--paper)" />
-            </svg>
         </section>
     );
 }
@@ -111,23 +115,7 @@ const icons: Record<string, React.ReactNode> = {
 export function PromiseStrip() {
     return (
         <div className="wrap" id="promise">
-            <section className="promise">
-                <div className="promise-grid">
-                    {promise.map((p) => (
-                        <div className="promise-item reveal" key={p.title}>
-              <span className="promise-ico">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  {icons[p.icon]}
-                </svg>
-              </span>
-                            <div>
-                                <h4>{p.title}</h4>
-                                <p>{p.body}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+
         </div>
     );
 }
@@ -138,7 +126,18 @@ export function Footer() {
             <div className="wrap">
                 <div className="foot-top">
                     <div>
-                        <Link href="/"><Logo /></Link>
+                        <Link href="/" aria-label="vegan eating home">
+                            {/* Footer is a light surface, so it uses the ink wordmark
+                                variant (/logo/logo-ink.svg). The standard logo.svg is
+                                white-on-dark and would vanish here. */}
+                            <img
+                                src="/logo/logo-ink.svg"
+                                alt="vegan eating"
+                                width={166}
+                                height={44}
+                                style={{ height: 44, width: "auto", display: "block" }}
+                            />
+                        </Link>
                         <p style={{ marginTop: 14 }}>Eat green, feel green. Honest, tested plant-based recipes for everyday cooking — and a community to cook them with.</p>
                     </div>
                     <div className="fcol">

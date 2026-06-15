@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 
 type Props = {
     mode: "login" | "register";
@@ -12,10 +13,12 @@ type Props = {
 const MESSAGES: Record<string, string> = {
     invalid: "That email and password didn't match. Try again.",
     taken: "An account with that email or username already exists.",
+    captcha: "Please complete the verification check and try again.",
 };
 
 export default function AuthForm({ mode, action, error }: Props) {
     const isRegister = mode === "register";
+    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
     return (
         <div className="auth-wrap">
@@ -67,6 +70,17 @@ export default function AuthForm({ mode, action, error }: Props) {
                             minLength={isRegister ? 8 : undefined}
                         />
                     </label>
+
+                    {/* Cloudflare Turnstile — register only, and only once a site key is configured.
+                        The widget auto-injects a hidden `cf-turnstile-response` field the action reads. */}
+                    {isRegister && siteKey ? (
+                        <>
+                            <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+                            <div className="captcha">
+                                <div className="cf-turnstile" data-sitekey={siteKey} />
+                            </div>
+                        </>
+                    ) : null}
 
                     <button type="submit">{isRegister ? "Create account" : "Log in"}</button>
                 </form>
@@ -139,6 +153,9 @@ export default function AuthForm({ mode, action, error }: Props) {
                 }
                 input:focus {
                     border-color: var(--terra, #c2603a);
+                }
+                .captcha {
+                    min-height: 65px;
                 }
                 button {
                     margin-top: 6px;

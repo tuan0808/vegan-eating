@@ -1,5 +1,5 @@
 // src/app/page.tsx
-import { Hero, PromiseStrip } from "@/components/Sections";
+import { Hero } from "@/components/Sections";
 import { Collections, ForumSection, CooksSection, JoinBand } from "@/components/HomeSections";
 import HomeSearch from "@/components/HomeSearch";
 import RecipeCard from "@/components/RecipeCard";
@@ -22,7 +22,7 @@ export default async function Home() {
     return (
         <>
             <Hero recipe={hero[0]} />
-            <PromiseStrip />
+
             <HomeSearch />
 
             <div className="wrap">

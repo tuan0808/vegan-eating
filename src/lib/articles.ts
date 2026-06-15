@@ -12,6 +12,7 @@ const arr = (s: string | null | undefined): string[] => {
 const toArticle = (a: any): Article => ({
     id: a.id, slug: a.slug, title: a.title, sourceUrl: a.sourceUrl,
     date: a.date, image: a.image, body: parseBody(a.body, arr(a.gallery)), hidden: !!a.hidden, tags: arr(a.tags), category: a.category ?? "", gallery: arr(a.gallery),
+    views: a.views ?? 0,
 });
 
 // Public lists hide soft-hidden articles.
@@ -60,12 +61,13 @@ export async function listRelatedArticles(category: string, excludeSlug: string,
     return rows.map(toArticle);
 }
 
-// Most-popular rail. NOTE: there is no view tracking yet, so this is a
-// placeholder ordering by `sort`. Swap the orderBy once a `views` column exists.
+// Most-popular rail — ordered by real view count (highest first), with `sort`
+// as a stable tiebreaker so the ordering is deterministic while counts are
+// still low / tied.
 export async function listPopularArticles(excludeSlug: string, limit = 5): Promise<Article[]> {
     const rows = await prisma.article.findMany({
         where: { hidden: false, slug: { not: excludeSlug } },
-        orderBy: { sort: "asc" },
+        orderBy: [{ views: "desc" }, { sort: "asc" }],
         take: limit,
     });
     return rows.map(toArticle);

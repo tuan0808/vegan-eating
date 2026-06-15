@@ -6,11 +6,20 @@ import { requireUser } from "@/lib/auth-helpers";
 import { updateArticle } from "./actions";
 import { ARTICLE_CATEGORIES } from "@/lib/categories";
 import ArticleImagesField from "./ArticleImagesField";
-import ArticleEditor from "./ArticleEditor";
-import { parseBody } from "@/lib/article-body";
 import "../../../recipes/admin-recipes.css";
 
 export const dynamic = "force-dynamic";
+
+// JSON array of paragraphs -> textarea text (blank line between paragraphs).
+function toBodyText(json: string | null | undefined): string {
+    if (!json) return "";
+    try {
+        const v = JSON.parse(json);
+        return Array.isArray(v) ? v.join("\n\n") : "";
+    } catch {
+        return "";
+    }
+}
 
 // JSON array of tags -> comma-separated text.
 function toTagsText(json: string | null | undefined): string {
@@ -40,9 +49,6 @@ export default async function EditArticlePage({
 
     const gallery = (() => { try { const v = JSON.parse(article.gallery || "[]"); return Array.isArray(v) ? (v as string[]) : []; } catch { return []; } })();
     const initialImages = [article.image, ...gallery].filter((s): s is string => !!s && s.trim() !== "");
-
-    // Opens both legacy string-array bodies and new Tiptap docs — no migration needed to edit.
-    const bodyDoc = parseBody(article.body, gallery);
 
     return (
         <div className="admin-recipes">
@@ -107,8 +113,10 @@ export default async function EditArticlePage({
 
                 <fieldset className="ar-card">
                     <legend>Body</legend>
-                    <p className="ar-hint">Write freely — use the toolbar for headings, bold, links, lists, and to drop images exactly where you want them.</p>
-                    <ArticleEditor name="body" initial={bodyDoc} />
+                    <p className="ar-hint">One paragraph per block — separate paragraphs with a blank line.</p>
+                    <label className="ar-field">
+                        <textarea name="body" rows={20} defaultValue={toBodyText(article.body)} aria-label="Article body" />
+                    </label>
                 </fieldset>
 
                 <div className="ar-actions">

@@ -1,0 +1,204 @@
+/* src/app/submit/submit.css */
+
+/* ---- shared form shell ---- */
+.submit-form {
+    display: grid;
+    gap: 20px;
+    max-width: 720px;
+}
+
+.submit-form .field {
+    display: grid;
+    gap: 6px;
+}
+
+.field-label {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 15px;
+}
+.field-label em {
+    font-style: normal;
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.field-sub {
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.submit-form input,
+.submit-form textarea,
+.submit-form .field-select {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+}
+.submit-form textarea {
+    resize: vertical;
+    line-height: 1.55;
+}
+.submit-form input:focus,
+.submit-form textarea:focus,
+.submit-form .field-select:focus {
+    outline: none;
+    border-color: var(--terra);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--terra) 18%, transparent);
+}
+.field-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237a7a72' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+}
+
+/* ---- timing trio ---- */
+.time-grid {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 0;
+}
+.time-grid legend {
+    padding: 0 6px;
+}
+@media (max-width: 560px) {
+    .time-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- image dropzone + thumbs ---- */
+.dropzone {
+    border: 1.5px dashed var(--line);
+    border-radius: 14px;
+    padding: 26px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    background: color-mix(in srgb, var(--paper, #faf7f1) 60%, #fff);
+}
+.dropzone:hover {
+    border-color: var(--terra);
+}
+.dropzone-text {
+    display: grid;
+    gap: 4px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.dropzone-text small {
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.thumbs {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+}
+.thumb {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+.thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.thumb-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(20, 20, 18, 0.72);
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+.thumb-remove:hover {
+    background: rgba(20, 20, 18, 0.92);
+}
+
+/* ---- error + submit ---- */
+.submit-error {
+    background: color-mix(in srgb, var(--terra) 12%, #fff);
+    border: 1px solid color-mix(in srgb, var(--terra) 40%, var(--line));
+    color: color-mix(in srgb, var(--terra) 70%, var(--ink));
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+.submit-btn {
+    justify-content: center;
+    width: 100%;
+}
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+/* ---- gate (logged out) + success ---- */
+.submit-gate,
+.submit-done {
+    max-width: 620px;
+}
+.submit-gate h2,
+.submit-done h2 {
+    margin: 10px 0 8px;
+}
+.submit-gate p,
+.submit-done p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+.submit-gate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+/* lightweight secondary button (in case it's not already global) */
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+}
+.btn-ghost:hover {
+    border-color: var(--terra);
+}

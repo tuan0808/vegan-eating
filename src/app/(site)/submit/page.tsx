@@ -1,36 +1,45 @@
 // src/app/submit/page.tsx
 import type { Metadata } from "next";
+import Link from "next/link";
+import { currentUser } from "@/lib/auth-helpers";
+import SubmitRecipeForm from "@/components/SubmitRecipeForm";
+import "./submit.css";
 import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = { title: "Submit a recipe — vegan eating" };
 
-export default function SubmitPage() {
+export default async function SubmitPage() {
+    const user = await currentUser();
+
     return (
         <>
             <PageHero
                 image="/header/submit2.jpg"
-                kicker="Contribute"
-                title="Submit a Recipe"
-                dek="Share your favorite plant-based dish with the community."
-                minHeight={380}
+                kicker="The Community"
+                title="Submit a recipe"
+                dek="Cooked something worth sharing? Send it our way. We read every submission, test the
+                        promising ones, and publish the keepers with credit to you."
             />
 
-            <div className="wrap" style={{ paddingBottom: 60 }}>
+
+            <div className="wrap" style={{ paddingBottom: 70 }}>
                 <section style={{ paddingTop: 28 }}>
-                    <div className="tool-box">
-                        <form action="#" style={{ display: "grid", gap: 16 }}>
-                            <label style={{ fontWeight: 600 }}>Recipe title
-                                <input style={{ width: "100%", marginTop: 6, padding: 14, borderRadius: 12, border: "1px solid var(--line)", fontFamily: "inherit", fontSize: 15 }} placeholder="e.g. Smoky tofu tacos" />
-                            </label>
-                            <label style={{ fontWeight: 600 }}>Ingredients (one per line)
-                                <textarea style={{ marginTop: 6 }} placeholder={"1 block firm tofu\n2 tbsp soy sauce\n..."} />
-                            </label>
-                            <label style={{ fontWeight: 600 }}>Method (one step per line)
-                                <textarea style={{ marginTop: 6 }} placeholder={"Press the tofu...\nFry until golden...\n..."} />
-                            </label>
-                            <button type="button" className="btn-primary" style={{ justifyContent: "center" }}>Save as draft (wiring up next)</button>
-                        </form>
-                    </div>
+                    {user ? (
+                        <SubmitRecipeForm authorName={user.name ?? user.username ?? "you"} />
+                    ) : (
+                        <div className="tool-box submit-gate">
+                            <span className="kicker">Members only</span>
+                            <h2>You&rsquo;re not logged in</h2>
+                            <p>
+                                Submitting a recipe is for logged-in members, so we can credit you and follow up
+                                with any questions. It&rsquo;s free and takes a minute.
+                            </p>
+                            <div className="submit-gate-actions">
+                                <Link href="/login" className="btn-primary">Log in</Link>
+                                <Link href="/register" className="btn-ghost">Create an account</Link>
+                            </div>
+                        </div>
+                    )}
                 </section>
             </div>
         </>

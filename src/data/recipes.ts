@@ -27,6 +27,7 @@ export type Recipe = {
   hidden: boolean;
   category: string;
   ph: string;
+  views: number;
 };
 
 export function fmtTime(min: number | null): string {

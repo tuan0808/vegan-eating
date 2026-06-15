@@ -4,8 +4,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import sanitizeHtml from "sanitize-html";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { guardCommunityPost, type GuardFail } from "@/lib/anti-spam";
 
 // "new" is a real route segment (the New-thread page), so a thread can't own it
 // as a slug or it'd be unreachable. Reserve it.
@@ -46,26 +46,48 @@ function cleanBody(raw: string): { html: string; empty: boolean } {
     return { html, empty: text.length === 0 };
 }
 
+// Translate a failed guard into the right redirect for the forum's flow.
+function redirectForGuard(guard: GuardFail, formUrl: string): never {
+    if (guard.reason === "signin") redirect("/login");
+    if (guard.reason === "unverified") redirect("/dashboard?verify=1");
+    // banned / blocked / cooldown / hourly -> back to the form with a code
+    redirect(`${formUrl}?error=${guard.reason}`);
+}
+
+// Rate-limit lookup for the forum: count this user's posts (openers + replies).
+async function recentForumActivity(userId: string) {
+    const hourAgo = new Date(Date.now() - 3_600_000);
+    const [last, lastHourCount] = await Promise.all([
+        prisma.post.findFirst({
+            where: { authorId: userId },
+            orderBy: { createdAt: "desc" },
+            select: { createdAt: true },
+        }),
+        prisma.post.count({ where: { authorId: userId, createdAt: { gte: hourAgo } } }),
+    ]);
+    return { lastAt: last?.createdAt ?? null, lastHourCount };
+}
+
 /**
  * New thread. Creates the Thread plus its opening Post in one write — the first
- * post IS the opening message. Gated on being logged in (any role). The
- * email-verification gate slots in at the marked spot when you go to prod.
+ * post IS the opening message. Stricter rate limit than replies, since new
+ * threads are the prime spam real estate.
  */
 export async function createThread(formData: FormData) {
-    const session = await auth();
-    if (!session?.user) redirect("/login");
-
     const categorySlug = String(formData.get("categorySlug") ?? "");
     const forumSlug = String(formData.get("forumSlug") ?? "");
 
-    // Honeypot: hidden from real people. If it's filled, it's a bot — pretend
-    // success so it learns nothing, but write nothing.
+    // Honeypot first (cheapest): hidden from real people. If it's filled, it's a
+    // bot — pretend success so it learns nothing, but write nothing.
     if (String(formData.get("website") ?? "").trim() !== "") {
         redirect(`/forum/${categorySlug}/${forumSlug}`);
     }
 
-    // --- prod cutover: gate posting on a verified email ---
-    // if (!session.user.emailVerified) redirect("/dashboard?verify=1");
+    // Shared gate: sign-in + verified + not-banned + IP blocklist + rate limit.
+    // Thread thresholds come from the admin-tunable config (the "thread" surface).
+    const guard = await guardCommunityPost(recentForumActivity, { surface: "thread" });
+    if (!guard.ok) redirectForGuard(guard, `/forum/${categorySlug}/${forumSlug}/new`);
+    const { userId, ip, userAgent } = guard;
 
     const title = String(formData.get("title") ?? "").trim();
     const { html: body, empty } = cleanBody(String(formData.get("body") ?? ""));
@@ -85,11 +107,11 @@ export async function createThread(formData: FormData) {
     await prisma.thread.create({
         data: {
             forumId: forum.id,
-            authorId: session.user.id,
+            authorId: userId,
             title,
             slug,
             lastPostAt: now,
-            posts: { create: { authorId: session.user.id, body } },
+            posts: { create: { authorId: userId, body, ipAddress: ip, userAgent } },
         },
     });
 
@@ -102,9 +124,6 @@ export async function createThread(formData: FormData) {
  * Reply. Appends a Post and bumps the thread's lastPostAt so the board re-sorts.
  */
 export async function createReply(formData: FormData) {
-    const session = await auth();
-    if (!session?.user) redirect("/login");
-
     const categorySlug = String(formData.get("categorySlug") ?? "");
     const forumSlug = String(formData.get("forumSlug") ?? "");
     const threadSlug = String(formData.get("threadSlug") ?? "");
@@ -113,8 +132,9 @@ export async function createReply(formData: FormData) {
         redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
     }
 
-    // --- prod cutover: gate posting on a verified email ---
-    // if (!session.user.emailVerified) redirect("/dashboard?verify=1");
+    const guard = await guardCommunityPost(recentForumActivity); // default knobs for replies
+    if (!guard.ok) redirectForGuard(guard, `/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
+    const { userId, ip, userAgent } = guard;
 
     const { html: body, empty } = cleanBody(String(formData.get("body") ?? ""));
 
@@ -125,7 +145,7 @@ export async function createReply(formData: FormData) {
 
     const now = new Date();
     await prisma.$transaction([
-        prisma.post.create({ data: { threadId: thread.id, authorId: session.user.id, body } }),
+        prisma.post.create({ data: { threadId: thread.id, authorId: userId, body, ipAddress: ip, userAgent } }),
         prisma.thread.update({ where: { id: thread.id }, data: { lastPostAt: now } }),
     ]);
 

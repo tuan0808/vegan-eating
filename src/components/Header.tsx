@@ -8,17 +8,16 @@ import "./header-nav.css";
 
 // Logo kept as before (uses your global .brand/.logo-* styles) so the footer's
 // `import { Logo } from "./Header"` keeps working. In the nav it's forced white.
-export function Logo() {
+export function Logo({ height = 42 }: { height?: number }) {
+    const ratio = 444.769 / 117.885; // native aspect ratio of the SVG
     return (
-        <span className="brand" style={{ fontFamily: "Fraunces, serif" }}>
-      <svg className="logo-carrot" width="21" height="25" viewBox="0 0 20 24" fill="none" aria-hidden="true">
-        <g stroke="#5BB35F" strokeWidth="2" strokeLinecap="round">
-          <path d="M10 7V3" /><path d="M10 7 6 4.2" /><path d="M10 7l4-2.8" />
-        </g>
-        <path d="M10 7c3 0 5 2 5 5 0 4-3 10-5 10S5 16 5 12c0-3 2-5 5-5z" fill="#E15A22" />
-      </svg>
-      <span className="logo-wm">vegan <em>eating</em></span>
-    </span>
+        <img
+            src="/logo/logo.svg"
+            alt="vegan eating"
+            width={Math.round(height * ratio)}
+            height={height}
+            style={{ height, width: "auto", display: "block" }}
+        />
     );
 }
 
@@ -109,7 +108,20 @@ const SEARCH_PHRASES = [
     "whatever's about to turn…",
 ];
 
+// Minimal, serializable shape passed down from the (server) layout — Header is
+// a client component and can't read the session itself.
+type NavUser = { name?: string | null; username?: string | null };
+
 export default function Header() {
+    // Auth state is fetched client-side so the public pages stay static/ISR —
+    // reading the session in the (server) layout would force every page under
+    // it to render dynamically. `authReady` guards against flashing the wrong
+    // control (e.g. "Sign in" to someone who's actually logged in).
+    const [authUser, setAuthUser] = useState<NavUser | null>(null);
+    const [authReady, setAuthReady] = useState(false);
+    const displayName = (authUser?.name || authUser?.username || "").trim();
+    const initial = displayName.charAt(0).toUpperCase() || "•";
+
     const [openKey, setOpenKey] = useState<string | null>(null);
     const [lifted, setLifted] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -201,10 +213,22 @@ export default function Header() {
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => { if (on && d && d.slug) setFeatured(d); })
             .catch(() => {});
-        fetch("/api/featured-article")
+        return () => { on = false; };
+    }, []);
+
+    // Who's logged in? Read the NextAuth session endpoint on the client so the
+    // rest of the site can stay statically rendered.
+    useEffect(() => {
+        let on = true;
+        fetch("/api/auth/session")
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (on && d && d.slug) setFeaturedArticle(d); })
-            .catch(() => {});
+            .then((d) => {
+                if (!on) return;
+                const u = d && d.user ? d.user : null;
+                setAuthUser(u ? { name: u.name, username: u.username } : null);
+                setAuthReady(true);
+            })
+            .catch(() => { if (on) setAuthReady(true); });
         return () => { on = false; };
     }, []);
 
@@ -278,6 +302,15 @@ export default function Header() {
                         <button type="button" className="vn-icon" aria-label="Search recipes" onClick={openSearch}>
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
                         </button>
+                        {!authReady ? (
+                            <span className="vn-avatar vn-avatar-skel" aria-hidden />
+                        ) : authUser ? (
+                            <Link href="/dashboard" className="vn-avatar" aria-label={`${displayName} — go to dashboard`} title={displayName}>
+                                {initial}
+                            </Link>
+                        ) : (
+                            <Link href="/login" className="vn-signin">Sign in</Link>
+                        )}
                         <button type="button" className="vn-sub" onClick={openSubscribe}>Subscribe</button>
                         <button className="vn-burger" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((v) => !v)}>
                             <span /><span /><span />
@@ -344,6 +377,20 @@ export default function Header() {
                         )}
                     </div>
                 ))}
+                {authUser ? (
+                    <div className="vn-d-item">
+                        <Link className="vn-d-parent" href="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                    </div>
+                ) : (
+                    <>
+                        <div className="vn-d-item">
+                            <Link className="vn-d-parent" href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
+                        </div>
+                        <div className="vn-d-item">
+                            <Link className="vn-d-parent" href="/register" onClick={() => setMobileOpen(false)}>Create account</Link>
+                        </div>
+                    </>
+                )}
                 <button type="button" className="vn-sub vn-sub-drawer" onClick={openSubscribe}>Subscribe</button>
             </div>
 

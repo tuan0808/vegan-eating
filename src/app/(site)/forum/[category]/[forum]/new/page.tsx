@@ -6,9 +6,21 @@ import { getForumView } from "@/lib/forum";
 import { currentUser } from "@/lib/auth-helpers";
 import type { CSSProperties } from "react";
 import RichEditor from "@/components/RichEditor";
+import PageHero from "@/components/PageHero";
 import { createThread } from "../../../actions";
 
 export const metadata: Metadata = { title: "New thread — Forums — vegan eating" };
+
+// Maps the ?error=<code> the createThread action can redirect with to a message.
+// Note: "signin" and "unverified" never land here — the action sends those to
+// /login and /dashboard?verify=1 respectively.
+const ERR: Record<string, string> = {
+    missing: "Please add a title (at least 3 characters) and a message before posting.",
+    cooldown: "You're posting a little fast — give it a minute before starting another thread.",
+    hourly: "You've hit the hourly posting limit. Try again later.",
+    blocked: "Unable to post from this connection.",
+    banned: "Your account is not able to post.",
+};
 
 const labelStyle: CSSProperties = {
     display: "block",
@@ -55,21 +67,17 @@ export default async function NewThreadPage({
     const view = await getForumView(params.category, params.forum);
     if (!view) notFound();
 
+    const errorMsg = searchParams.error
+        ? ERR[searchParams.error] ?? "Something went wrong. Please try again."
+        : null;
+
     return (
         <>
-            <section className="recipe-hero">
-                <div className="hero-bg">
-                    <div className="ph p3" />
-                    <div
-                        style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: "linear-gradient(180deg, rgba(20,30,20,.35), rgba(20,30,20,.62))",
-                        }}
-                    />
-                </div>
-                <div className="wrap" style={{ position: "relative", zIndex: 2, color: "#fff" }}>
-                    <div style={{ fontSize: 13, marginBottom: 14, color: "rgba(255,255,255,.8)" }}>
+            <PageHero
+                image="/header/forum.jpg"
+                minHeight={380}
+                breadcrumb={
+                    <>
                         <Link href="/forum" style={{ color: "rgba(255,255,255,.85)" }}>Forums</Link>
                         <span style={{ margin: "0 8px" }}>/</span>
                         <span>{view.category.name}</span>
@@ -80,16 +88,14 @@ export default async function NewThreadPage({
                         >
                             {view.forum.name}
                         </Link>
-                    </div>
-                    <h1 style={{ marginTop: 4, maxWidth: 760 }}>Start a thread</h1>
-                    <p className="dek" style={{ color: "rgba(255,255,255,.92)" }}>
-                        Posting in {view.forum.name} as {user.name ?? user.username ?? "you"}
-                    </p>
-                </div>
-            </section>
+                    </>
+                }
+                title="Start a thread"
+                dek={`Posting in ${view.forum.name} as ${user.name ?? user.username ?? "you"}`}
+            />
 
             <div style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "8px 28px 90px" }}>
-                {searchParams.error ? (
+                {errorMsg ? (
                     <p
                         style={{
                             background: "#fbeae5",
@@ -101,7 +107,7 @@ export default async function NewThreadPage({
                             marginBottom: 18,
                         }}
                     >
-                        Please add a title (at least 3 characters) and a message before posting.
+                        {errorMsg}
                     </p>
                 ) : null}
 

@@ -1,0 +1,258 @@
+/* src/app/(app)/admin/submissions/submissions.css */
+
+.subs-page {
+    max-width: none;        /* fill the content area like the Members page */
+    margin: 0;
+    padding: 28px 40px 70px 0;
+}
+.subs-head {
+    margin-bottom: 18px;
+}
+.subs-head h1 {
+    font-family: var(--display);
+    margin: 10px 0 6px;
+}
+.subs-head p {
+    color: var(--muted);
+    margin: 0;
+}
+
+/* ----------------------------- tabs ----------------------------- */
+.subs-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+}
+.subs-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+.subs-tab:hover {
+    color: var(--ink);
+}
+.subs-tab.is-active {
+    color: var(--ink);
+    border-bottom-color: var(--terra);
+}
+.tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--terra);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.subs-empty {
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* ----------------------------- pending cards ----------------------------- */
+.subs-list {
+    display: grid;
+    gap: 18px;
+}
+.sub-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(28, 35, 23, 0.06), 0 10px 28px rgba(28, 35, 23, 0.04);
+    padding: 22px 24px;
+    display: grid;
+    gap: 16px;
+}
+.sub-card-head h2 {
+    font-family: var(--display);
+    margin: 8px 0 4px;
+    font-size: 1.4rem;
+}
+.sub-meta {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin: 0;
+}
+
+.diet-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 9px;
+    border-radius: 999px;
+    color: #fff;
+}
+.diet-vegan { background: var(--olive, #5b6b3f); }
+.diet-vegetarian { background: #8a6d3b; }
+
+.sub-thumbs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+}
+.sub-thumbs img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+.sub-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+@media (max-width: 720px) {
+    .sub-cols { grid-template-columns: 1fr; }
+}
+.sub-cols h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 0 0 8px;
+}
+.sub-pre {
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: #faf8f1;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 0;
+}
+
+.sub-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+}
+.sub-actions-error {
+    color: var(--terra);
+    font-size: 13.5px;
+    font-weight: 600;
+    flex-basis: 100%;
+}
+.sub-approve:disabled,
+.sub-reject:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+/* ----------------------------- history rows ----------------------------- */
+.hist-list {
+    display: grid;
+    gap: 10px;
+}
+.hist-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(28, 35, 23, 0.05);
+}
+.hist-main {
+    flex: 1;
+    min-width: 0;
+}
+.hist-title {
+    font-weight: 600;
+    color: var(--ink);
+}
+.hist-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+.hist-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.status-badge {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+}
+.status-approved {
+    background: rgba(91, 107, 63, 0.14);
+    color: #41502a;
+}
+.status-rejected {
+    background: rgba(194, 96, 58, 0.12);
+    color: #9a3f1f;
+}
+
+/* ----------------------------- secondary button -----------------------------
+   .btn-primary is global; .btn-ghost is not loaded on this route, so define it here. */
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.btn-ghost:hover {
+    border-color: var(--terra);
+}
+.btn-ghost:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+.hist-danger:hover {
+    border-color: var(--terra);
+    color: var(--terra);
+}
+
+/* "In recipes ✓" — show it's already in the library */
+.hist-incat {
+    border-color: rgba(91, 107, 63, 0.4);
+    color: #41502a;
+}
+.hist-incat:hover {
+    border-color: var(--olive, #5b6b3f);
+}

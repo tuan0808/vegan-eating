@@ -1,7 +1,9 @@
-// src/app/recipes/[slug]/page.tsx
+// src/app/(site)/recipes/[slug]/page.tsx
 import { getRecipeBySlug } from "@/lib/recipes";
 import { parseServings } from "@/lib/recipe-scale";
 import { fmtTime, titleCase } from "@/data/recipes";
+import { viewSummary } from "@/lib/views";
+import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -9,6 +11,8 @@ import RecipeTools from "@/components/RecipeTools";
 import HeroTitle from "@/components/HeroTitle";
 import RecipeGallery from "@/components/RecipeGallery";
 import MethodSteps from "@/components/MethodSteps";
+import Comments from "@/components/Comments";
+import RecipeViews from "@/components/RecipeViews";
 import ArticleBody from "@/app/(site)/articles/[slug]/ArticleBody";
 import { parseBody, tiptapText } from "@/lib/article-body";
 import "@/app/(site)/articles/[slug]/article-content.css";
@@ -33,14 +37,24 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return { title: `${r.title} — vegan eating`, description: tiptapText(parseBody(r.description)).slice(0, 155) };
 }
 
-export default async function RecipePage({ params }: { params: { slug: string } }) {
+export default async function RecipePage({
+                                           params,
+                                           searchParams,
+                                         }: {
+  params: { slug: string };
+  searchParams?: { cpage?: string };
+}) {
   const r = await getRecipeBySlug(params.slug);
   if (!r) notFound();
 
+  const cpage = Number(searchParams?.cpage) || 1;
   const heroImg = imgSrc(r.image);
   const baseServings = parseServings(r.servings);
   const descDoc = parseBody(r.description);
   const descText = tiptapText(descDoc);
+  const views = await viewSummary("recipe", r.id);
+  const session = await auth();
+  const viewerKey = session?.user?.id ?? session?.user?.email ?? "anon";
   const timing = [
     r.prepTime ? `${r.prepTime} min prep` : null,
     r.cookTime ? `${r.cookTime} min cook` : null,
@@ -79,13 +93,7 @@ export default async function RecipePage({ params }: { params: { slug: string } 
               {r.calories ? <span>🔥 <b>{r.calories} cal</b></span> : null}
               {r.allergens.length ? <span>🏷 <b>{r.allergens.slice(0, 3).join(", ")}</b></span> : null}
             </div>
-            <div className="hero-social" style={{ marginTop: 22 }}>
-              <div className="stack">
-                <span className="avatar a2">R</span><span className="avatar a3">K</span>
-                <span className="avatar a4">M</span><span className="avatar a5">J</span>
-              </div>
-              <p><b>212 members</b> cooked this &amp; left notes</p>
-            </div>
+            <RecipeViews kind="recipe" slug={r.slug} count={views.count} initials={views.initials} viewerKey={viewerKey} log />
           </div>
         </section>
 
@@ -114,11 +122,13 @@ export default async function RecipePage({ params }: { params: { slug: string } 
               {r.courses.length > 0 && (
                   <p style={{ marginTop: 30, fontSize: 14, color: "var(--muted)" }}>Courses: {r.courses.map((c) => titleCase(c)).join(", ")}</p>
               )}
-              <div className="note-box">
-                <span className="kicker">From the community</span>
-                <p style={{ marginTop: 10, fontSize: 13.5, color: "var(--muted)" }}>Sign in to rate this recipe, leave a note, or share a photo of your cook.</p>
-              </div>
-              {r.sourceUrl ? <p style={{ marginTop: 24, fontSize: 13, color: "var(--muted)" }}><a href={r.sourceUrl} style={{ color: "var(--terra)" }}>View original</a></p> : null}
+
+
+              <Comments
+                  target={{ recipeId: r.id }}
+                  path={`/recipes/${params.slug}`}
+                  page={cpage}
+              />
             </div>
           </div>
         </div>

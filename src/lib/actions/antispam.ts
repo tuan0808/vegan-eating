@@ -1,0 +1,48 @@
+// src/lib/actions/antispam.ts
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { currentUser } from "@/lib/auth-helpers";
+import { ANTISPAM_KEYS } from "@/lib/antispam-config";
+
+// Returned to the form so it can show a "Saved" / error flash.
+export type SaveState = { ok: boolean; message: string | null; key?: number };
+
+function clampInt(raw: FormDataEntryValue | null, lo: number, hi: number, fallback: number) {
+    const n = Math.round(Number(raw));
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(hi, Math.max(lo, n));
+}
+
+export async function saveAntiSpamConfig(
+    _prev: SaveState,
+    formData: FormData,
+): Promise<SaveState> {
+    const user = await currentUser();
+    if (user?.role !== "ADMIN") {
+        return { ok: false, message: "You don't have permission to change this.", key: Date.now() };
+    }
+
+    const postCooldown = clampInt(formData.get("postCooldown"), 0, 3600, 60);
+    const postHourly = clampInt(formData.get("postHourly"), 1, 1000, 10);
+    const threadCooldown = clampInt(formData.get("threadCooldown"), 0, 86400, 120);
+    const threadHourly = clampInt(formData.get("threadHourly"), 1, 1000, 5);
+
+    const upsert = (key: string, value: string) =>
+        prisma.setting.upsert({ where: { key }, update: { value }, create: { key, value } });
+
+    try {
+        await prisma.$transaction([
+            upsert(ANTISPAM_KEYS.postCooldown, String(postCooldown)),
+            upsert(ANTISPAM_KEYS.postHourly, String(postHourly)),
+            upsert(ANTISPAM_KEYS.threadCooldown, String(threadCooldown)),
+            upsert(ANTISPAM_KEYS.threadHourly, String(threadHourly)),
+        ]);
+    } catch {
+        return { ok: false, message: "Couldn't save — try again.", key: Date.now() };
+    }
+
+    revalidatePath("/admin/security");
+    return { ok: true, message: "Rate limits saved.", key: Date.now() };
+}

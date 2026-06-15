@@ -8,13 +8,14 @@ export type HeroMeta = { icon?: ReactNode; value: string; label: string };
 
 /**
  * The fancy full-bleed editorial hero, reusable across pages.
- * Pass an image + title; everything else (kicker, dek, meta stats, CTA, and an
- * extra slot via children) is optional. Content sits left over a dark-left
- * gradient so the right of the photo shows through.
+ * Pass an image + title; everything else (breadcrumb, kicker, dek, meta stats,
+ * CTA, and an extra slot via children) is optional. Content sits left over a
+ * dark-left gradient so the right of the photo shows through.
  */
 export default function PageHero({
                                      image,
                                      imageAlt = "",
+                                     breadcrumb,
                                      kicker,
                                      title,
                                      dek,
@@ -25,6 +26,7 @@ export default function PageHero({
                                  }: {
     image: string;
     imageAlt?: string;
+    breadcrumb?: ReactNode;
     kicker?: string;
     title: string;
     dek?: string;
@@ -42,6 +44,18 @@ export default function PageHero({
 
             <div className="phero-inner">
                 <div className="phero-content">
+                    {/* Optional trail for nested pages (e.g. Forums / Category / Forum).
+                        Pass <Link>s in white; container styling is inlined so
+                        page-hero.css doesn't need a new rule. */}
+                    {breadcrumb ? (
+                        <div
+                            className="phero-crumb"
+                            style={{ fontSize: 13, marginBottom: 14, color: "rgba(255,255,255,.8)" }}
+                        >
+                            {breadcrumb}
+                        </div>
+                    ) : null}
+
                     {kicker ? (
                         <div className="phero-kicker">
                             <span>{kicker}</span>

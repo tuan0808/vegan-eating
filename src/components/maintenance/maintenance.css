@@ -6,77 +6,147 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 2.5rem;
     overflow: hidden;
-    background: var(--paper);
+    background: var(--ink);
 }
 
 /* ── Full-viewport background image ──────────────────────────────────
-   PLACEHOLDER: warm oat gradient.
-   TO INSERT YOUR IMAGE: drop a file at  public/maintenance-bg.jpg
-   then replace the line below with:  background-image: url("/maintenance-bg.jpg");
-*/
+   PLACEHOLDER: dark garden gradient. Uploads from /settings set this
+   automatically. To hardcode: background-image: url("/media/your-file.jpg"); */
 .mnt-bg {
     position: absolute;
     inset: 0;
     z-index: 0;
-    background-image: linear-gradient(160deg, #e9e4d6 0%, #d6cfbd 55%, #cfc7b2 100%);
+    background-image: linear-gradient(160deg, #2c3326 0%, #1b2117 100%);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
-/* Tonal scrim above the image, below the content — like the hero overlays.
-   Drop or raise these alphas to taste. */
+/* Heavy wash + vignette behind the modal — this is what gives the depth.
+   Raise/lower these alphas to make the photo darker or lighter. */
 .mnt-overlay {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(180deg, rgba(28, 35, 23, 0.28) 0%, rgba(28, 35, 23, 0.52) 100%);
+    background:
+            radial-gradient(120% 90% at 50% 40%, rgba(16, 19, 12, 0.45) 0%, rgba(16, 19, 12, 0.86) 100%),
+            linear-gradient(180deg, rgba(16, 19, 12, 0.50) 0%, rgba(16, 19, 12, 0.72) 100%);
 }
 
+/* The modal — dark frosted glass floating over the image */
 .mnt-card {
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 540px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    padding: 3.25rem 3rem 2.75rem;
-    box-shadow: 0 30px 70px rgba(20, 18, 12, 0.28);
+    max-width: 520px;
+    background: rgba(22, 26, 17, 0.58);
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
+    border: 1px solid rgba(244, 241, 233, 0.14);
+    border-radius: 22px;
+    padding: 3rem 2.75rem 2.5rem;
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(244, 241, 233, 0.06);
     text-align: center;
-    animation: mnt-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    color: #f4f1e9;
+    animation: mnt-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
-/* sprout */
-.mnt-sprout { width: 58px; height: 64px; margin: 0 auto 1.1rem; display: block; transform-origin: 50% 100%; animation: mnt-grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both; }
-.mnt-stem { stroke: var(--green); stroke-width: 2.2; stroke-linecap: round; }
-.mnt-leafshape { stroke: var(--green); stroke-width: 1.8; fill: rgba(91, 107, 63, 0.12); stroke-linejoin: round; }
+/* sprout — cream stroke, terracotta seed */
+.mnt-sprout {
+    width: 48px;
+    height: 54px;
+    margin: 0 auto 1.1rem;
+    display: block;
+    transform-origin: 50% 100%;
+    animation: mnt-grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
+}
+.mnt-stem { stroke: #f4f1e9; stroke-width: 2.2; stroke-linecap: round; }
+.mnt-leafshape { stroke: #f4f1e9; stroke-width: 1.8; fill: rgba(244, 241, 233, 0.14); stroke-linejoin: round; }
 .mnt-seed { fill: var(--terra); }
 
-.mnt-mark { font-family: var(--display); font-size: 1rem; color: var(--green); margin: 0 0 1.5rem; }
-.mnt-mark span { margin-right: 3px; }
+.mnt-mark {
+    font-family: var(--display);
+    font-size: 1.02rem;
+    letter-spacing: 0.02em;
+    color: #f4f1e9;
+    opacity: 0.95;
+    margin: 0 0 2rem;
+}
+.mnt-mark span { margin-right: 4px; }
 
-.mnt-title { font-family: var(--display); font-style: italic; font-weight: 500; font-size: clamp(1.9rem, 4.5vw, 2.6rem); line-height: 1.12; color: var(--ink); margin: 0 0 0.9rem; }
+/* countdown — the hero */
+.mnt-clock { display: inline-flex; margin: 0 0 1.1rem; }
+.mnt-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 1.15rem;
+}
+.mnt-cell + .mnt-cell { border-left: 1px solid rgba(244, 241, 233, 0.20); }
+.mnt-num {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(2.1rem, 7vw, 3.3rem);
+    font-variant-numeric: tabular-nums;
+    color: #f4f1e9;
+    line-height: 1;
+}
+.mnt-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(244, 241, 233, 0.68);
+}
 
-.mnt-copy { font-size: 1.02rem; line-height: 1.6; color: var(--muted); margin: 0 auto 2.25rem; max-width: 40ch; }
+.mnt-eta { font-size: 0.9rem; color: rgba(244, 241, 233, 0.72); margin: 0; }
+.mnt-back {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1.3rem, 4vw, 1.7rem);
+    color: #f4f1e9;
+    margin: 0;
+}
 
-.mnt-clock { display: flex; gap: 0.6rem; justify-content: center; margin: 0 0 0.9rem; }
-.mnt-cell { flex: 1; max-width: 88px; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.85rem 0.4rem; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
-.mnt-num { font-family: var(--display); font-size: clamp(1.5rem, 5vw, 2rem); font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1; }
-.mnt-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
-.mnt-eta { font-size: 0.9rem; color: var(--muted); margin: 0; }
-.mnt-back { font-family: var(--display); font-style: italic; font-size: 1.3rem; color: var(--green); margin: 0; }
+.mnt-copy {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: rgba(244, 241, 233, 0.85);
+    margin: 1.35rem auto 0;
+    max-width: 38ch;
+}
 
-.mnt-tag { font-family: var(--display); font-style: italic; font-size: 0.95rem; color: var(--muted); margin: 1.9rem 0 0; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.mnt-tag {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 0.98rem;
+    color: rgba(244, 241, 233, 0.68);
+    margin: 2rem 0 0;
+}
+.mnt-tag::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: rgba(244, 241, 233, 0.28);
+    margin: 0 auto 1rem;
+}
 
-@keyframes mnt-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes mnt-grow { from { opacity: 0; transform: scaleY(0.6) translateY(6px); } to { opacity: 1; transform: scaleY(1) translateY(0); } }
+@keyframes mnt-rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes mnt-grow {
+    from { opacity: 0; transform: scaleY(0.6) translateY(6px); }
+    to   { opacity: 1; transform: scaleY(1) translateY(0); }
+}
 
 @media (max-width: 480px) {
-    .mnt-card { padding: 2.5rem 1.6rem 2rem; border-radius: 20px; }
-    .mnt-clock { gap: 0.45rem; }
+    .mnt { padding: 1.5rem; }
+    .mnt-card { padding: 2.25rem 1.5rem 2rem; border-radius: 18px; }
+    .mnt-cell { padding: 0 0.8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

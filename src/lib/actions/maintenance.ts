@@ -5,21 +5,31 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { revalidatePath } from "next/cache";
 import { setSetting } from "@/lib/settings";
+import { currentUser } from "@/lib/auth-helpers";
 
-// NOTE: these mutate site state — keep them behind whatever auth guards your admin.
+// These mutate site-wide state. The guard below is the real boundary — the
+// Settings page only HIDES the controls; this is what stops a crafted POST.
+async function requireAdmin() {
+    const user = await currentUser();
+    if (user?.role !== "ADMIN") throw new Error("Forbidden");
+}
 
 export async function setMaintenanceEnabled(enabled: boolean) {
+    await requireAdmin();
     await setSetting("maintenance_enabled", enabled ? "true" : "false");
     revalidatePath("/settings");
 }
 
 export async function saveMaintenanceSchedule(endsAt: string, message: string) {
+    await requireAdmin();
     await setSetting("maintenance_ends_at", endsAt ?? "");
     await setSetting("maintenance_message", message ?? "");
     revalidatePath("/settings");
 }
 
 export async function uploadMaintenanceBg(formData: FormData) {
+    await requireAdmin(); // before we touch the filesystem
+
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) return;
     if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
@@ -39,6 +49,7 @@ export async function uploadMaintenanceBg(formData: FormData) {
 }
 
 export async function clearMaintenanceBg() {
+    await requireAdmin();
     await setSetting("maintenance_bg", "");
     revalidatePath("/settings");
     revalidatePath("/");

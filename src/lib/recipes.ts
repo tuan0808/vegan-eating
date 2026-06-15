@@ -20,6 +20,16 @@ const items = (s: string | null | undefined): { src: string; step: number | null
     } catch { return []; }
 };
 
+// Normalize stored image paths the same way the Hero does: full URLs and
+// root-absolute paths pass through; bare WP imports ("2025/01/x.jpg") get a
+// leading slash so they resolve from the site root.
+function normalizeImg(src: string | null | undefined): string | null {
+    const s = (src ?? "").trim();
+    if (!s) return null;
+    if (/^https?:\/\//i.test(s) || s.startsWith("/")) return s;
+    return "/" + s.replace(/^\.?\//, "");
+}
+
 // WordPress pages that were imported into the Recipe table but aren't recipes.
 // Add any other stragglers you spot (about, contact, etc.) to this list.
 const NON_RECIPE_SLUGS = [
@@ -49,6 +59,7 @@ function toRecipe(r: any): Recipe {
         cookalong: items(r.cookalong),
         hidden: !!r.hidden,
         category: r.category ?? "",
+        views: r.views ?? 0,
     };
 }
 
@@ -95,6 +106,24 @@ export async function randomRecipes(n: number): Promise<Recipe[]> {
     )) as { id: string }[];
     const rows = await prisma.recipe.findMany({ where: { id: { in: picks.map((p) => p.id) } } });
     return rows.map(toRecipe);
+}
+
+// A single random recipe image (per request) — used as a page backdrop
+// (e.g. behind the login/register card). Prisma-native count + skip rather
+// than raw SQL, so it stays Postgres-safe for the production migration, and
+// selects only the image column — no full-table load. Restricted to recipes
+// that actually have a non-empty image; returns a normalized, ready-to-use
+// path (or null, in which case the caller should fall back to a solid colour).
+export async function randomRecipeImage(): Promise<string | null> {
+    const where: Prisma.RecipeWhereInput = {
+        ...recipeWhere,
+        AND: [{ image: { not: null } }, { image: { not: "" } }],
+    };
+    const total = await prisma.recipe.count({ where });
+    if (total === 0) return null;
+    const skip = Math.floor(Math.random() * total);
+    const row = await prisma.recipe.findFirst({ where, skip, select: { image: true } });
+    return normalizeImg(row?.image);
 }
 
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {

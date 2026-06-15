@@ -177,3 +177,27 @@
     background: var(--green-soft, #dfe7da); color: var(--green, #1f4a2f);
     display: grid; place-items: center; font-size: 26px; margin: 0 auto 14px;
 }
+
+/* ---- Auth: sign-in pill + dashboard avatar (over the dark/olive bar) ---- */
+.vn-signin {
+    color: #fff; text-decoration: none; font-weight: 600; font-size: 14.5px;
+    padding: 10px 16px; border-radius: 11px;
+    border: 1px solid rgba(255,255,255,.45);
+    transition: background .18s, border-color .18s;
+}
+.vn-signin:hover { background: rgba(255,255,255,.14); }
+
+.vn-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--card, #fffdf7); color: var(--olive, #5c6e3f);
+    font-family: var(--display, "Fraunces", serif); font-weight: 700; font-size: 16px;
+    line-height: 1; text-decoration: none;
+    border: 2px solid rgba(255,255,255,.6);
+    transition: transform .15s, box-shadow .15s;
+}
+.vn-avatar:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -10px rgba(0,0,0,.55); }
+
+@media (max-width: 900px) {
+    .vn-right .vn-signin, .vn-right .vn-avatar { display: none; }
+}

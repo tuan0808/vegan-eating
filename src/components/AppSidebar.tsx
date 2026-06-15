@@ -23,6 +23,7 @@ const icoRecipes = I(<><path d="M4 5a2 2 0 0 1 2-2h6v16H6a2 2 0 0 0-2 2V5Z" /><p
 const icoArticles = I(<><path d="M6 3h9l4 4v14H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M14 3v5h5" /><path d="M8.5 13h7M8.5 16.5h7" /></>);
 const icoForums = I(<path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20.5l1.9-5.4A8 8 0 1 1 21 11.5Z" />);
 const icoModeration = I(<path d="M12 3l7 3v5c0 4.6-3 8.5-7 9.8C8 19.5 5 15.6 5 11V6l7-3Z" />);
+const icoSecurity = I(<><rect x="4.5" y="10.5" width="15" height="9" rx="2" /><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" /><path d="M12 14v2" /></>);
 const icoBack = I(<path d="M19 12H5M11 6l-6 6 6 6" />);
 const icoChevLeft = I(<path d="M15 6l-6 6 6 6" />);
 const icoChevRight = I(<path d="M9 6l6 6-6 6" />);
@@ -38,7 +39,8 @@ const ADMIN: Item[] = [
     { href: "/admin/recipes", label: "Recipes", icon: icoRecipes },
     { href: "/admin/articles", label: "Articles", icon: icoArticles },
     { href: "/admin/forums", label: "Forums", icon: icoForums },
-    { label: "Moderation", soon: true, icon: icoModeration },
+    { href: "/admin/comments", label: "Moderation", icon: icoModeration },
+    { href: "/admin/security", label: "Security", icon: icoSecurity },
 ];
 
 export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {

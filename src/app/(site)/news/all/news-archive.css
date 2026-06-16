@@ -1,0 +1,94 @@
+/* src/app/(site)/news/all/news-archive.css — all-news archive chrome
+   (card styles come from ../news.css: .nws-story, .nws-card-media, .nws-kind, etc.) */
+
+.nwsa-wrap { max-width: 1140px; margin: 0 auto; padding: 40px 28px 76px; }
+
+.nwsa-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line, rgba(27,42,29,.12));
+}
+
+.nwsa-pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.nwsa-pill {
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: .02em;
+    padding: 7px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--line, rgba(27,42,29,.18));
+    color: var(--ink, #1b2a1d);
+    background: transparent;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.nwsa-pill:hover { border-color: var(--green, #1f4a2f); }
+.nwsa-pill.active {
+    background: var(--green, #1f4a2f);
+    color: #f1ede1;
+    border-color: var(--green, #1f4a2f);
+}
+
+.nwsa-search { display: flex; gap: 8px; }
+.nwsa-search input {
+    border: 1px solid var(--line, rgba(27,42,29,.18));
+    border-radius: 999px;
+    padding: 8px 16px;
+    font: inherit;
+    font-size: 14px;
+    min-width: 210px;
+    background: var(--paper, #f4f3ea);
+    color: var(--ink, #1b2a1d);
+}
+.nwsa-search input:focus { outline: none; border-color: var(--green, #1f4a2f); }
+.nwsa-search button {
+    border: none;
+    background: var(--terra, #c2603a);
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nwsa-count {
+    margin: 0 0 18px;
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted, #6f7468);
+}
+
+.nwsa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.nwsa-empty { color: var(--muted, #6f7468); padding: 30px 0; }
+
+.nwsa-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 46px;
+}
+.nwsa-pager a,
+.nwsa-pager .off {
+    font-size: 13px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+.nwsa-pager a { color: var(--green, #1f4a2f); text-decoration: none; }
+.nwsa-pager a:hover { color: var(--terra, #c2603a); }
+.nwsa-pager .off { color: var(--line, #cdd3c6); }
+.nwsa-pageinfo { font-size: 12px; letter-spacing: .1em; color: var(--muted, #6f7468); }
+
+@media (max-width: 900px) {
+    .nwsa-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+}
+@media (max-width: 600px) {
+    .nwsa-grid { grid-template-columns: 1fr; }
+    .nwsa-bar { flex-direction: column; align-items: stretch; }
+    .nwsa-search input { min-width: 0; flex: 1; }
+}

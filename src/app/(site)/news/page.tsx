@@ -21,6 +21,20 @@ function Source({ name }: { name: string }) {
     );
 }
 
+// Linked image with a graceful placeholder when a story has no photo.
+function Media({ item, className }: { item: NewsFeedItem; className: string }) {
+    return (
+        <Link href={`/news/${item.slug}`} className={className} aria-label={item.title}>
+            {item.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.image} alt={item.title} loading="lazy" />
+            ) : (
+                <span className="ph p3" aria-hidden="true" />
+            )}
+        </Link>
+    );
+}
+
 function Headline({ item, tag }: { item: NewsFeedItem; tag: "h2" | "h3" }) {
     const Tag = tag;
     const cls = tag === "h2" ? "nws-lead-title" : "nws-story-title";
@@ -57,22 +71,7 @@ export default async function NewsPage() {
                     <>
                         {/* Lead story */}
                         <article className="nws-lead">
-                            <div className="nws-lead-media">
-                                {lead.image ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                        src={lead.image}
-                                        alt={lead.title}
-                                        loading="lazy"
-                                        style={{ width: "100%", height: "auto", display: "block", objectFit: "cover" }}
-                                    />
-                                ) : (
-                                    <>
-                                        <div className="ph p3" />
-                                        <span className="nws-media-note">Photo to come</span>
-                                    </>
-                                )}
-                            </div>
+                            <Media item={lead} className="nws-lead-media" />
                             <div className="nws-lead-text">
                                 <Source name={lead.source} />
                                 <Headline item={lead} tag="h2" />
@@ -90,6 +89,7 @@ export default async function NewsPage() {
                             <section className="nws-cols">
                                 {stories.map((s) => (
                                     <article className="nws-story" key={s.slug}>
+                                        <Media item={s} className="nws-card-media" />
                                         <Source name={s.source} />
                                         <Headline item={s} tag="h3" />
                                         {s.description ? <p className="nws-story-dek">{s.description}</p> : null}
@@ -103,10 +103,23 @@ export default async function NewsPage() {
                                 <ul>
                                     {brief.map((b) => (
                                         <li className="nws-brief-item" key={b.slug}>
-                                            <span className="nws-brief-date">{b.dateShort}</span>
-                                            <Link className="nws-link" href={`/news/${b.slug}`}>
-                                                {b.title}
+                                            <Link href={`/news/${b.slug}`} className="nws-brief-thumb" aria-label={b.title}>
+                                                {b.image ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={b.image} alt={b.title} loading="lazy" />
+                                                ) : (
+                                                    <span className="ph p3" aria-hidden="true" />
+                                                )}
                                             </Link>
+                                            <div className="nws-brief-text">
+                                                <Link className="nws-link nws-brief-link" href={`/news/${b.slug}`}>
+                                                    {b.title}
+                                                </Link>
+                                                <span className="nws-brief-meta">
+                          {b.dateShort}
+                                                    {b.source ? ` · ${b.source}` : ""}
+                        </span>
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>

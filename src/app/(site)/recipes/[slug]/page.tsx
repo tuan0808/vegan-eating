@@ -1,5 +1,5 @@
 // src/app/(site)/recipes/[slug]/page.tsx
-import { getRecipeBySlug } from "@/lib/recipes";
+import { getRecipeBySlug, randomRecipes, latestRecipes } from "@/lib/recipes";
 import { parseServings } from "@/lib/recipe-scale";
 import { fmtTime, titleCase } from "@/data/recipes";
 import { viewSummary } from "@/lib/views";
@@ -11,7 +11,7 @@ import RecipeTools from "@/components/RecipeTools";
 import HeroTitle from "@/components/HeroTitle";
 import RecipeGallery from "@/components/RecipeGallery";
 import MethodSteps from "@/components/MethodSteps";
-import Comments from "@/components/Comments";
+import PostFooter from "@/components/post/PostFooter";
 import RecipeViews from "@/components/RecipeViews";
 import ArticleBody from "@/app/(site)/articles/[slug]/ArticleBody";
 import { parseBody, tiptapText } from "@/lib/article-body";
@@ -61,6 +61,12 @@ export default async function RecipePage({
   const userId = session?.user?.id ?? null;
   const savedSet = userId ? await savedRecipeIds(userId, [r.id]) : new Set<string>();
   const isSaved = savedSet.has(r.id);
+
+  // Footer "other posts" + tag chips (recipes have no tags field, so use courses + cuisines).
+  const [randoms, latest] = await Promise.all([randomRecipes(7), latestRecipes(7)]);
+  const related = randoms.filter((x) => x.slug !== r.slug).slice(0, 6).map((x) => ({ slug: x.slug, title: x.title, date: x.date, image: x.image }));
+  const more = latest.filter((x) => x.slug !== r.slug).slice(0, 6).map((x) => ({ slug: x.slug, title: x.title, date: x.date, image: x.image }));
+  const tags = Array.from(new Set<string>([...r.courses, ...r.cuisines])).map((t) => titleCase(t));
   const timing = [
     r.prepTime ? `${r.prepTime} min prep` : null,
     r.cookTime ? `${r.cookTime} min cook` : null,
@@ -133,10 +139,20 @@ export default async function RecipePage({
                   <p style={{ marginTop: 30, fontSize: 14, color: "var(--muted)" }}>Courses: {r.courses.map((c) => titleCase(c)).join(", ")}</p>
               )}
 
-              <Comments
-                  target={{ recipeId: r.id }}
-                  path={`/recipes/${params.slug}`}
-                  page={cpage}
+              <PostFooter
+                  tags={tags}
+                  shareTitle={r.title}
+                  shareNoun="recipe"
+                  authorName={r.author || "The vegan eating kitchen"}
+                  commentTarget={{ recipeId: r.id }}
+                  commentPath={`/recipes/${params.slug}`}
+                  commentPage={cpage}
+                  related={related}
+                  more={more}
+                  basePath="/recipes"
+                  otherTitle="More recipes"
+                  relatedLabel="More like this"
+                  moreLabel="Fresh from the kitchen"
               />
             </div>
           </div>

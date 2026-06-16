@@ -54,7 +54,7 @@ export default async function PendingPosts() {
                                     <Link href={p.threadHref} className="pp-thread">{p.threadTitle}</Link>
                                 </div>
                                 <p className="pp-body">{snippet(p.body)}</p>
-                                <PostModActions postId={p.id} />
+                                <PostModActions postId={p.id}/>
                             </li>
                         );
                     })}

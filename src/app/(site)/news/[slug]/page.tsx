@@ -6,10 +6,10 @@ import { notFound } from "next/navigation";
 // Reuse the real article engine + chrome. (Worth moving these into @/components/article
 // later so articles and news share them without cross-route imports.)
 import ArticleBody from "@/app/(site)/articles/[slug]/ArticleBody";
-import ShareButtons from "@/app/(site)/articles/[slug]/ShareButtons";
 import NewsletterForm from "@/app/(site)/articles/[slug]/NewsletterForm";
 import "@/app/(site)/articles/[slug]/article-content.css";
 
+import PostFooter from "@/components/post/PostFooter";
 import { getNewsArticleBySlug, listRelatedNews, listLatestNews, type NewsCard } from "@/lib/news";
 import { textToTiptap } from "@/lib/news-body";
 
@@ -24,6 +24,8 @@ export async function generateMetadata({
     if (!a) return { title: "Story not found — vegan eating" };
     return { title: `${a.title} — vegan eating`, description: a.description || undefined };
 }
+
+const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 // External news images come from arbitrary publisher hosts, so we use a plain
 // <img> here rather than next/image (which would need every host whitelisted).
@@ -140,37 +142,23 @@ export default async function NewsArticlePage({ params }: { params: { slug: stri
                                     fontWeight: 600,
                                 }}
                             >
-                                Read the original at {a.source || "the source"} →
+                                Read the original at {a.source || "the source"} &rarr;
                             </a>
                         </p>
 
-                        <hr className="art-sep" />
-
-                        <div className="art-tagsbar">
-                            <span className="art-tags-label">Topics</span>
-                            {a.categories.length > 0 ? (
-                                a.categories.map((t) => (
-                                    <span key={t} className="art-tagchip" style={{ textTransform: "capitalize" }}>
-                    {t}
-                  </span>
-                                ))
-                            ) : (
-                                <span className="art-tags-empty">No topics yet</span>
-                            )}
-                        </div>
-
-                        <ShareButtons title={a.title} />
-
-                        <div className="art-author">
-                            <div className="art-author-avatar" />
-                            <div className="art-author-main">
-                                <h4 className="art-author-name">The vegan eating desk</h4>
-                                <p className="art-author-bio">
-                                    Plant-based news, curated and contextualised by the vegan eating team — no plugins, no ads,
-                                    with the original source always one tap away.
-                                </p>
-                            </div>
-                        </div>
+                        {/* Shared footer — same stack as recipes & articles. Comments are
+                            omitted until the Comment model gains a newsArticleId relation. */}
+                        <PostFooter
+                            tags={a.categories.map(cap)}
+                            shareTitle={a.title}
+                            shareNoun="story"
+                            related={related}
+                            more={latest}
+                            basePath="/news"
+                            otherTitle="More stories"
+                            relatedLabel="Related"
+                            moreLabel="Latest"
+                        />
                     </div>
                 </div>
             </div>

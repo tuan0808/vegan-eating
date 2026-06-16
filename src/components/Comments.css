@@ -1,7 +1,7 @@
 /* src/components/Comments.css */
 .comments {
     max-width: 720px;
-    margin: 3rem 0;
+    margin: 0 0;
     scroll-margin-top: 90px;
 }
 /* Higher specificity than a bare `h2` so the display font isn't overridden
@@ -69,4 +69,7 @@
 }
 .comments .pager .count {
     color: var(--muted);
+}
+.comments-section {
+    padding: 30px 0;
 }

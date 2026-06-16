@@ -67,7 +67,7 @@ export default async function ForumStats() {
                     {s.newestMember ? (
                         <span className="fstats-foot-item">
               <span className="fstats-foot-key">Newest member</span>
-              <strong>{s.newestMember}</strong>
+              <Link href={`/u/${s.newestMember.username}`}><strong>{s.newestMember.name}</strong></Link>
             </span>
                     ) : null}
                 </div>

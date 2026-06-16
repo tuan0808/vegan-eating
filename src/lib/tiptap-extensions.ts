@@ -13,7 +13,6 @@ import Details from "@tiptap/extension-details";
 import DetailsSummary from "@tiptap/extension-details-summary";
 import DetailsContent from "@tiptap/extension-details-content";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
-import { SlashCommand } from "./slash-command";
 
 // Image node extended with an `align` attribute so authors control placement
 // (full | left | right) — the renderer reads this and applies the float classes.
@@ -51,6 +50,8 @@ export const articleExtensions = [
     DetailsSummary,
     DetailsContent,
 
-    SlashCommand, // "/" opens the insert menu
+    // NOTE: SlashCommand ("/" insert menu) removed — its local file (src/lib/slash-command.ts)
+    // was the casualty. The toolbar covers every action, so the editor is fully usable.
+    // Re-add `import { SlashCommand } from "./slash-command";` + a `SlashCommand,` entry once restored.
     GlobalDragHandle.configure({ dragHandleWidth: 20, scrollTreshold: 100 }), // hover-grip to reorder blocks
 ];

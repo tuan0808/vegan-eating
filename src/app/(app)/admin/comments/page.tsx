@@ -11,7 +11,7 @@ import {
 import CommentModActions from '@/components/admin/CommentModActions'
 import ReviewBell from '@/components/admin/ReviewBell'
 import './comments-admin.css'
-
+import PendingPosts from '@/components/admin/PendingPosts'
 const PATH = '/admin/comments'
 
 export default async function AdminCommentsPage({
@@ -50,6 +50,7 @@ export default async function AdminCommentsPage({
                 <Link href={`${PATH}?tab=content`} className={tab === 'content' ? 'on' : ''}>
                     By content
                 </Link>
+                <PendingPosts />
             </nav>
 
             {tab === 'recent' && queue && (

@@ -18,17 +18,17 @@ export default async function Comments({ target, path, page = 1 }: CommentsProps
         getRatingSummary(target),
     ])
     const canComment = !!session?.user?.id
-    const isRecipe = 'recipeId' in target
+    const ratable = 'recipeId' in target || 'articleId' in target
     const loginHref = `/login?callbackUrl=${encodeURIComponent(`${path}#comments`)}`
     const rounded = Math.round(rating.average)
 
     return (
         <section id="comments" className="comments">
             <h2 className="title">
-                {isRecipe ? 'Reviews & comments' : total === 0 ? 'Comments' : `${total} comment${total === 1 ? '' : 's'}`}
+                {ratable ? 'Reviews & comments' : total === 0 ? 'Comments' : `${total} comment${total === 1 ? '' : 's'}`}
             </h2>
 
-            {isRecipe && (
+            {ratable && (
                 <div style={{ margin: '-2px 0 16px', fontSize: '0.95rem', color: 'var(--muted)' }}>
                     {rating.count > 0 ? (
                         <span>
@@ -46,7 +46,7 @@ export default async function Comments({ target, path, page = 1 }: CommentsProps
             )}
 
             {canComment ? (
-                <CommentForm target={target} path={path} withRating={isRecipe} />
+                <CommentForm target={target} path={path} withRating={ratable} />
             ) : (
                 <div className="signin">
                     <p>Join the conversation — sign in to leave a comment.</p>

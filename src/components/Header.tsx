@@ -78,7 +78,21 @@ const MENU: Item[] = [
         ],
         feature: { kicker: "This week's read", title: "The truth about B12", href: "/articles", gradient: "linear-gradient(135deg,#2f6b43,#5BB35F)" },
     },
-    { label: "News", href: "/news" },
+    {
+        label: "News", href: "/news", key: "news",
+        cols: [
+            { heading: "By topic", links: [
+                    { label: "Food", href: "/news/all?cat=food" },
+                    { label: "Health", href: "/news/all?cat=health" },
+                    { label: "Lifestyle", href: "/news/all?cat=lifestyle" },
+                ] },
+            { heading: "Browse", links: [
+                    { label: "The Dispatch", href: "/news", note: "Latest, updated hourly" },
+                    { label: "All news", href: "/news/all" },
+                ] },
+        ],
+        feature: { kicker: "From the feed", title: "Today's pick", href: "/news" }, // fallback; replaced live
+    },
     {
         label: "About us", href: "/about", key: "about",
         cols: [
@@ -129,6 +143,7 @@ export default function Header() {
     const [expanded, setExpanded] = useState<string | null>(null);
     const [featured, setFeatured] = useState<Featured | null>(null);
     const [featuredArticle, setFeaturedArticle] = useState<Featured | null>(null);
+    const [featuredNews, setFeaturedNews] = useState<Featured | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Search
@@ -231,6 +246,14 @@ export default function Header() {
             .catch(() => {});
         return () => { on = false; };
     }, []);
+    useEffect(() => {
+        let on = true;
+        fetch("/api/featured-news")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (on && d && d.slug) setFeaturedNews(d); })
+            .catch(() => {});
+        return () => { on = false; };
+    }, []);
 
     // Who's logged in? Read the NextAuth session endpoint on the client so the
     // rest of the site can stay statically rendered.
@@ -277,6 +300,18 @@ export default function Header() {
                         {featuredArticle?.image ? <img className="vn-ph-img" src={featuredArticle.image} alt="" /> : null}
                     </div>
                     <div className="vn-cap"><span className="vn-k">{it.feature!.kicker}</span><h5>{title}</h5></div>
+                </Link>
+            );
+        }
+        if (it.key === "news") {
+            const href = featuredNews ? `/news/${featuredNews.slug}` : it.feature!.href;
+            const title = featuredNews ? featuredNews.title : it.feature!.title;
+            return (
+                <Link className="vn-feature" href={href} onClick={() => setOpenKey(null)}>
+                    <div className="vn-ph" style={{ background: "linear-gradient(135deg,#3f5a39,#5c6e3f 60%,#86955a)" }}>
+                        {featuredNews?.image ? <img className="vn-ph-img" src={featuredNews.image} alt="" /> : null}
+                    </div>
+                    <div className="vn-cap"><span className="vn-k">From the feed</span><h5>{title}</h5></div>
                 </Link>
             );
         }

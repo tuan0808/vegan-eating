@@ -6,20 +6,11 @@ import { requireUser } from "@/lib/auth-helpers";
 import { updateArticle } from "./actions";
 import { ARTICLE_CATEGORIES } from "@/lib/categories";
 import ArticleImagesField from "./ArticleImagesField";
+import ArticleEditor from "./ArticleEditor";
+import { parseBody } from "@/lib/article-body";
 import "../../../recipes/admin-recipes.css";
 
 export const dynamic = "force-dynamic";
-
-// JSON array of paragraphs -> textarea text (blank line between paragraphs).
-function toBodyText(json: string | null | undefined): string {
-    if (!json) return "";
-    try {
-        const v = JSON.parse(json);
-        return Array.isArray(v) ? v.join("\n\n") : "";
-    } catch {
-        return "";
-    }
-}
 
 // JSON array of tags -> comma-separated text.
 function toTagsText(json: string | null | undefined): string {
@@ -79,6 +70,11 @@ export default async function EditArticlePage({
                     </label>
 
                     <label className="ar-field">
+                        <span>Author</span>
+                        <input name="author" defaultValue={article.author} placeholder="vegor" />
+                    </label>
+
+                    <label className="ar-field">
                         <span>Date</span>
                         <input name="date" defaultValue={article.date} />
                     </label>
@@ -113,10 +109,8 @@ export default async function EditArticlePage({
 
                 <fieldset className="ar-card">
                     <legend>Body</legend>
-                    <p className="ar-hint">One paragraph per block — separate paragraphs with a blank line.</p>
-                    <label className="ar-field">
-                        <textarea name="body" rows={20} defaultValue={toBodyText(article.body)} aria-label="Article body" />
-                    </label>
+                    <p className="ar-hint">Rich text — use the toolbar (or “/” for the insert menu) for headings, lists, quotes, images, tables, toggles and embeds.</p>
+                    <ArticleEditor name="body" initial={parseBody(article.body)} />
                 </fieldset>
 
                 <div className="ar-actions">

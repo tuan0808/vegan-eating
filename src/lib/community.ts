@@ -15,8 +15,8 @@ type ThreadLinkShape = {
 export function threadHref(t: ThreadLinkShape): string {
     const cat = t.forum?.category?.slug;
     const forum = t.forum?.slug;
-    if (cat && forum) return `/forums/${cat}/${forum}/${t.slug}`;
-    return `/forums/thread/${t.slug}`;
+    if (cat && forum) return `/forum/${cat}/${forum}/${t.slug}`;
+    return `/forum/thread/${t.slug}`;
 }
 
 /* ------------------------------------------------------------------ *
@@ -177,6 +177,27 @@ export async function repliesToMyThreads(userId: string, take = 20) {
 /* ------------------------------------------------------------------ *
  * Public profile
  * ------------------------------------------------------------------ */
+
+// A member's recipes = their submissions that were promoted into the library.
+// (Recipe.author is a free string, so the submission's userId is the only
+// reliable user -> recipe link.)
+async function publishedRecipesFor(userId: string) {
+    const subs = await prisma.recipeSubmission.findMany({
+        where: { userId, recipeSlug: { not: null } },
+        orderBy: { createdAt: "desc" },
+        select: { recipeSlug: true },
+    });
+    const slugs = subs.map((s) => s.recipeSlug!).filter(Boolean);
+    if (!slugs.length) return [];
+    const recipes = await prisma.recipe.findMany({
+        where: { slug: { in: slugs }, hidden: false },
+        select: { slug: true, title: true, image: true, date: true },
+    });
+    // Preserve submission order (newest first).
+    const order = new Map(slugs.map((s, i) => [s, i] as const));
+    return recipes.sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
+}
+
 export async function publicProfile(username: string) {
     const user = await prisma.user.findUnique({
         where: { username },
@@ -196,7 +217,7 @@ export async function publicProfile(username: string) {
     });
     if (!user) return null;
 
-    const [threadCount, postCount, recentThreads] = await Promise.all([
+    const [threadCount, postCount, recentThreads, recipes] = await Promise.all([
         prisma.thread.count({ where: { authorId: user.id } }),
         prisma.post.count({ where: { authorId: user.id, status: "APPROVED" } }),
         user.showActivity
@@ -212,9 +233,10 @@ export async function publicProfile(username: string) {
                 },
             })
             : Promise.resolve([]),
+        publishedRecipesFor(user.id),
     ]);
 
-    return { user, threadCount, postCount, recentThreads };
+    return { user, threadCount, postCount, recentThreads, recipes };
 }
 
 /* ------------------------------------------------------------------ *

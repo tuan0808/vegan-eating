@@ -59,11 +59,11 @@ export async function createComment(
         if (!parent) return { error: 'That comment no longer exists.', success: false }
     }
 
-    // A "review" is a comment that carries 1–5 stars. Only recipes can be rated,
-    // and only at the top level (replies can't be reviews). Anything else → null.
+    // A "review" is a comment that carries 1–5 stars, allowed on any top-level
+    // comment (recipes and articles). Replies can't be reviews.
     let rating: number | null = null
     const ratingRaw = formData.get('rating')
-    if ('recipeId' in target && !parentId && ratingRaw != null && String(ratingRaw) !== '') {
+    if (!parentId && ratingRaw != null && String(ratingRaw) !== '') {
         const n = Number(ratingRaw)
         if (Number.isInteger(n) && n >= 1 && n <= 5) rating = n
     }

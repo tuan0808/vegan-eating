@@ -27,7 +27,7 @@ export default function Pagination({
     for (let i = start; i <= Math.min(totalPages, start + 4); i++) nums.push(i);
 
     return (
-        <div className="pagination">
+        <div className="pagination" style={{ marginTop: "2.5rem" }}>
             {page > 1 ? <Link className="pill" href={href(page - 1)}>← Prev</Link> : <span className="pill disabled">← Prev</span>}
             {nums.map((n) => (
                 <Link key={n} href={href(n)} className={`pill${n === page ? " active" : ""}`}>{n}</Link>

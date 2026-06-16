@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { currentUser } from "@/lib/auth-helpers";
 import { publicProfile, threadHref } from "@/lib/community";
+import PageHero from "@/components/PageHero";
 import "@/styles/community.css";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,17 @@ function memberSince(d: Date) {
     return new Date(d).toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+const greenBtn: React.CSSProperties = {
+    display: "inline-block",
+    background: "var(--green, #5b6b3f)",
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: 600,
+    padding: "13px 24px",
+    borderRadius: 999,
+    textDecoration: "none",
+};
+
 export default async function PublicProfilePage({
                                                     params,
                                                 }: {
@@ -32,59 +44,75 @@ export default async function PublicProfilePage({
     const data = await publicProfile(params.username);
     if (!data || data.user.banned) notFound();
 
-    const { user, threadCount, postCount, recentThreads } = data;
+    const { user, threadCount, postCount, recentThreads, recipes } = data;
     const me = await currentUser();
     const isSelf = me?.id === user.id;
 
-    return (
-        // padding-top clears the fixed site header; the soft band keeps the
-        // transparent nav legible on this otherwise light page.
-        <div style={{ paddingTop: 120, paddingBottom: 60, background: "#f7f4ec", minHeight: "60vh" }}>
-            <div className="cm" style={{ margin: "0 auto", padding: "0 20px" }}>
-                <div className="cm-phead">
-                    {user.avatarUrl ? (
-                        <img className="cm-av big-av" src={user.avatarUrl} alt="" />
-                    ) : (
-                        <div className="cm-mono big-av">{monogram(user.name, user.username)}</div>
-                    )}
-                    <div>
-                        <h1>{user.name ?? user.username}</h1>
-                        <p className="since">
-                            @{user.username}
-                            {user.role !== "MEMBER" && <span className="cm-pill" style={{ marginLeft: 10 }}>{user.role}</span>}
-                        </p>
-                        <p className="since">Member since {memberSince(user.createdAt)}</p>
-                    </div>
-                </div>
+    const avatar = user.avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            src={user.avatarUrl}
+            alt=""
+            style={{ width: 84, height: 84, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(255,255,255,.85)" }}
+        />
+    ) : (
+        <div
+            style={{
+                width: 84,
+                height: 84,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255,255,255,.16)",
+                border: "3px solid rgba(255,255,255,.85)",
+                fontFamily: 'var(--display, "Fraunces", serif)',
+                fontSize: 34,
+                fontWeight: 600,
+                color: "#fff",
+            }}
+        >
+            {monogram(user.name, user.username)}
+        </div>
+    );
 
+    return (
+        <>
+            <PageHero
+                image="/header/about.jpg"
+                kicker={user.role}
+                title={user.name ?? user.username}
+                dek={`@${user.username} · Member since ${memberSince(user.createdAt)}`}
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 28 }}>
+                    {avatar}
+                    {isSelf ? (
+                        <Link href="/profile" style={greenBtn}>Edit profile</Link>
+                    ) : me ? (
+                        <Link href={`/messages/${user.username}`} style={greenBtn}>Message</Link>
+                    ) : null}
+                </div>
+            </PageHero>
+
+            <div className="wrap" style={{ padding: "44px 28px 72px" }}>
                 {user.bio && (
-                    <p className="cm-sub" style={{ marginTop: 18, maxWidth: 620 }}>
-                        {user.bio}
-                    </p>
+                    <p className="cm-sub" style={{ maxWidth: 680 }}>{user.bio}</p>
                 )}
 
-                <div className="cm-row">
-                    {user.location && <span style={{ color: "var(--muted,#6b7264)" }}>📍 {user.location}</span>}
-                    {user.website && (
-                        <a href={user.website} target="_blank" rel="noopener noreferrer nofollow">
-                            {user.website.replace(/^https?:\/\//, "")}
-                        </a>
-                    )}
-                    {!isSelf && me && (
-                        <Link href={`/messages/${user.username}`} className="cm-btn" style={{ textDecoration: "none" }}>
-                            Message
-                        </Link>
-                    )}
-                    {isSelf && (
-                        <Link href="/profile" className="cm-btn ghost" style={{ textDecoration: "none" }}>
-                            Edit profile
-                        </Link>
-                    )}
-                </div>
+                {(user.location || user.website) && (
+                    <div className="cm-row" style={{ marginTop: 10 }}>
+                        {user.location && <span style={{ color: "var(--muted,#6b7264)" }}>📍 {user.location}</span>}
+                        {user.website && (
+                            <a href={user.website} target="_blank" rel="noopener noreferrer nofollow">
+                                {user.website.replace(/^https?:\/\//, "")}
+                            </a>
+                        )}
+                    </div>
+                )}
 
                 {user.showActivity && (
                     <>
-                        <div className="cm-stats">
+                        <div className="cm-stats" style={{ marginTop: 24 }}>
                             <div className="cm-stat">
                                 <div className="n">{threadCount}</div>
                                 <div className="l">Topics started</div>
@@ -118,7 +146,32 @@ export default async function PublicProfilePage({
                         )}
                     </>
                 )}
+
+                {recipes.length > 0 && (
+                    <>
+                        <div className="cm-sec">
+                            <h2>Recipes</h2>
+                            <Link href="/recipes">All recipes</Link>
+                        </div>
+                        <div className="cm-list">
+                            {recipes.map((r) => (
+                                <Link key={r.slug} href={`/recipes/${r.slug}`} className="cm-card">
+                                    {r.image ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img className="cm-thumb" src={r.image} alt="" />
+                                    ) : (
+                                        <div className="cm-thumb" />
+                                    )}
+                                    <div className="meta">
+                                        <span className="t">{r.title}</span>
+                                        {r.date ? <span className="d">{r.date}</span> : null}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
-        </div>
+        </>
     );
 }

@@ -50,6 +50,7 @@ model Article {
   id        Int       @id @default(autoincrement())
   slug      String    @unique
   title     String
+  author    String    @default("vegor")
   sourceUrl String
   date      String
   image     String?
@@ -207,6 +208,9 @@ model Comment {
   parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies  Comment[] @relation("CommentReplies")
 
+  newsArticleId String?
+  newsArticle   NewsArticle? @relation(fields: [newsArticleId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -215,6 +219,7 @@ model Comment {
   @@index([parentId])
   @@index([status])
   @@index([createdAt])
+  @@index([newsArticleId])
 }
 
 model BlockedIp {
@@ -351,6 +356,7 @@ model NewsArticle {
   pubDate     DateTime
   categories  String   @default("[]")
   content     String   @default("")   // ← the missing field (full article body)
+  comments    Comment[]
   hidden      Boolean  @default(false)
   sort        Int      @default(0)
   createdAt   DateTime @default(now())

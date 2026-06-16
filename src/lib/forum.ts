@@ -36,6 +36,10 @@ function avatarColor(seed: string): string {
     return CATEGORY_ACCENTS[h % CATEGORY_ACCENTS.length];
 }
 
+// Only approved posts are public — PENDING (held for review) posts must never
+// appear in threads, counts, or "last post" previews.
+const PUBLIC_POST = { status: "APPROVED" } as const;
+
 /* ============================ Index ============================ */
 
 export type ForumRow = {
@@ -72,9 +76,9 @@ export async function getForumIndex(): Promise<CategoryBlock[]> {
     for (const cat of categories) {
         const forums: ForumRow[] = [];
         for (const f of cat.forums) {
-            const postCount = await prisma.post.count({ where: { thread: { forumId: f.id } } });
+            const postCount = await prisma.post.count({ where: { thread: { forumId: f.id }, ...PUBLIC_POST } });
             const last = await prisma.post.findFirst({
-                where: { thread: { forumId: f.id } },
+                where: { thread: { forumId: f.id }, ...PUBLIC_POST },
                 orderBy: { createdAt: "desc" },
                 include: { author: true, thread: true },
             });
@@ -141,8 +145,9 @@ export async function getForumView(categorySlug: string, forumSlug: string): Pro
                 orderBy: [{ pinned: "desc" }, { lastPostAt: "desc" }],
                 include: {
                     author: true,
-                    _count: { select: { posts: true } },
-                    posts: { orderBy: { createdAt: "desc" }, take: 1, include: { author: true } },
+                    // Filtered relation count — only approved posts count toward replies.
+                    _count: { select: { posts: { where: PUBLIC_POST } } },
+                    posts: { where: PUBLIC_POST, orderBy: { createdAt: "desc" }, take: 1, include: { author: true } },
                 },
             },
         },
@@ -206,7 +211,9 @@ export async function getThreadView(
         where: { slug: threadSlug },
         include: {
             forum: { include: { category: true } },
-            posts: { orderBy: { createdAt: "asc" }, include: { author: true } },
+            // Held replies are hidden from the public thread; they live in the mod
+            // queue until approved (the author sees a "in review" count on their dashboard).
+            posts: { where: PUBLIC_POST, orderBy: { createdAt: "asc" }, include: { author: true } },
         },
     });
     if (!thread) return null;
@@ -240,16 +247,17 @@ export type ForumStats = {
     posts: number;
     members: number;
     latestPost: { threadTitle: string; href: string; author: string; at: string } | null;
-    newestMember: string | null;
+    newestMember: { name: string; username: string } | null;
 };
 
 export async function getForumStats(): Promise<ForumStats> {
     const [forums, topics, posts, members, last, newest] = await Promise.all([
         prisma.forum.count(),
         prisma.thread.count(),
-        prisma.post.count(),
+        prisma.post.count({ where: PUBLIC_POST }),
         prisma.user.count(),
         prisma.post.findFirst({
+            where: PUBLIC_POST,
             orderBy: { createdAt: "desc" },
             include: {
                 author: true,
@@ -272,12 +280,10 @@ export async function getForumStats(): Promise<ForumStats> {
                 at: shortDate(last.createdAt),
             }
             : null,
-        newestMember: newest ? newest.name ?? newest.username : null,
+        newestMember: newest ? { name: newest.name ?? newest.username, username: newest.username } : null,
     };
 }
 /* ===================== Recent members (for the hero avatars) ===================== */
-/* Append to the bottom of src/lib/forum.ts. Reuses prisma + the displayName and
-   avatarColor helpers already defined in that file. */
 
 export type RecentMember = { initial: string; color: string };
 

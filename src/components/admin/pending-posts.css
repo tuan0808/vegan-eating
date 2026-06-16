@@ -4,6 +4,8 @@
     border: 1px solid var(--line, #e6e3da);
     border-radius: 16px;
     padding: 22px 24px;
+    width: 100%;
+
 }
 .pp-head {
     display: flex;

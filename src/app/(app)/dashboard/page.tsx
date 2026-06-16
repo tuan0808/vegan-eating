@@ -10,6 +10,7 @@ import {
 } from "@/lib/community";
 import { needsOnboarding, welcomeHref } from "@/lib/onboarding";
 import "@/styles/community.css";
+import PendingPosts from "@/components/admin/PendingPosts";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Dashboard — vegan eating" };
@@ -70,7 +71,9 @@ export default async function DashboardPage() {
             )}
 
             {/* notification snapshot */}
+            <PendingPosts />
             <div className="cm-stats">
+
                 <Link href="/messages" className="cm-stat" style={{ textDecoration: "none" }}>
                     <div className="n">
                         {unread}
@@ -86,6 +89,7 @@ export default async function DashboardPage() {
                     <div className="n">{conversations.length}</div>
                     <div className="l">Conversations</div>
                 </div>
+
             </div>
 
             {/* inbox preview */}

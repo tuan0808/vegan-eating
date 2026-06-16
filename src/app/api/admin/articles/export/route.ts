@@ -1,17 +1,17 @@
-// src/app/api/admin/articles/export/route.ts
+// src/app/api/admin/news/export/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
-import { COLUMNS, articleToRow } from "@/lib/article-xlsx";
+import { COLUMNS, newsToRow } from "@/lib/news-xlsx";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Roomier widths for the long text columns.
 const WIDTHS: Record<string, number> = {
-    body: 70, description: 60, ingredients: 50, steps: 60, cookalong: 40, image: 36,
-    gallery: 36, sourceUrl: 36, title: 30, slug: 28,
+    description: 60, link: 42, image: 36, title: 38, slug: 28,
+    externalId: 30, categories: 22, source: 22, pubDate: 26,
 };
 
 export async function GET() {
@@ -20,14 +20,14 @@ export async function GET() {
         return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 
-    const recipes = await prisma.article.findMany({ orderBy: { sort: "asc" } });
+    const rows = await prisma.newsArticle.findMany({ orderBy: { pubDate: "desc" } });
 
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet("Recipes");
+    const ws = wb.addWorksheet("News");
     ws.columns = COLUMNS.map((c) => ({ header: c, key: c, width: WIDTHS[c] ?? 16 }));
 
-    for (const r of recipes) {
-        ws.addRow(articleToRow(r as unknown as Record<string, unknown>));
+    for (const r of rows) {
+        ws.addRow(newsToRow(r as unknown as Record<string, unknown>));
     }
 
     ws.getRow(1).font = { bold: true };
@@ -40,7 +40,7 @@ export async function GET() {
         status: 200,
         headers: {
             "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "Content-Disposition": `attachment; filename="vegan-eating-articles-${date}.xlsx"`,
+            "Content-Disposition": `attachment; filename="vegan-eating-news-${date}.xlsx"`,
             "Cache-Control": "no-store",
         },
     });

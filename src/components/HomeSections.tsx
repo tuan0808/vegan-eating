@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { pills, stats, collections, cooks } from "@/data/site";
 import { latestThreads } from "@/lib/home-threads";
+import BandNewsletter from "./BandNewsletter";
 
 const Arrow = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -146,15 +147,12 @@ export function JoinBand() {
                     <h2>A kitchen full of people, not a wall of instructions.</h2>
                     <p>Create a free account to save recipes, rate what you cook, swap tips in the forum, and follow your favourite contributors. Plus one tested recipe in your inbox each Sunday.</p>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 22 }}>
-                        <Link href="/submit" className="btn-primary">
+                        <Link href="/register" className="btn-primary">
                             Create a free account <Arrow />
                         </Link>
                         <Link href="/forum" className="pill" style={{ padding: "15px 24px", background: "transparent", color: "var(--paper)", borderColor: "rgba(244,243,234,.4)" }}>Browse the forum</Link>
                     </div>
-                    <form className="news-form" action="#">
-                        <input type="email" placeholder="Just want the newsletter? Drop your email" aria-label="Email" />
-                        <button type="submit">Sign up</button>
-                    </form>
+                    <BandNewsletter />
                 </div>
                 <div className="band-img">
                     <div className="photo"><div className="ph p2" /><span className="ph-label">Your photo here</span></div>

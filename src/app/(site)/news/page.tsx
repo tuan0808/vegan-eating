@@ -1,109 +1,120 @@
-// src/app/news/page.tsx
+// src/app/(site)/news/page.tsx
 import Link from "next/link";
 import type { Metadata } from "next";
 import "./news.css";
 import PageHero from "@/components/PageHero";
+import { getNewsFeed, type NewsFeedItem } from "@/lib/news";
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
     title: "The Dispatch — news & notes — vegan eating",
-    description: "Dispatches from the vegan eating kitchen: new recipes, community news, and what we're building next.",
+    description:
+        "The latest vegan and vegetarian stories in food, health, and lifestyle — gathered from around the web.",
 };
 
-type Kind = "Kitchen" | "Community" | "Industry" | "Notebook";
-type Item = { kind: Kind; title: string; dek?: string; date: string; author?: string; href?: string };
-
-const EDITION = { no: "No. 1", date: "Sunday, June 7, 2026", line: "Filed from the kitchen" };
-
-const lead: Item = {
-    kind: "Kitchen",
-    title: "We re-tested every dessert in the archive — here's what actually changed",
-    dek: "Three months, one tired oven, and rather too much aquafaba. The short version: nine recipes got better, two got quietly binned, and we finally cracked a chewy cookie that doesn't need a special flour.",
-    date: "June 5, 2026",
-    author: "The kitchen desk",
-    href: "/recipes?cat=desserts",
-};
-
-const stories: Item[] = [
-    { kind: "Community", title: "The forum quietly passed 5,000 cooks this week", dek: "Most-shared thread of the month: a fourteen-reply deep-dive on getting tofu genuinely crisp without a deep fryer.", date: "June 4, 2026", href: "/forum" },
-    { kind: "Industry", title: "Oat milk is now the default at one café in three, a new survey finds", dek: "Dairy is increasingly the thing you ask for, not the thing you're handed. We read the report so you don't have to.", date: "June 2, 2026" },
-    { kind: "Notebook", title: "What we're building next: ratings first, then a weekly meal planner", dek: "A peek at the roadmap — accounts, star ratings, saved shopping lists, and a planner that fills your week straight from the archive.", date: "May 30, 2026" },
-];
-
-const brief: Item[] = [
-    { kind: "Kitchen", title: "Twelve new recipes landed in the Baking index.", date: "Jun 6", href: "/recipes?cat=baking" },
-    { kind: "Notebook", title: "The Veganizer now handles baking ratios, not just swaps.", date: "Jun 5", href: "/tools/veganize" },
-    { kind: "Community", title: "Reader tip of the week: a spoonful of miso in your caramel.", date: "Jun 3", href: "/forum" },
-    { kind: "Notebook", title: "We're after a few volunteer recipe testers.", date: "Jun 1", href: "/submit" },
-    { kind: "Kitchen", title: "Asparagus is in — nine ways to use the whole spear.", date: "May 28", href: "/recipes" },
-];
-
-function Kind({ k }: { k: Kind }) {
-    return <span className="nws-kind" data-kind={k}>{k}</span>;
+function Source({ name }: { name: string }) {
+    return (
+        <span className="nws-kind" data-kind="Industry">
+      {name || "News"}
+    </span>
+    );
 }
 
-function Headline({ item, tag }: { item: Item; tag: "h2" | "h3" }) {
+function Headline({ item, tag }: { item: NewsFeedItem; tag: "h2" | "h3" }) {
     const Tag = tag;
     const cls = tag === "h2" ? "nws-lead-title" : "nws-story-title";
     return (
         <Tag className={cls}>
-            {item.href ? <Link href={item.href} className="nws-link">{item.title}</Link> : item.title}
+            <Link className="nws-link" href={`/news/${item.slug}`}>
+                {item.title}
+            </Link>
         </Tag>
     );
 }
 
-export default function NewsPage() {
+export default async function NewsPage() {
+    const items = await getNewsFeed(10);
+    const lead = items[0];
+    const stories = items.slice(1, 4);
+    const brief = items.slice(4, 10);
+
     return (
         <>
             <PageHero
                 image="/header/news3.jpg"
-                kicker="vegan eating · news &amp; notes"
+                kicker="vegan eating · news & notes"
                 title="The Dispatch"
-                dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."
+                dek="The latest vegan and vegetarian stories in food, health, and lifestyle — gathered from around the web."
             />
 
-
             <div className="nws-wrap nws-body">
-                {/* Lead story */}
-                <article className="nws-lead">
-                    <div className="nws-lead-media">
-                        <div className="ph p3" />
-                        <span className="nws-media-note">Photo to come</span>
-                    </div>
-                    <div className="nws-lead-text">
-                        <Kind k={lead.kind} />
-                        <Headline item={lead} tag="h2" />
-                        <p className="nws-lead-dek">{lead.dek}</p>
-                        <p className="nws-byline">{lead.author} · {lead.date}</p>
-                    </div>
-                </article>
+                {!lead ? (
+                    <p style={{ color: "var(--muted)", padding: "24px 0" }}>
+                        No stories yet — they&apos;ll appear here as the feed syncs.
+                    </p>
+                ) : (
+                    <>
+                        {/* Lead story */}
+                        <article className="nws-lead">
+                            <div className="nws-lead-media">
+                                {lead.image ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                        src={lead.image}
+                                        alt={lead.title}
+                                        loading="lazy"
+                                        style={{ width: "100%", height: "auto", display: "block", objectFit: "cover" }}
+                                    />
+                                ) : (
+                                    <>
+                                        <div className="ph p3" />
+                                        <span className="nws-media-note">Photo to come</span>
+                                    </>
+                                )}
+                            </div>
+                            <div className="nws-lead-text">
+                                <Source name={lead.source} />
+                                <Headline item={lead} tag="h2" />
+                                {lead.description ? <p className="nws-lead-dek">{lead.description}</p> : null}
+                                <p className="nws-byline">
+                                    {lead.source ? `${lead.source} · ` : ""}
+                                    {lead.date}
+                                </p>
+                            </div>
+                        </article>
 
-                <hr className="nws-rule" />
+                        <hr className="nws-rule" />
 
-                <div className="nws-grid">
-                    <section className="nws-cols">
-                        {stories.map((s) => (
-                            <article className="nws-story" key={s.title}>
-                                <Kind k={s.kind} />
-                                <Headline item={s} tag="h3" />
-                                {s.dek ? <p className="nws-story-dek">{s.dek}</p> : null}
-                                <p className="nws-byline">{s.date}</p>
-                            </article>
-                        ))}
-                    </section>
+                        <div className="nws-grid">
+                            <section className="nws-cols">
+                                {stories.map((s) => (
+                                    <article className="nws-story" key={s.slug}>
+                                        <Source name={s.source} />
+                                        <Headline item={s} tag="h3" />
+                                        {s.description ? <p className="nws-story-dek">{s.description}</p> : null}
+                                        <p className="nws-byline">{s.date}</p>
+                                    </article>
+                                ))}
+                            </section>
 
-                    <aside className="nws-brief">
-                        <h3 className="nws-brief-head">In brief</h3>
-                        <ul>
-                            {brief.map((b) => (
-                                <li className="nws-brief-item" key={b.title}>
-                                    <span className="nws-brief-date">{b.date}</span>
-                                    {b.href ? <Link href={b.href} className="nws-link">{b.title}</Link> : b.title}
-                                </li>
-                            ))}
-                        </ul>
-                        <p className="nws-brief-foot">More dispatches soon — this desk is just getting started.</p>
-                    </aside>
-                </div>
+                            <aside className="nws-brief">
+                                <h3 className="nws-brief-head">In brief</h3>
+                                <ul>
+                                    {brief.map((b) => (
+                                        <li className="nws-brief-item" key={b.slug}>
+                                            <span className="nws-brief-date">{b.dateShort}</span>
+                                            <Link className="nws-link" href={`/news/${b.slug}`}>
+                                                {b.title}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="nws-brief-foot">Updated hourly from across the web.</p>
+                            </aside>
+                        </div>
+                    </>
+                )}
             </div>
         </>
     );

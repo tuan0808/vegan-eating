@@ -1,6 +1,7 @@
 // src/app/page.tsx
 import { Hero } from "@/components/Sections";
-import { Collections, ForumSection, CooksSection, JoinBand } from "@/components/HomeSections";
+import { Collections, ForumSection, JoinBand } from "@/components/HomeSections";
+import Meditation from "@/components/Meditation";
 import HomeSearch from "@/components/HomeSearch";
 import RecipeCard from "@/components/RecipeCard";
 import { latestRecipes, randomRecipes } from "@/lib/recipes";
@@ -56,7 +57,7 @@ export default async function Home() {
             )}
 
             <ForumSection />
-            <CooksSection />
+            <Meditation />
             <JoinBand />
         </>
     );

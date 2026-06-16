@@ -4,6 +4,7 @@ import { promise } from "@/data/site";
 import HeroTitle from "./HeroTitle";
 import RecipeViews from "./RecipeViews";
 import { viewSummary } from "@/lib/views";
+import { getRatingSummary } from "@/lib/comments";
 import type { Recipe } from "@/data/recipes";
 
 const Arrow = () => (
@@ -54,6 +55,9 @@ export async function Hero({ recipe }: { recipe?: Recipe }) {
     // Display-only on the home hero — the visitor isn't actually viewing the
     // recipe here, so we read the summary but don't log (no `log` prop below).
     const views = recipe ? await viewSummary("recipe", recipe.id) : null;
+    // Real review average, from rated comments. Null/zero-count → no stars shown.
+    const rating = recipe ? await getRatingSummary({ recipeId: recipe.id }) : null;
+    const stars = rating ? Math.round(rating.average) : 0;
 
     return (
         <section className="hero">
@@ -78,7 +82,11 @@ export async function Hero({ recipe }: { recipe?: Recipe }) {
                     <div className="hero-meta">
                         {time && <span>⏱ <b>{time}</b></span>}
                         {servings && <span>🍽 <b>{servings}</b></span>}
-                        <span className="stars">★★★★★ <b style={{ color: "#fff" }}>4.9</b></span>
+                        {rating && rating.count > 0 && (
+                            <span className="stars">
+                                {"★".repeat(stars)}{"☆".repeat(5 - stars)} <b style={{ color: "#fff" }}>{rating.average.toFixed(1)}</b>
+                            </span>
+                        )}
                     </div>
                     <Link href={href} className="btn-primary">
                         Read the recipe <Arrow />

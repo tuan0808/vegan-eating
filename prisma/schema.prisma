@@ -338,3 +338,23 @@ model ShoppingItem {
   @@index([userId, checked])
   @@index([userId, recipeId])
 }
+
+model NewsArticle {
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  slug        String   @unique
+  title       String
+  description String   @default("")
+  link        String
+  image       String?
+  source      String   @default("")
+  pubDate     DateTime
+  categories  String   @default("[]")
+  content     String   @default("")   // ← the missing field (full article body)
+  hidden      Boolean  @default(false)
+  sort        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([pubDate])
+  @@index([hidden])
+}

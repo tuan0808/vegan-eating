@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { subscribeEmail } from "@/app/actions/newsletter";
 import "./header-nav.css";
 
 // Logo kept as before (uses your global .brand/.logo-* styles) so the footer's
@@ -144,6 +145,8 @@ export default function Header() {
     const [subOpen, setSubOpen] = useState(false);
     const [subEmail, setSubEmail] = useState("");
     const [subscribed, setSubscribed] = useState(false);
+    const [subErr, setSubErr] = useState<string | null>(null);
+    const [subBusy, setSubBusy] = useState(false);
 
     useEffect(() => {
         if (searchOpen) searchRef.current?.focus();
@@ -184,15 +187,19 @@ export default function Header() {
     const submitSearch = (e: React.FormEvent) => { e.preventDefault(); doSearch(); };
     const surprise = () => { router.push("/recipes/random"); setSearchOpen(false); };
 
-    const submitSubscribe = (e: React.FormEvent) => {
+    const submitSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
         const email = subEmail.trim();
-        if (!/.+@.+\..+/.test(email)) return;
-        // TODO: POST to your newsletter provider / an /api/subscribe route here.
-        setSubscribed(true);
+        if (!/.+@.+\..+/.test(email)) { setSubErr("Enter a valid email address."); return; }
+        setSubErr(null);
+        setSubBusy(true);
+        const res = await subscribeEmail(email);
+        setSubBusy(false);
+        if (res.ok) setSubscribed(true);
+        else setSubErr(res.error);
     };
 
-    const openSubscribe = () => { setSubscribed(false); setSubOpen(true); setMobileOpen(false); };
+    const openSubscribe = () => { setSubscribed(false); setSubErr(null); setSubEmail(""); setSubOpen(true); setMobileOpen(false); };
 
     useEffect(() => {
         const onScroll = () => setLifted(window.scrollY > 4);
@@ -212,6 +219,15 @@ export default function Header() {
         fetch("/api/featured-recipe")
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => { if (on && d && d.slug) setFeatured(d); })
+            .catch(() => {});
+        return () => { on = false; };
+    }, []);
+
+    useEffect(() => {
+        let on = true;
+        fetch("/api/featured-article")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (on && d && d.slug) setFeaturedArticle(d); })
             .catch(() => {});
         return () => { on = false; };
     }, []);
@@ -450,8 +466,9 @@ export default function Header() {
                                         aria-label="Email address"
                                         required
                                     />
-                                    <button type="submit" className="vn-sub">Subscribe</button>
+                                    <button type="submit" className="vn-sub" disabled={subBusy}>{subBusy ? "Subscribing…" : "Subscribe"}</button>
                                 </form>
+                                {subErr && <p style={{ color: "#c0392b", margin: "10px 0 0", fontSize: 14 }}>{subErr}</p>}
                             </>
                         )}
                     </div>

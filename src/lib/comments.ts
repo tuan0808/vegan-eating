@@ -74,3 +74,20 @@ export async function getComments(
         totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
     }
 }
+export interface RatingSummary {
+    average: number
+    count: number
+}
+
+// A "review" is just a comment that carries stars. The recipe's average is the
+// mean of those ratings across approved comments. Articles never have ratings,
+// so this returns an empty summary for them.
+export async function getRatingSummary(target: CommentTarget): Promise<RatingSummary> {
+    if (!('recipeId' in target)) return { average: 0, count: 0 }
+    const agg = await prisma.comment.aggregate({
+        where: { recipeId: target.recipeId, status: 'APPROVED', rating: { not: null } },
+        _avg: { rating: true },
+        _count: { rating: true },
+    })
+    return { average: agg._avg.rating ?? 0, count: agg._count.rating }
+}

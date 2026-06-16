@@ -116,6 +116,7 @@ export default async function RecipePage({
                 steps={r.steps}
                 title={r.title}
                 timing={timing}
+                recipeId={r.id}
             />
             <div>
               <span className="kicker">About this recipe</span>

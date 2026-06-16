@@ -1,28 +1,27 @@
 // src/components/RecipeTools.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import CookMode from "./CookMode";
 import { scaleAll } from "@/lib/recipe-scale";
+import { addRecipeToShoppingList } from "@/lib/actions/kitchen";
 
 export default function RecipeTools({
-                                        ingredients, baseServings, steps, title, timing,
+                                        ingredients, baseServings, steps, title, timing, recipeId,
                                     }: {
     ingredients: string[];
     baseServings: number;
     steps: string[];
     title: string;
     timing?: string;
+    recipeId: string;
 }) {
     const [servings, setServings] = useState(baseServings);
     const [system, setSystem] = useState<"metric" | "imperial">("metric");
     const [checked, setChecked] = useState<Set<number>>(new Set());
     const [cook, setCook] = useState(false);
-    const [shop, setShop] = useState(false);
-    const [shopSel, setShopSel] = useState<Set<number>>(() => new Set(ingredients.map((_, i) => i)));
-    const [copied, setCopied] = useState(false);
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
+    const [added, setAdded] = useState(false);
+    const [pending, start] = useTransition();
 
     const ratio = servings / baseServings;
     const scaled = useMemo(() => scaleAll(ingredients, ratio, system), [ratio, system, ingredients]);
@@ -31,16 +30,13 @@ export default function RecipeTools({
         const n = new Set(set); n.has(i) ? n.delete(i) : n.add(i); return n;
     };
 
-    const listText = scaled.filter((_, i) => shopSel.has(i)).map((s) => "• " + s.trim()).join("\n");
-    const copyList = async () => {
-        try { await navigator.clipboard.writeText(`${title} — shopping list\n\n${listText}`); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* noop */ }
-    };
-    const shareList = async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        try { await (navigator as any).share?.({ title: `${title} — shopping list`, text: listText }); } catch { /* noop */ }
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const canShare = mounted && typeof navigator !== "undefined" && !!(navigator as any).share;
+    // Same one-tap behaviour as the cart in the hero: the server expands this
+    // recipe's ingredients into the signed-in user's saved shopping list.
+    const addToList = () =>
+        start(async () => {
+            const n = await addRecipeToShoppingList(recipeId);
+            if (n > 0) { setAdded(true); setTimeout(() => setAdded(false), 1800); }
+        });
 
     return (
         <>
@@ -86,35 +82,13 @@ export default function RecipeTools({
                         Start Cook Mode
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 3l14 9-14 9V3z" /></svg>
                     </button>
-                    <button className="rt-shop" onClick={() => setShop(true)}>🛒 One-tap shopping list</button>
+                    <button className={`rt-shop${added ? " ok" : ""}`} onClick={addToList} disabled={pending}>
+                        {added ? "✓ Added to your shopping list" : "🛒 One-tap shopping list"}
+                    </button>
                 </div>
             </aside>
 
             <CookMode open={cook} onClose={() => setCook(false)} title={title} steps={steps} ingredients={scaled} timing={timing} />
-
-            {shop && (
-                <div className="rt-modal" onClick={() => setShop(false)}>
-                    <div className="rt-modal-card" onClick={(e) => e.stopPropagation()}>
-                        <div className="rt-modal-head">
-                            <h3>Shopping list</h3>
-                            <button onClick={() => setShop(false)} aria-label="Close">✕</button>
-                        </div>
-                        <p className="rt-modal-sub">{servings} servings · {system}. Untick anything you already have.</p>
-                        <ul className="rt-shop-list">
-                            {scaled.map((ing, i) => (
-                                <li key={i}>
-                                    <input type="checkbox" checked={shopSel.has(i)} onChange={() => setShopSel((s) => toggle(s, i))} aria-label={ing} />
-                                    <span className={shopSel.has(i) ? "" : "off"}>{ing}</span>
-                                </li>
-                            ))}
-                        </ul>
-                        <div className="rt-modal-actions">
-                            <button className="btn-primary" onClick={copyList}>{copied ? "Copied ✓" : "Copy list"}</button>
-                            {canShare && <button onClick={shareList}>Share</button>}
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <style jsx>{`
                 .rt-servings { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
@@ -139,20 +113,8 @@ export default function RecipeTools({
                 .rt-shop { margin-top: 10px; width: 100%; background: transparent; border: 1px solid var(--line, #e2e0d5);
                     border-radius: 12px; padding: 13px; font-weight: 600; font-size: 14.5px; cursor: pointer; color: var(--ink, #1b2a1d); }
                 .rt-shop:hover { border-color: #5BB35F; }
-                .rt-modal { position: fixed; inset: 0; background: rgba(20,30,20,.45); display: flex;
-                    align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-                .rt-modal-card { background: var(--card, #fffdf7); border-radius: 20px; padding: 26px;
-                    width: 100%; max-width: 480px; max-height: 84vh; display: flex; flex-direction: column; }
-                .rt-modal-head { display: flex; justify-content: space-between; align-items: center; }
-                .rt-modal-head h3 { font-family: "Fraunces", serif; margin: 0; font-size: 22px; }
-                .rt-modal-head button { background: transparent; border: 0; font-size: 20px; cursor: pointer; color: var(--muted, #6f7468); }
-                .rt-modal-sub { font-size: 13px; color: var(--muted, #6f7468); margin: 6px 0 16px; text-transform: capitalize; }
-                .rt-shop-list { list-style: none; padding: 0; margin: 0; overflow: auto; display: flex; flex-direction: column; gap: 11px; }
-                .rt-shop-list li { display: flex; gap: 11px; align-items: flex-start; font-size: 15px; }
-                .rt-shop-list .off { opacity: .4; text-decoration: line-through; }
-                .rt-modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-                .rt-modal-actions button { flex: 1; border-radius: 12px; padding: 13px; font-weight: 700; cursor: pointer; border: 0; }
-                .rt-modal-actions button:not(.btn-primary) { background: var(--paper, #eceadf); color: var(--ink, #1b2a1d); }
+                .rt-shop.ok { border-color: #5BB35F; color: #1f4a2f; background: rgba(91,179,95,.10); }
+                .rt-shop:disabled { cursor: default; opacity: .8; }
             `}</style>
         </>
     );

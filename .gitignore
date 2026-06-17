@@ -10,3 +10,4 @@
 .DS_Store
 /.vercel
 /public/uploads/
+/public/20[0-9][0-9]/

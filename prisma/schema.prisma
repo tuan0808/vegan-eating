@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // swap to "postgresql" later; same queries
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")  // the POOL connection string
+  directUrl = env("DIRECT_URL")    // the DIRECT cluster string (port 25060)
 }
 
 model Recipe {

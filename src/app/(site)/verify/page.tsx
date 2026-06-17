@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { consumeVerificationToken, type VerifyResult } from '@/lib/verification'
 
+export const dynamic = "force-dynamic";
 const COPY: Record<VerifyResult, { title: string; body: string }> = {
     ok: {
         title: 'Email confirmed',

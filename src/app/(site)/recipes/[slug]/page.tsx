@@ -20,6 +20,7 @@ import { savedRecipeIds } from "@/lib/kitchen";
 import "@/app/(site)/articles/[slug]/article-content.css";
 import "@/styles/kitchen.css";
 
+export const dynamic = "force-dynamic";
 // First sentence of the description — for the hero blurb.
 function firstSentence(text?: string | null): string {
   if (!text) return "";

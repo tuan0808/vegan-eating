@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 
+export const dynamic = "force-dynamic";
 export type OtherItem = { slug: string; title: string; date: string | null; image: string | null };
 
 function src(s?: string | null): string | null {

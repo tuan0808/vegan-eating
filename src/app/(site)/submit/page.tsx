@@ -6,6 +6,7 @@ import SubmitRecipeForm from "@/components/SubmitRecipeForm";
 import "./submit.css";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Submit a recipe — vegan eating" };
 
 export default async function SubmitPage() {

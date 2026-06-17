@@ -8,7 +8,7 @@ import { pills } from "@/data/site";
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 
-
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "All recipes — vegan eating", description: "Browse every tested plant-based recipe." };
 
 export default async function RecipesPage({ searchParams }: { searchParams: { page?: string; cat?: string; q?: string } }) {

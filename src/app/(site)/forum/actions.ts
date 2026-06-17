@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { guardCommunityPost, type GuardFail } from "@/lib/anti-spam";
 import { getAntiSpamConfig } from "@/lib/antispam-config";
 
+
 // "new" is a real route segment (the New-thread page), so a thread can't own it
 // as a slug or it'd be unreachable. Reserve it.
 const RESERVED_THREAD_SLUGS = new Set(["new"]);

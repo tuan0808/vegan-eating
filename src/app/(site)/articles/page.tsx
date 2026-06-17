@@ -8,6 +8,7 @@ import { slugify } from "@/lib/recipe-filters";
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Health & articles — vegan eating" };
 
 export default async function ArticlesPage({ searchParams }: { searchParams: { page?: string; cat?: string } }) {

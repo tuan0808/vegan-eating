@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "./directory.css";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
     title: "The Directory — vegan eating",
     description: "A hand-kept index of the vegan websites, YouTube channels, and blogs worth your time.",

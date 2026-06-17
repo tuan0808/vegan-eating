@@ -13,6 +13,7 @@ import PostFooter from "@/components/post/PostFooter";
 import { getNewsArticleBySlug, listRelatedNews, listLatestNews, type NewsCard } from "@/lib/news";
 import { textToTiptap } from "@/lib/news-body";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export async function generateMetadata({

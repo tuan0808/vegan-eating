@@ -9,6 +9,7 @@ import PageHero from "@/components/PageHero";
 import { createReply } from "../../../actions";
 import { updatePost, deletePost, togglePin, toggleLock } from "../../../moderation-actions";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export async function generateMetadata(

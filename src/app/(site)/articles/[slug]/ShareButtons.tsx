@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
 export default function ShareButtons({ title }: { title: string }) {
     const [url, setUrl] = useState("");
     useEffect(() => { setUrl(window.location.href); }, []);

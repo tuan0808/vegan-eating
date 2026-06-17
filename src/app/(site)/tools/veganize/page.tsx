@@ -3,6 +3,7 @@ import VeganizeTool from "@/components/VeganizeTool";
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
     title: "Veganize any recipe — vegan eating",
     description: "Paste any recipe and get a fully plant-based version, powered by AI.",

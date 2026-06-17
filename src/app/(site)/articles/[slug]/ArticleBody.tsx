@@ -3,6 +3,7 @@ import { Fragment, type ReactNode } from "react";
 import ArticleFigure from "./ArticleFigure";
 import type { TiptapDoc, BodyNode, TextNode } from "@/lib/article-body";
 
+export const dynamic = "force-dynamic";
 function imgSrc(src: string): string {
     if (/^https?:\/\//i.test(src) || src.startsWith("/")) return src;
     return "/" + src.replace(/^\.?\//, "");

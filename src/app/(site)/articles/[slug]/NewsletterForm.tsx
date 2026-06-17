@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 
+export const dynamic = "force-dynamic";
 export default function NewsletterForm() {
     const [email, setEmail] = useState("");
     const [done, setDone] = useState(false);

@@ -4,6 +4,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
 function imgSrc(src: string): string {
     const v = src.trim();
     if (!v) return "";

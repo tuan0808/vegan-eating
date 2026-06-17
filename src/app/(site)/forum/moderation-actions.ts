@@ -7,6 +7,7 @@ import sanitizeHtml from "sanitize-html";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+
 function isMod(role?: string | null) {
     return role === "ADMIN" || role === "MODERATOR";
 }

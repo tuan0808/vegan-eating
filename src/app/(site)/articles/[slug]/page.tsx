@@ -16,6 +16,7 @@ import ArticleBody from "./ArticleBody";
 import { tiptapText, firstParagraphText } from "@/lib/article-body";
 import "./article-content.css";
 
+export const dynamic = "force-dynamic";
 function imgSrc(src?: string | null): string | null {
     if (!src) return null;
     if (/^https?:\/\//i.test(src) || src.startsWith("/")) return src;

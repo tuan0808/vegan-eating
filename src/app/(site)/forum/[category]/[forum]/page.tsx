@@ -7,6 +7,7 @@ import { currentUser } from "@/lib/auth-helpers";
 import ThreadList from "@/components/ThreadList";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export async function generateMetadata(

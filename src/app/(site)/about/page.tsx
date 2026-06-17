@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import "./about.css";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
     title: "About — vegan eating",
     description: "The story behind vegan eating: a community-first, ad-free, hand-built home for plant-based cooking.",

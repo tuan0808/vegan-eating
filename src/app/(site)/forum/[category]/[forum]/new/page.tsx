@@ -10,6 +10,7 @@ import PageHero from "@/components/PageHero";
 import SubmitTimer from "@/components/SubmitTimer";
 import { createThread } from "../../../actions";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "New thread — Forums — vegan eating" };
 
 // Maps the ?error=<code> the createThread action can redirect with to a message.

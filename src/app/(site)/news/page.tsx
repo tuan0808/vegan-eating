@@ -5,6 +5,7 @@ import "./news.css";
 import PageHero from "@/components/PageHero";
 import { getNewsFeed, type NewsFeedItem } from "@/lib/news";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {

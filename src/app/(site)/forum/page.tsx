@@ -5,6 +5,7 @@ import ForumIndex from "@/components/ForumIndex";
 import ForumAdminPanel from "@/components/ForumAdminPanel";
 import PageHero from "@/components/PageHero";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
     title: "Forums — vegan eating",
     description: "Join the conversation: recipes, guides, introductions, and more.",

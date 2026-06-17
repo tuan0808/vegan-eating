@@ -60,7 +60,7 @@ export default function Meditation() {
                 .med-title {
                     font-family: var(--display, "Fraunces", serif);
                     font-weight: 600;
-                    font-size: clamp(44px, 5.6vw, 72px);
+                    font-size: clamp(44px, 3.6vw, 72px);
                     line-height: 1.03;
                     color: var(--ink, #1b2a1d);
                     margin: 8px 0 0;

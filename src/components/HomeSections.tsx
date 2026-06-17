@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { pills, stats, collections, cooks } from "@/data/site";
 import { latestThreads } from "@/lib/home-threads";
+import { prisma } from "@/lib/prisma";
+import { buildWhere } from "@/lib/recipe-filters";
 import BandNewsletter from "./BandNewsletter";
 
 const Arrow = () => (
@@ -38,7 +40,28 @@ export function Trust() {
     );
 }
 
-export function Collections() {
+// Normalises WP-style relative image paths to absolute. Full URLs pass through.
+function imgSrc(src?: string | null): string | null {
+    if (!src) return null;
+    if (/^https?:\/\//i.test(src) || src.startsWith("/")) return src;
+    return "/" + src.replace(/^\.?\//, "");
+}
+
+// One random recipe image from the SAME set the tile links to (reuses buildWhere
+// so the photo always represents that collection). Null when it has no images.
+async function collectionImage(cat: string): Promise<string | null> {
+    const where = { ...buildWhere(cat, ""), hidden: false, image: { not: null } };
+    const count = await prisma.recipe.count({ where });
+    if (!count) return null;
+    const skip = Math.floor(Math.random() * count);
+    const row = await prisma.recipe.findFirst({ where, skip, select: { image: true } });
+    return imgSrc(row?.image);
+}
+
+export async function Collections() {
+    // One image per collection, in parallel; rotates on each request.
+    const images = await Promise.all(collections.map((c) => collectionImage(c.cat)));
+
     return (
         <div className="wrap">
             <section style={{ paddingTop: 30 }}>
@@ -50,15 +73,45 @@ export function Collections() {
                     <Link href="/recipes">All collections <Arrow /></Link>
                 </div>
                 <div className="collections">
-                    {collections.map((c) => (
-                        <Link href="/recipes" className="col-tile" key={c.name}>
-                            <div className={`ph ${c.ph}`} />
-                            <div className="col-tile-body">
-                                <h3>{c.name}</h3>
-                                <span>{c.count} recipes <svg className="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
-                            </div>
-                        </Link>
-                    ))}
+                    {/* hover lift + soft shadow (RSC-safe global style, scoped to .collections) */}
+                    <style>{`
+                        .collections .col-tile { transition: transform .22s ease, box-shadow .22s ease; }
+                        .collections .col-tile:hover { transform: translateY(-6px); box-shadow: 0 20px 44px -20px rgba(20,16,12,.5); }
+                    `}</style>
+                    {collections.map((c, i) => {
+                        const img = images[i];
+                        return (
+                            <Link href={`/recipes?cat=${c.cat}`} className="col-tile" key={c.name} style={{ isolation: "isolate" }}>
+                                {/* photo base layer */}
+                                {img ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                        src={img}
+                                        alt=""
+                                        aria-hidden="true"
+                                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0 }}
+                                    />
+                                ) : null}
+                                {/* your colour gradient — light tint over the photo (opaque when no photo) */}
+                                <div className={`ph ${c.ph}`} style={img ? { opacity: 0.42, zIndex: 1 } : undefined} />
+                                {/* dark fade at the bottom so the white title/count stay readable */}
+                                {img ? (
+                                    <div
+                                        style={{
+                                            position: "absolute",
+                                            inset: 0,
+                                            zIndex: 2,
+                                            background: "linear-gradient(to top, rgba(18,14,10,0.74), rgba(18,14,10,0) 58%)",
+                                        }}
+                                    />
+                                ) : null}
+                                <div className="col-tile-body" style={{ zIndex: 3 }}>
+                                    <h3>{c.name}</h3>
+                                    <span>{c.count} recipes <svg className="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </div>
             </section>
         </div>

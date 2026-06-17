@@ -35,10 +35,10 @@ export const promise = [
 ];
 
 export const collections = [
-  { name: "Weeknight in 30", count: 128, ph: "p1" },
-  { name: "Seasonal produce", count: 76, ph: "p6" },
-  { name: "Plant-based baking", count: 94, ph: "p3" },
-  { name: "High-protein", count: 52, ph: "p2" },
+  { name: "Weeknight in 30", count: 128, ph: "p1", cat: "30-minutes" },
+  { name: "Salads & bowls", count: 76, ph: "p6", cat: "salads-bowls" },
+  { name: "Plant-based baking", count: 94, ph: "p3", cat: "baking" },
+  { name: "Desserts", count: 52, ph: "p2", cat: "desserts" },
 ];
 
 export const threads = [

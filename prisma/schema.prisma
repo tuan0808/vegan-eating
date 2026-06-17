@@ -360,7 +360,9 @@ model NewsArticle {
   hidden      Boolean  @default(false)
   sort        Int      @default(0)
   createdAt   DateTime @default(now())
+  dupeOf      String?   // slug of the kept original when sync auto-hides this as an exact-title duplicate
 
+  @@index([dupeOf])
   @@index([pubDate])
   @@index([hidden])
 }

@@ -14,6 +14,19 @@ type Row = {
     image: string | null;
     hidden: boolean;
     categories: string[];
+    dupeOf: string | null;
+};
+
+const dupeBadge: React.CSSProperties = {
+    marginLeft: 8,
+    padding: "1px 8px",
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.02em",
+    background: "#fbeccb",
+    color: "#8a5a00",
+    border: "1px solid #e6c98a",
 };
 
 export default function NewsRow({ item }: { item: Row }) {
@@ -32,8 +45,13 @@ export default function NewsRow({ item }: { item: Row }) {
         setExpanded(false);
     };
 
+    const isDupe = !!item.dupeOf;
+
     return (
-        <div className={`ar-item${item.hidden ? " is-hidden" : ""}${expanded ? " is-editing" : ""}`}>
+        <div
+            className={`ar-item${item.hidden ? " is-hidden" : ""}${expanded ? " is-editing" : ""}`}
+            style={isDupe ? { borderLeft: "3px solid #c98a1e", background: "#fffaf0" } : undefined}
+        >
             <div className="ar-itemtop">
                 <div className="ar-thumb">
                     {item.image ? (
@@ -47,12 +65,18 @@ export default function NewsRow({ item }: { item: Row }) {
                 <div className="ar-meta">
           <span className="ar-item-title">
             {item.title}
-              {item.hidden && <span className="ar-badge">Hidden</span>}
+              {isDupe && (
+                  <span style={dupeBadge} title={`Exact-title duplicate of /news/${item.dupeOf}`}>
+                      ⚑ Duplicate
+                  </span>
+              )}
+              {item.hidden && !isDupe && <span className="ar-badge">Hidden</span>}
           </span>
                     <span className="ar-item-sub">
             {item.date || "—"}
                         {item.source ? ` · ${item.source}` : ""}
                         {item.categories.length ? ` · ${item.categories.join(", ")}` : ""}
+                        {isDupe ? ` · duplicate of ${item.dupeOf}` : ""}
           </span>
                 </div>
 

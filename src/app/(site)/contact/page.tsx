@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import ContactForm from "@/components/ContactForm";
 import PageHero from "@/components/PageHero";
 // Reuse the submit page's form/card styling so the two pages feel identical.
-import "@/app/(site)/submit/submit.css";
+import "@/app/submit/submit.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default async function ContactPage() {
             />
 
             <div className="wrap" style={{ paddingBottom: 70 }}>
-                <section style={{ paddingTop: 28, display: "flex", justifyContent: "center" }}>
+                <section style={{ paddingTop: 28 }}>
                     {user ? (
                         <ContactForm defaultName={defaultName} />
                     ) : (

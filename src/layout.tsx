@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { isMaintenanceBlocked, getMaintenance } from "@/lib/maintenance";
 import MaintenanceScreen from "@/components/maintenance/MaintenanceScreen";

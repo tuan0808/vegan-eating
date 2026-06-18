@@ -1,0 +1,25 @@
+# ~/projects/vegan-eating/docker-compose.yml
+# Local Postgres that mirrors DigitalOcean Managed Postgres.
+# Pin the image tag to YOUR DO cluster's major version (DO lets you pick 16/17).
+# If you haven't created the DO cluster yet, keep 17 here and create it as 17.
+services:
+  postgres:
+    image: postgres:17
+    container_name: vegan-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vegan
+      POSTGRES_PASSWORD: vegan
+      POSTGRES_DB: veganeating
+    ports:
+      - "5432:5432"        # if 5432 is already taken, change to "5433:5432" and update the URLs
+    volumes:
+      - vegan_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vegan -d veganeating"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  vegan_pgdata:

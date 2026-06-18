@@ -160,8 +160,10 @@ export function Footer() {
                     </div>
                     <div className="fcol">
                         <h4>About</h4>
-                        <Link href="#">Our story</Link><Link href="#">Contact</Link>
-                        <Link href="#">Newsletter</Link><Link href="#">Instagram</Link>
+                        <Link href="/about">Our story</Link>
+                        <Link href="#">Contact</Link>
+                        <Link href="#">Newsletter</Link>
+                        <Link href="#">Instagram</Link>
                     </div>
                 </div>
                 <div className="foot-bot">

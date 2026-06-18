@@ -11,3 +11,6 @@
 /.vercel
 /public/uploads/
 /public/20[0-9][0-9]/
+prisma/generated/
+prisma/dev.db
+prisma/dev.db-journal

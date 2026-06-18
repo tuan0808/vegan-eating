@@ -1,9 +1,9 @@
-
 // src/app/about/page.tsx
 import Link from "next/link";
 import type { Metadata } from "next";
 import "./about.css";
 import PageHero from "@/components/PageHero";
+import { mediaUrl } from "@/lib/media";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -40,7 +40,7 @@ export default function AboutPage() {
             <div className="abt-wrap abt-story">
                 <figure className="abt-portrait">
                     <div className="abt-portrait-img">
-                        <img src="/2024/vegor.png" alt="Vegor, the vegan eating mascot — a thoughtful chef" />
+                        <img src={mediaUrl("/2024/vegor.png")} alt="Vegor, the vegan eating mascot — a thoughtful chef" />
                     </div>
                     <figcaption>Vegor — our resident over-thinker</figcaption>
                 </figure>

@@ -53,7 +53,7 @@ const MENU: Item[] = [
                     { label: "Submit recipe", href: "/submit", note: "Share yours with the community" },
                 ] },
             { heading: "Tools", links: [
-                    { label: "Veganize recipe", href: "/veganize", note: "Swap out the animal products" },
+                    { label: "Veganize recipe", href: "/tools/veganize", note: "Coming Soon!" },
                 ] },
         ],
         blurb: "The best recipes here come from the community. Share yours — or paste any recipe into the Veganizer to make it plant-based in seconds.",
@@ -223,6 +223,16 @@ export default function Header() {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
+    // Lock the page behind the drawer/modals so it can't scroll underneath.
+    // (The overlays themselves are rendered OUTSIDE <header> in the markup
+    // below, so the header's on-scroll blur can't re-anchor them.)
+    useEffect(() => {
+        if (!(mobileOpen || searchOpen || subOpen)) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev; };
+    }, [mobileOpen, searchOpen, subOpen]);
+
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpenKey(null); setMobileOpen(false); setSearchOpen(false); setSubOpen(false); } };
         window.addEventListener("keydown", onKey);
@@ -330,75 +340,77 @@ export default function Header() {
     };
 
     return (
-        <header id="hdr" className={`vn-hdr${lifted ? " lifted" : ""}`}>
-            <div className="vn-bar">
-                <div className="vn-wrap vn-nav">
-                    <Link href="/" aria-label="vegan eating home" onClick={() => setMobileOpen(false)}><Logo /></Link>
+        <>
+            <header id="hdr" className={`vn-hdr${lifted ? " lifted" : ""}`}>
+                <div className="vn-bar">
+                    <div className="vn-wrap vn-nav">
+                        <Link href="/" aria-label="vegan eating home" onClick={() => setMobileOpen(false)}><Logo /></Link>
 
-                    <nav className="vn-menu" onMouseLeave={scheduleHide}>
-                        {MENU.map((it) =>
-                            it.cols ? (
-                                <div key={it.label} className={`vn-item${openKey === it.key ? " open" : ""}`} onMouseEnter={() => show(it.key!)}>
-                                    <Link href={it.href} onClick={(e) => { e.preventDefault(); setOpenKey(openKey === it.key ? null : it.key!); }}>
-                                        {it.label} <Chevron />
-                                    </Link>
-                                </div>
+                        <nav className="vn-menu" onMouseLeave={scheduleHide}>
+                            {MENU.map((it) =>
+                                it.cols ? (
+                                    <div key={it.label} className={`vn-item${openKey === it.key ? " open" : ""}`} onMouseEnter={() => show(it.key!)}>
+                                        <Link href={it.href} onClick={(e) => { e.preventDefault(); setOpenKey(openKey === it.key ? null : it.key!); }}>
+                                            {it.label} <Chevron />
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div key={it.label} className="vn-item"><Link href={it.href}>{it.label}</Link></div>
+                                )
+                            )}
+                        </nav>
+
+                        <div className="vn-right">
+                            <button type="button" className="vn-icon" aria-label="Search recipes" onClick={openSearch}>
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+                            </button>
+                            {!authReady ? (
+                                <span className="vn-avatar vn-avatar-skel" aria-hidden />
+                            ) : authUser ? (
+                                <Link href="/dashboard" className="vn-avatar" aria-label={`${displayName} — go to dashboard`} title={displayName}>
+                                    {initial}
+                                </Link>
                             ) : (
-                                <div key={it.label} className="vn-item"><Link href={it.href}>{it.label}</Link></div>
-                            )
-                        )}
-                    </nav>
-
-                    <div className="vn-right">
-                        <button type="button" className="vn-icon" aria-label="Search recipes" onClick={openSearch}>
-                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-                        </button>
-                        {!authReady ? (
-                            <span className="vn-avatar vn-avatar-skel" aria-hidden />
-                        ) : authUser ? (
-                            <Link href="/dashboard" className="vn-avatar" aria-label={`${displayName} — go to dashboard`} title={displayName}>
-                                {initial}
-                            </Link>
-                        ) : (
-                            <Link href="/login" className="vn-signin">Sign in</Link>
-                        )}
-                        <button type="button" className="vn-sub" onClick={openSubscribe}>Subscribe</button>
-                        <button className="vn-burger" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((v) => !v)}>
-                            <span /><span /><span />
-                        </button>
+                                <Link href="/login" className="vn-signin">Sign in</Link>
+                            )}
+                            <button type="button" className="vn-sub" onClick={openSubscribe}>Subscribe</button>
+                            <button className="vn-burger" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((v) => !v)}>
+                                <span /><span /><span />
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div className="vn-panels">
-                    <div className="vn-wrap" style={{ position: "relative" }}>
-                        {panelItems.map((it) => {
-                            const cols = it.cols!;
-                            const hasRail = !!it.feature || !!it.blurb || it.key === "recipes";
-                            const gtc = cols.map(() => "1fr").join(" ") + (hasRail ? " 1.3fr" : "");
-                            return (
-                                <div key={it.key} className={`vn-panel${openKey === it.key ? " open" : ""}`} onMouseEnter={clearHide} onMouseLeave={scheduleHide}>
-                                    <div className="vn-panel-inner">
-                                        <Leaf />
-                                        <div className="vn-grid" style={{ gridTemplateColumns: gtc }}>
-                                            {cols.map((col) => (
-                                                <div className="vn-col" key={col.heading}>
-                                                    <h4>{col.heading}</h4>
-                                                    {col.links.map((l) => (
-                                                        <Link key={l.label} href={l.href} onClick={() => setOpenKey(null)}>
-                                                            {l.label}{l.note ? <small>{l.note}</small> : null}
-                                                        </Link>
-                                                    ))}
-                                                </div>
-                                            ))}
-                                            {renderFeature(it)}
+                    <div className="vn-panels">
+                        <div className="vn-wrap" style={{ position: "relative" }}>
+                            {panelItems.map((it) => {
+                                const cols = it.cols!;
+                                const hasRail = !!it.feature || !!it.blurb || it.key === "recipes";
+                                const gtc = cols.map(() => "1fr").join(" ") + (hasRail ? " 1.3fr" : "");
+                                return (
+                                    <div key={it.key} className={`vn-panel${openKey === it.key ? " open" : ""}`} onMouseEnter={clearHide} onMouseLeave={scheduleHide}>
+                                        <div className="vn-panel-inner">
+                                            <Leaf />
+                                            <div className="vn-grid" style={{ gridTemplateColumns: gtc }}>
+                                                {cols.map((col) => (
+                                                    <div className="vn-col" key={col.heading}>
+                                                        <h4>{col.heading}</h4>
+                                                        {col.links.map((l) => (
+                                                            <Link key={l.label} href={l.href} onClick={() => setOpenKey(null)}>
+                                                                {l.label}{l.note ? <small>{l.note}</small> : null}
+                                                            </Link>
+                                                        ))}
+                                                    </div>
+                                                ))}
+                                                {renderFeature(it)}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </header>
 
             <div className={`vn-backdrop${openKey ? " show" : ""}`} onClick={() => setOpenKey(null)} />
 
@@ -509,6 +521,6 @@ export default function Header() {
                     </div>
                 </div>
             )}
-        </header>
+        </>
     );
 }

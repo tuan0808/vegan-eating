@@ -35,17 +35,55 @@ export function catFilter(slug?: string): Prisma.RecipeWhereInput {
     return { OR };
 }
 
-// Free-text search across title / description / ingredients.
-// NOTE: SQLite `contains` is case-sensitive in Prisma; becomes insensitive on Postgres.
-export function searchFilter(q: string): Prisma.RecipeWhereInput {
-    if (!q) return {};
+// ---------------------------------------------------------------------------
+// Free-text search.
+//
+// The old version passed the WHOLE query into a single `contains`, so
+// "spinach and onions" looked for that exact phrase and matched nothing.
+// This splits the query into words, drops filler words, and requires EVERY
+// remaining word to appear somewhere in the recipe — title, description,
+// ingredients, method, type, cuisine, or course. Each word can live in any
+// of those fields.
+// ---------------------------------------------------------------------------
+
+// Filler words people type that shouldn't narrow the search.
+const STOP = new Set([
+    "and", "or", "with", "the", "a", "an", "of", "in", "on",
+    "for", "to", "some", "any", "my", "i", "have", "got", "plus", "&",
+]);
+
+// "Spinach & Onions!" -> ["spinach", "onion"]
+function tokenize(q: string): string[] {
+    return q
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)                          // break on non letter/number
+        .filter((w) => w.length >= 2 && !STOP.has(w)) // drop tiny words + filler
+        .map((w) => (w.length > 4 && w.endsWith("s") ? w.slice(0, -1) : w)) // onions -> onion
+        .filter((w, i, arr) => arr.indexOf(w) === i); // de-dupe
+}
+
+// One word, matched against every field we treat as searchable content.
+function wordMatch(w: string): Prisma.RecipeWhereInput {
     return {
         OR: [
-            { title: { contains: q } },
-            { description: { contains: q } },
-            { ingredients: { contains: q } },
+            { title: { contains: w } },
+            { description: { contains: w } },
+            { ingredients: { contains: w } },
+            { steps: { contains: w } },     // the method / "content"
+            { recipeType: { contains: w } },
+            { cuisines: { contains: w } },
+            { courses: { contains: w } },
         ],
     };
+}
+
+// Every meaningful word must appear (AND), but each word can be in any field
+// (OR). "spinach onions" => recipes that mention BOTH, anywhere.
+// NOTE: SQLite `contains` is case-sensitive in Prisma; becomes insensitive on Postgres.
+export function searchFilter(q: string): Prisma.RecipeWhereInput {
+    const words = tokenize(q);
+    if (words.length === 0) return {};
+    return { AND: words.map(wordMatch) };
 }
 
 export function buildWhere(cat?: string, q?: string): Prisma.RecipeWhereInput {

@@ -1,0 +1,246 @@
+// prisma/sqlite.prisma
+// One-shot, read-only schema pointing at the OLD SQLite dev.db.
+// Generates a SEPARATE client (custom output) used only by
+// scripts/migrate-to-postgres.ts. Delete this file + prisma/generated/
+// once the migration is done.
+//
+// Models below are copied verbatim from the sqlite-era schema — i.e. the exact
+// shape dev.db was written under. Do not "improve" them; they must match the
+// data on disk.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/sqlite" // -> prisma/generated/sqlite
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db" // relative to prisma/ -> prisma/dev.db
+}
+
+model Recipe {
+  id          String    @id
+  slug        String    @unique
+  title       String
+  sourceUrl   String
+  date        String
+  description String
+  recipeType  String
+  author      String
+  views       Int       @default(0)
+  courses     String    @default("[]")
+  seasons     String    @default("[]")
+  allergens   String    @default("[]")
+  cuisines    String    @default("[]")
+  prepTime    Int?
+  cookTime    Int?
+  readyIn     Int?
+  servings    String    @default("")
+  calories    Int?
+  ingredients String    @default("[]")
+  steps       String    @default("[]")
+  image       String?
+  gallery     String    @default("[]")
+  comments    Comment[]
+  cookalong   String    @default("[]")
+  ph          String
+  sort        Int       @default(0)
+  hidden      Boolean   @default(false)
+  category    String    @default("")
+
+  @@index([recipeType])
+  @@index([sort])
+}
+
+model Article {
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
+  title     String
+  sourceUrl String
+  date      String
+  image     String?
+  views     Int       @default(0)
+  body      String    @default("[]")
+  tags      String    @default("[]")
+  category  String    @default("")
+  sort      Int       @default(0)
+  hidden    Boolean   @default(false)
+  gallery   String    @default("[]")
+  comments  Comment[]
+
+  @@index([sort])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String?
+  name          String?
+  avatarUrl     String?
+  bio           String?
+  emailVerified DateTime?
+  signupIp      String?
+  role          String    @default("MEMBER")
+  banned        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  emailTokens EmailVerificationToken[]
+  comments    Comment[]
+  threads     Thread[]
+  posts       Post[]
+
+  @@index([signupIp])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  forums Forum[]
+}
+
+model Forum {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String
+  description String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  threads  Thread[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+model Thread {
+  id         String   @id @default(cuid())
+  forumId    String
+  authorId   String
+  title      String
+  tag        String?
+  slug       String   @unique
+  pinned     Boolean  @default(false)
+  locked     Boolean  @default(false)
+  viewCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lastPostAt DateTime @default(now())
+
+  forum  Forum  @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+  posts  Post[]
+
+  @@index([forumId, lastPostAt])
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  threadId  String
+  authorId  String
+  body      String
+  status    String    @default("APPROVED")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  editedAt  DateTime?
+  ipAddress String?
+  userAgent String?
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@index([threadId, createdAt])
+  @@index([status])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model Comment {
+  id         String @id @default(cuid())
+  body       String
+  authorName String
+  status     String @default("APPROVED")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ipAddress String?
+  userAgent String?
+
+  recipeId  String?
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  articleId Int?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([recipeId])
+  @@index([articleId])
+  @@index([parentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BlockedIp {
+  id        String   @id @default(cuid())
+  ip        String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ItemView {
+  id       String   @id @default(cuid())
+  kind     String
+  itemId   String
+  userId   String
+  userName String   @default("")
+  viewedAt DateTime @default(now())
+
+  @@unique([kind, itemId, userId])
+  @@index([kind, itemId])
+}
+
+model RecipeSubmission {
+  id          String    @id @default(cuid())
+  title       String
+  dietType    String
+  ingredients String
+  method      String
+  prepMin     Int?
+  cookMin     Int?
+  readyMin    Int?
+  images      String    @default("[]")
+  status      String    @default("PENDING")
+  userId      String?
+  authorName  String?
+  createdAt   DateTime  @default(now())
+  threadSlug  String?
+  reviewedAt  DateTime?
+  recipeSlug  String?
+}

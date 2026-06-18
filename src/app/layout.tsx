@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
     const state = await getMaintenance();
     const blocked = await isMaintenanceBlocked();
-    console.log("[gate]", { enabled: state.enabled, blocked, db: process.env.DATABASE_URL });
 
     return (
         <html lang="en">

@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { subscribeEmail } from "@/app/actions/newsletter";
+import SubscribeModal from "./SubscribeModal";
 import "./header-nav.css";
 
 // Logo kept as before (uses your global .brand/.logo-* styles) so the footer's
@@ -134,6 +134,7 @@ export default function Header() {
     // control (e.g. "Sign in" to someone who's actually logged in).
     const [authUser, setAuthUser] = useState<NavUser | null>(null);
     const [authReady, setAuthReady] = useState(false);
+    const [noti, setNoti] = useState(0); // unread DMs (+ open inquiries for admins)
     const displayName = (authUser?.name || authUser?.username || "").trim();
     const initial = displayName.charAt(0).toUpperCase() || "•";
 
@@ -156,12 +157,8 @@ export default function Header() {
 
     const SEARCH_CHIPS = ["chickpeas", "spinach", "tofu", "sweet potato", "lentils", "coconut milk", "mushrooms"];
 
-    // Subscribe
+    // Subscribe (the modal owns email/success/error state; we just toggle it)
     const [subOpen, setSubOpen] = useState(false);
-    const [subEmail, setSubEmail] = useState("");
-    const [subscribed, setSubscribed] = useState(false);
-    const [subErr, setSubErr] = useState<string | null>(null);
-    const [subBusy, setSubBusy] = useState(false);
 
     useEffect(() => {
         if (searchOpen) searchRef.current?.focus();
@@ -202,19 +199,7 @@ export default function Header() {
     const submitSearch = (e: React.FormEvent) => { e.preventDefault(); doSearch(); };
     const surprise = () => { router.push("/recipes/random"); setSearchOpen(false); };
 
-    const submitSubscribe = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const email = subEmail.trim();
-        if (!/.+@.+\..+/.test(email)) { setSubErr("Enter a valid email address."); return; }
-        setSubErr(null);
-        setSubBusy(true);
-        const res = await subscribeEmail(email);
-        setSubBusy(false);
-        if (res.ok) setSubscribed(true);
-        else setSubErr(res.error);
-    };
-
-    const openSubscribe = () => { setSubscribed(false); setSubErr(null); setSubEmail(""); setSubOpen(true); setMobileOpen(false); };
+    const openSubscribe = () => { setSubOpen(true); setMobileOpen(false); };
 
     useEffect(() => {
         const onScroll = () => setLifted(window.scrollY > 4);
@@ -227,11 +212,11 @@ export default function Header() {
     // (The overlays themselves are rendered OUTSIDE <header> in the markup
     // below, so the header's on-scroll blur can't re-anchor them.)
     useEffect(() => {
-        if (!(mobileOpen || searchOpen || subOpen)) return;
+        if (!(mobileOpen || searchOpen)) return;
         const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         return () => { document.body.style.overflow = prev; };
-    }, [mobileOpen, searchOpen, subOpen]);
+    }, [mobileOpen, searchOpen]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpenKey(null); setMobileOpen(false); setSearchOpen(false); setSubOpen(false); } };
@@ -279,6 +264,23 @@ export default function Header() {
             })
             .catch(() => { if (on) setAuthReady(true); });
         return () => { on = false; };
+    }, []);
+
+    // Notification badge for the avatar. Polls a tiny server route (the header
+    // can't read the DB itself). Refetches when the tab regains focus so the
+    // count freshens after you've read messages elsewhere.
+    useEffect(() => {
+        let on = true;
+        const load = () => {
+            fetch("/api/notifications")
+                .then((r) => (r.ok ? r.json() : null))
+                .then((n) => { if (on && n && typeof n.count === "number") setNoti(n.count); })
+                .catch(() => {});
+        };
+        load();
+        const onFocus = () => { if (document.visibilityState === "visible") load(); };
+        window.addEventListener("focus", onFocus);
+        return () => { on = false; window.removeEventListener("focus", onFocus); };
     }, []);
 
     const show = (k: string) => { if (hideTimer.current) clearTimeout(hideTimer.current); setOpenKey(k); };
@@ -367,8 +369,13 @@ export default function Header() {
                             {!authReady ? (
                                 <span className="vn-avatar vn-avatar-skel" aria-hidden />
                             ) : authUser ? (
-                                <Link href="/dashboard" className="vn-avatar" aria-label={`${displayName} — go to dashboard`} title={displayName}>
+                                <Link href="/dashboard" className="vn-avatar" style={{ position: "relative" }} aria-label={`${displayName} — go to dashboard${noti > 0 ? `, ${noti} new` : ""}`} title={displayName}>
                                     {initial}
+                                    {noti > 0 && (
+                                        <span aria-hidden style={{ position: "absolute", top: -5, right: -5, minWidth: 18, height: 18, padding: "0 5px", borderRadius: 999, background: "var(--carrot, #E15A22)", color: "#fff", fontSize: 11, fontWeight: 700, lineHeight: "18px", textAlign: "center", border: "2px solid var(--card, #fffdf7)", boxSizing: "border-box" }}>
+                                            {noti > 9 ? "9+" : noti}
+                                        </span>
+                                    )}
                                 </Link>
                             ) : (
                                 <Link href="/login" className="vn-signin">Sign in</Link>
@@ -442,7 +449,14 @@ export default function Header() {
                 ))}
                 {authUser ? (
                     <div className="vn-d-item">
-                        <Link className="vn-d-parent" href="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                        <Link className="vn-d-parent" href="/dashboard" onClick={() => setMobileOpen(false)}>
+                            Dashboard
+                            {noti > 0 && (
+                                <span style={{ display: "inline-grid", placeItems: "center", minWidth: 20, height: 20, padding: "0 6px", borderRadius: 999, background: "var(--carrot, #E15A22)", color: "#fff", fontSize: 11, fontWeight: 700 }}>
+                                    {noti > 9 ? "9+" : noti}
+                                </span>
+                            )}
+                        </Link>
                     </div>
                 ) : (
                     <>
@@ -488,39 +502,7 @@ export default function Header() {
                 </div>
             )}
 
-            {subOpen && (
-                <div className="vn-modal-back" onClick={() => setSubOpen(false)}>
-                    <div className="vn-modal" role="dialog" aria-modal="true" aria-label="Subscribe to The Dispatch" onClick={(e) => e.stopPropagation()}>
-                        <button className="vn-modal-x" aria-label="Close" onClick={() => setSubOpen(false)}>×</button>
-                        {subscribed ? (
-                            <div className="vn-modal-done">
-                                <div className="vn-modal-check">✓</div>
-                                <h3>You're on the list.</h3>
-                                <p>The next Dispatch will land in your inbox. No spam, no ads — ever.</p>
-                                <button className="vn-sub" onClick={() => setSubOpen(false)}>Done</button>
-                            </div>
-                        ) : (
-                            <>
-                                <span className="vn-modal-kicker">The Dispatch, in your inbox</span>
-                                <h3>New recipes &amp; notes, once a week</h3>
-                                <p>The good stuff from the kitchen and the forum — a short weekly email. No ads, no selling your address, unsubscribe in one click.</p>
-                                <form onSubmit={submitSubscribe} className="vn-modal-form">
-                                    <input
-                                        type="email"
-                                        value={subEmail}
-                                        onChange={(e) => setSubEmail(e.target.value)}
-                                        placeholder="you@example.com"
-                                        aria-label="Email address"
-                                        required
-                                    />
-                                    <button type="submit" className="vn-sub" disabled={subBusy}>{subBusy ? "Subscribing…" : "Subscribe"}</button>
-                                </form>
-                                {subErr && <p style={{ color: "#c0392b", margin: "10px 0 0", fontSize: 14 }}>{subErr}</p>}
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
+            <SubscribeModal open={subOpen} onClose={() => setSubOpen(false)} />
         </>
     );
 }

@@ -267,3 +267,21 @@
     .cm-stats { grid-template-columns: 1fr; }
     .cm-bub { max-width: 86%; }
 }
+/* ---- tabs (messages: Forum / Website) ---- */
+.cm-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line, #e6e3da);
+}
+.cm-tab {
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    color: var(--muted, #6b7264);
+    padding: 9px 16px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+.cm-tab:hover { color: var(--ink, #20231d); }
+.cm-tab.active { color: var(--accent); border-bottom-color: var(--accent); }

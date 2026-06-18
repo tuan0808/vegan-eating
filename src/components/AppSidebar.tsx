@@ -55,12 +55,31 @@ const ADMIN: Item[] = [
 export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
     const path = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const [noti, setNoti] = useState({ unread: 0, pending: 0, inquiries: 0 });
 
     // Restore the last choice (client-only, so server render stays expanded — no hydration mismatch).
     useEffect(() => {
         if (typeof window !== "undefined" && localStorage.getItem("vn-admin-sidebar") === "collapsed") {
             setCollapsed(true);
         }
+    }, []);
+
+    // Same notification feed the header uses; we paint the counts on the
+    // matching items below. Refetch on focus so they freshen.
+    useEffect(() => {
+        let on = true;
+        const load = () => {
+            fetch("/api/notifications")
+                .then((r) => (r.ok ? r.json() : null))
+                .then((n) => {
+                    if (on && n) setNoti({ unread: n.unread ?? 0, pending: n.pending ?? 0, inquiries: n.inquiries ?? 0 });
+                })
+                .catch(() => {});
+        };
+        load();
+        const onFocus = () => { if (document.visibilityState === "visible") load(); };
+        window.addEventListener("focus", onFocus);
+        return () => { on = false; window.removeEventListener("focus", onFocus); };
     }, []);
 
     const toggle = () =>
@@ -77,12 +96,21 @@ export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
         return path === href || path.startsWith(href + "/");
     };
 
+    // Surface the notification counts on the matching sidebar items.
+    const badgeFor = (href?: string) => {
+        if (href === "/messages") return noti.unread + noti.inquiries;
+        if (href === "/activity") return noti.pending;
+        return 0;
+    };
+
     const renderItem = (it: Item) => {
+        const b = badgeFor(it.href);
         const inner = (
             <>
                 <span className="ico">{it.icon}</span>
                 <span className="lbl">{it.label}</span>
                 {it.soon && <em className="tag">soon</em>}
+                {b > 0 && <span className="noti">{b > 99 ? "99+" : b}</span>}
             </>
         );
         return it.soon || !it.href ? (

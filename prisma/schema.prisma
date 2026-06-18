@@ -101,6 +101,7 @@ model User {
   bookmarks     Bookmark[]
   ratings       Rating[]
   shoppingItems ShoppingItem[]
+  contactMessages ContactMessage[]
 
   @@index([signupIp])
 }
@@ -366,4 +367,19 @@ model NewsArticle {
   @@index([dupeOf])
   @@index([pubDate])
   @@index([hidden])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  userId    String              // the signed-in member who sent it
+  name      String              // display name at send time (prefilled, editable)
+  category  String              // "GENERAL" | "SUPPORT" | "RECIPES"
+  body      String
+  status    String   @default("OPEN") // "OPEN" | "HANDLED"
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
 }

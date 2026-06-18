@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { conversationWith } from "@/lib/community";
+import { conversationWith, unreadMessageCount } from "@/lib/community";
 import { sendMessage } from "@/lib/actions/community";
 import "@/styles/community.css";
 
@@ -43,6 +43,10 @@ export default async function ConversationPage({
         data: { readAt: new Date() },
     });
 
+    // Unread still waiting in your OTHER conversations (this one was just
+    // marked read above), so the back link can flag there's more to see.
+    const otherUnread = await unreadMessageCount(me.id);
+
     const { partner, messages } = convo;
 
     return (
@@ -50,6 +54,11 @@ export default async function ConversationPage({
             <p className="cm-kicker">
                 <Link href="/messages" style={{ color: "inherit" }}>
                     ← Inbox
+                    {otherUnread > 0 && (
+                        <span style={{ display: "inline-grid", placeItems: "center", minWidth: 17, height: 17, padding: "0 5px", marginLeft: 7, borderRadius: 999, background: "var(--accent, #5b6b3f)", color: "#fff", fontSize: 10.5, fontWeight: 700, lineHeight: 1, verticalAlign: "middle" }}>
+                            {otherUnread > 99 ? "99+" : otherUnread}
+                        </span>
+                    )}
                 </Link>
             </p>
             <h1 className="cm-h1">

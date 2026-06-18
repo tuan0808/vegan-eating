@@ -145,3 +145,35 @@
     .sidebar .foot,
     .sidebar .rail-toggle { display: none; }
 }
+/* ---- notification badges on sidebar items ---- */
+.sidebar .item { position: relative; }
+.sidebar .noti {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--terra, #c2603a);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+.sidebar .item.active .noti { background: #fff; color: var(--terra, #c2603a); }
+
+/* Collapsed rail: shrink the count to a corner dot so it still signals. */
+@media (min-width: 761px) {
+    .sidebar.collapsed .noti {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        min-width: 9px;
+        height: 9px;
+        padding: 0;
+        font-size: 0;
+        border: 2px solid #faf7f0;
+    }
+    .sidebar.collapsed .item.active .noti { border-color: var(--terra, #c2603a); }
+}

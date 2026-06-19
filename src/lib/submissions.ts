@@ -23,6 +23,15 @@ export function reviewedSubmissions(take?: number) {
     });
 }
 
+// A member's own submissions — for the "Your recipes" panel on the dashboard.
+export function submissionsForUser(userId: string, take?: number) {
+    return prisma.recipeSubmission.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        ...(take ? { take } : {}),
+    });
+}
+
 export function getSubmission(id: string | null | undefined) {
     // Guard: findUnique panics on undefined (the selection.rs gotcha). findFirst/count tolerate it.
     if (!id) return null;

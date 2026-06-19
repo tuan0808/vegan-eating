@@ -31,6 +31,7 @@ const icoBack = I(<path d="M19 12H5M11 6l-6 6 6 6" />);
 const icoChevLeft = I(<path d="M15 6l-6 6 6 6" />);
 const icoChevRight = I(<path d="M9 6l6 6-6 6" />);
 const icoNews = I(<><path d="M19 20H5a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a2 2 0 0 0 2-2V8" /><path d="M8 8h6M8 11h6M8 14h4" /></>);
+const icoVeganize = I(<><path d="M11 21c-4.4 0-7-3-7-8 0-6 5-9 16-9 0 9.4-4 17-9 17Z" /><path d="M9 16c1.6-3.2 4.2-5.3 7.5-6.3" /></>);
 
 
 const ACCOUNT: Item[] = [
@@ -48,6 +49,7 @@ const ADMIN: Item[] = [
     { href: "/admin/news", label: "News", icon: icoNews },
     { href: "/admin/forums", label: "Forums", icon: icoForums },
     { href: "/admin/comments", label: "Moderation", icon: icoModeration },
+    { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize },
     { href: "/admin/security", label: "Security", icon: icoSecurity },
     { href: "/admin/maintenance", label: "Maintenance", icon: icoMaintenance },
 ];

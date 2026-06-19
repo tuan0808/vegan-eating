@@ -97,6 +97,7 @@ model User {
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
   contactReplies  ContactReply[]
+  veganizeRequests VeganizeRequest[]
 
   // --- recipe interactions ---
   bookmarks     Bookmark[]
@@ -291,6 +292,9 @@ model RecipeSubmission {
   threadSlug String?  // set on approval — links back to the created thread
   reviewedAt DateTime?
   recipeSlug String?  // set when promoted into the Recipe library
+  source     String  @default("MANUAL") // "MANUAL" | "VEGANIZER"
+  veganizeRequestId String?
+
 }
 
 // ======================== RECIPE INTERACTIONS ========================
@@ -396,4 +400,19 @@ model ContactReply {
   author User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([ticketId, createdAt])
+}
+model VeganizeRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  inputHash String
+  input     String   // raw pasted recipe (for admin review + abuse detection)
+  output    String   // cached JSON result we returned
+  cached    Boolean  @default(false)
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([inputHash])
 }

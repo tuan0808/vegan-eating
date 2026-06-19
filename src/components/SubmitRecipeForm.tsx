@@ -11,16 +11,33 @@ const MAX_IMAGE_MB = 5;
 
 type Preview = { file: File; url: string };
 
-export default function SubmitRecipeForm({ authorName }: { authorName: string }) {
+// Values handed in when the form is opened from the veganizer ("Save & test").
+export type SubmitInitial = {
+    fromId: string;
+    title: string;
+    ingredients: string;
+    method: string;
+    prepMin: string;
+    cookMin: string;
+    readyMin: string;
+};
+
+export default function SubmitRecipeForm({
+                                             authorName,
+                                             initial,
+                                         }: {
+    authorName: string;
+    initial?: SubmitInitial;
+}) {
     const router = useRouter();
 
-    const [title, setTitle] = useState("");
-    const [dietType, setDietType] = useState("");
-    const [ingredients, setIngredients] = useState("");
-    const [method, setMethod] = useState("");
-    const [prepMin, setPrepMin] = useState("");
-    const [cookMin, setCookMin] = useState("");
-    const [readyMin, setReadyMin] = useState("");
+    const [title, setTitle] = useState(initial?.title ?? "");
+    const [dietType, setDietType] = useState(initial ? "VEGAN" : "");
+    const [ingredients, setIngredients] = useState(initial?.ingredients ?? "");
+    const [method, setMethod] = useState(initial?.method ?? "");
+    const [prepMin, setPrepMin] = useState(initial?.prepMin ?? "");
+    const [cookMin, setCookMin] = useState(initial?.cookMin ?? "");
+    const [readyMin, setReadyMin] = useState(initial?.readyMin ?? "");
     const [images, setImages] = useState<Preview[]>([]);
 
     const [error, setError] = useState<string | null>(null);
@@ -92,6 +109,7 @@ export default function SubmitRecipeForm({ authorName }: { authorName: string })
         if (prepMin) fd.set("prepMin", prepMin);
         if (cookMin) fd.set("cookMin", cookMin);
         if (readyMin) fd.set("readyMin", readyMin);
+        if (initial?.fromId) fd.set("from", initial.fromId); // links it back to the veganize request
         images.forEach(({ file }) => fd.append("images", file));
 
         setSubmitting(true);
@@ -116,8 +134,8 @@ export default function SubmitRecipeForm({ authorName }: { authorName: string })
                 <span className="kicker">Received</span>
                 <h2>Thanks, {authorName} — got it!</h2>
                 <p>
-                    Your recipe is in the review queue. We test the promising ones and publish the keepers
-                    with credit to you.
+                    Your recipe is saved to your dashboard and in the review queue. We test the promising ones
+                    and publish the keepers with credit to you — nothing goes live until a staff member okays it.
                 </p>
                 <button
                     type="button"
@@ -135,6 +153,25 @@ export default function SubmitRecipeForm({ authorName }: { authorName: string })
 
     return (
         <form className="tool-box submit-form" onSubmit={handleSubmit} noValidate>
+            {initial && (
+                <div
+                    style={{
+                        marginBottom: 18,
+                        padding: "11px 14px",
+                        borderRadius: 12,
+                        background: "rgba(225,90,34,.08)",
+                        border: "1px solid rgba(225,90,34,.25)",
+                        color: "var(--ink, #1c2317)",
+                        fontSize: 13.5,
+                        lineHeight: 1.5,
+                    }}
+                >
+                    <strong style={{ color: "var(--carrot, #E15A22)" }}>Prefilled from the veganizer.</strong>{" "}
+                    Give it a read, tweak anything, and submit. It saves privately to your dashboard and is
+                    reviewed before it can go live — this is an AI suggestion, so a test cook is worth it.
+                </div>
+            )}
+
             {error && <div className="submit-error" role="alert">{error}</div>}
 
             <label className="field">

@@ -5,6 +5,7 @@ import { currentUser } from "@/lib/auth-helpers";
 import AntiSpamPanel from "@/components/admin/AntiSpamPanel";
 import DuplicateSignups from "@/components/admin/DuplicateSignups";
 import IpActivityList from "@/components/admin/IpActivityList";
+import VeganizeLimits from "@/components/admin/VeganizeLimits";
 
 export const metadata: Metadata = { title: "Security — vegan eating" };
 
@@ -15,6 +16,7 @@ export default async function SecurityPage() {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <AntiSpamPanel />
+            <VeganizeLimits />
             <DuplicateSignups />
             <IpActivityList />
         </div>

@@ -26,6 +26,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const ok = await bcrypt.compare(password, user.password);
                 if (!ok) return null;
 
+                // GATE: no session is ever issued for an unverified email. This is the
+                // single source of truth — any caller of signIn("credentials") is covered,
+                // not just the login form. The friendly "verify first" message is produced
+                // in loginAction; here we just refuse. (Returning null is free — the bcrypt
+                // check already ran, so this adds no extra work.)
+                if (!user.emailVerified) return null;
+
+                // Optional, recommended one-liner to also lock out banned accounts at login:
+                // if (user.banned) return null;
+
                 return {
                     id: user.id,
                     email: user.email,

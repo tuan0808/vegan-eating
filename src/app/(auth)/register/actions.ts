@@ -1,11 +1,9 @@
-// src/app/register/actions.ts
+// src/app/(auth)/register/actions.ts
 "use server";
 
 import bcrypt from "bcryptjs";
-import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { createVerificationToken } from "@/lib/verification";
@@ -45,8 +43,11 @@ export async function registerAction(formData: FormData) {
         data: { name, username, email, password: hash, role: "MEMBER" },
     });
 
-    // Send the verification email. Don't fail signup if the mail send hiccups —
-    // they can request a fresh link later.
+    // Issue + send the verification link. We do NOT log the new user in anymore —
+    // login now requires a verified email, so auto-login would immediately reject
+    // them. Instead we send them to the login page with a "check your inbox" notice;
+    // if the mail hiccups they can resend from there. We don't fail signup on a
+    // mail error — the account exists and the link can be re-requested.
     try {
         const token = await createVerificationToken(user.id);
         await sendVerificationEmail(email, token);
@@ -54,15 +55,5 @@ export async function registerAction(formData: FormData) {
         console.error("Verification email failed to send:", e);
     }
 
-    // Log the new member straight in. They can browse immediately; posting and
-    // commenting wait on email verification (enforced in the anti-spam gate).
-    try {
-        await signIn("credentials", { email, password, redirectTo: "/dashboard?verify=sent" });
-    } catch (error) {
-        // A successful signIn throws a redirect (NOT an AuthError) that must propagate.
-        if (error instanceof AuthError) {
-            redirect("/login");
-        }
-        throw error;
-    }
+    redirect("/login?registered=1");
 }

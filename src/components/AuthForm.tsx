@@ -8,17 +8,35 @@ type Props = {
     mode: "login" | "register";
     action: (formData: FormData) => void | Promise<void>;
     error?: string;
+    /** Info-styled banner (not an error). e.g. "registered" | "resent". Login only. */
+    notice?: string;
+    /** Server action for re-sending a verification link. Passed by the login page. */
+    resendAction?: (formData: FormData) => void | Promise<void>;
 };
 
 const MESSAGES: Record<string, string> = {
     invalid: "That email and password didn't match. Try again.",
     taken: "An account with that email or username already exists.",
     captcha: "Please complete the verification check and try again.",
+    unverified:
+        "Almost there — please verify your email before logging in. We emailed you a link when you signed up; check your inbox and spam. Need a fresh one? Resend it below.",
 };
 
-export default function AuthForm({ mode, action, error }: Props) {
+const NOTICES: Record<string, string> = {
+    registered:
+        "Account created! We've emailed you a verification link — click it to confirm your address, then log in.",
+    resent: "If that account still needs verifying, we've sent a fresh link. Check your inbox.",
+};
+
+export default function AuthForm({ mode, action, error, notice, resendAction }: Props) {
     const isRegister = mode === "register";
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+    // Offer the resend button when someone's clearly mid-verification: either they
+    // just registered, or they tried to log in unverified. Reuses the email field
+    // already on the form via the button's formAction (no second input needed).
+    const showResend =
+        !isRegister && !!resendAction && (error === "unverified" || notice === "registered");
 
     return (
         <div className="auth-wrap">
@@ -30,6 +48,7 @@ export default function AuthForm({ mode, action, error }: Props) {
                         : "Log in to pick up where you left off."}
                 </p>
 
+                {notice ? <p className="notice">{NOTICES[notice] ?? null}</p> : null}
                 {error ? <p className="err">{MESSAGES[error] ?? "Something went wrong. Try again."}</p> : null}
 
                 <form action={action} className="form">
@@ -83,6 +102,19 @@ export default function AuthForm({ mode, action, error }: Props) {
                     ) : null}
 
                     <button type="submit">{isRegister ? "Create account" : "Log in"}</button>
+
+                    {/* Resend submits THIS form's email to resendAction instead of the login
+                        action. formNoValidate lets it fire without a password filled in. */}
+                    {showResend ? (
+                        <button
+                            type="submit"
+                            className="secondary"
+                            formAction={resendAction}
+                            formNoValidate
+                        >
+                            Resend verification email
+                        </button>
+                    ) : null}
                 </form>
 
                 <p className="foot">
@@ -122,6 +154,16 @@ export default function AuthForm({ mode, action, error }: Props) {
                     border: 1px solid rgba(194, 96, 58, 0.35);
                     color: #9a3f1f;
                     font-size: 14px;
+                    border-radius: 10px;
+                    padding: 10px 14px;
+                    margin: 0 0 18px;
+                }
+                .notice {
+                    background: rgba(47, 125, 56, 0.09);
+                    border: 1px solid rgba(47, 125, 56, 0.32);
+                    color: var(--olive, #225f27);
+                    font-size: 14px;
+                    line-height: 1.5;
                     border-radius: 10px;
                     padding: 10px 14px;
                     margin: 0 0 18px;
@@ -171,6 +213,16 @@ export default function AuthForm({ mode, action, error }: Props) {
                 }
                 button:hover {
                     filter: brightness(0.95);
+                }
+                .secondary {
+                    margin-top: 2px;
+                    background: transparent;
+                    color: var(--terra, #c2603a);
+                    border: 1px solid var(--terra, #c2603a);
+                }
+                .secondary:hover {
+                    filter: none;
+                    background: rgba(47, 125, 56, 0.06);
                 }
                 .foot {
                     margin: 22px 0 0;

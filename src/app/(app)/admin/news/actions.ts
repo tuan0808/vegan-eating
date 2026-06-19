@@ -48,6 +48,22 @@ export async function setNewsHidden(slug: string, hidden: boolean): Promise<void
 }
 
 /**
+ * Bulk hide / unhide by slug — the bulk-selection bar's durable curation action.
+ * Same durability as setNewsHidden: the sync's upsert never touches `hidden`, so
+ * these stay hidden through future syncs. Preferred over bulk delete for keeping
+ * stories off the public feed, since deleted rows can return on the next sync.
+ */
+export async function setNewsHiddenMany(slugs: string[], hidden: boolean): Promise<{ updated: number }> {
+    await requireAdmin();
+    const clean = Array.from(new Set(slugs.filter(Boolean)));
+    if (!clean.length) return { updated: 0 };
+    const res = await prisma.newsArticle.updateMany({ where: { slug: { in: clean } }, data: { hidden } });
+    revalidatePath("/admin/news");
+    revalidatePath("/news");
+    return { updated: res.count };
+}
+
+/**
  * Hard delete. Note: if the story is still inside newsdata's ~48h window, the next
  * sync will re-create it (upsert keyed on externalId) — but as a flagged duplicate
  * if its title still matches a visible original, so it won't reach the public feed.

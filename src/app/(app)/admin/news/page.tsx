@@ -7,7 +7,10 @@ import NewsRow from "./NewsRow";
 import NewsSyncButton from "./NewsSyncButton";
 import NewsImport from "./NewsImport";
 import RescanDuplicatesButton from "./RescanDuplicatesButton";
-import DuplicatesManager from "./DuplicatesManager";
+import NewsBulkBar from "./NewsBulkBar";
+import NewsQueryPanel from "./NewsQueryPanel";
+import SelectionProvider from "@/components/admin/selection/SelectionProvider";
+import { getNewsQueryString } from "@/lib/news-query";
 import "../recipes/admin-recipes.css";
 import type { Prisma } from "@prisma/client";
 
@@ -66,15 +69,28 @@ export default async function AdminNewsPage({
     const take = isDupes ? 1000 : PER_PAGE;
     const skip = isDupes ? 0 : (page - 1) * PER_PAGE;
 
-    const [rows, total, dupeCount] = await Promise.all([
+    const [rows, total, dupeCount, newsQuery] = await Promise.all([
         prisma.newsArticle.findMany({ where, orderBy, skip, take }),
         prisma.newsArticle.count({ where }),
         prisma.newsArticle.count({ where: { dupeOf: { not: null } } }),
+        getNewsQueryString(),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
     const from = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
     const to = Math.min(page * PER_PAGE, total);
+
+    // Shared row shape for NewsRow, used by both the default and duplicates views.
+    const items = rows.map((r) => ({
+        slug: r.slug,
+        title: r.title,
+        source: r.source,
+        date: r.pubDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        image: r.image,
+        hidden: r.hidden,
+        categories: parseCategories(r.categories),
+        dupeOf: r.dupeOf,
+    }));
 
     const hrefWith = (over: { q?: string; sort?: string; cat?: string; view?: string; page?: number }) => {
         const qq = over.q !== undefined ? over.q : q;
@@ -110,6 +126,8 @@ export default async function AdminNewsPage({
                 <NewsImport />
                 <RescanDuplicatesButton />
             </div>
+
+            <NewsQueryPanel current={newsQuery} />
 
             <form className="ar-search" method="get" action="/admin/news">
                 <input type="search" name="q" defaultValue={q} placeholder="Search by title…" aria-label="Search news by title" />
@@ -148,36 +166,17 @@ export default async function AdminNewsPage({
                 {total === 0 ? "No matches." : isDupes ? `${total} flagged` : `Showing ${from}–${to} of ${total}`}
             </p>
 
-            {isDupes ? (
-                <DuplicatesManager
-                    rows={rows.map((r) => ({
-                        slug: r.slug,
-                        title: r.title,
-                        source: r.source,
-                        date: r.pubDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                        image: r.image,
-                        dupeOf: r.dupeOf,
-                    }))}
-                />
-            ) : (
+            {/* Both views now share the same selectable NewsRow list. The bulk bar
+                and per-row checkboxes come from the generic selection primitive, so
+                "select all + delete/hide" works everywhere — not just on duplicates. */}
+            <SelectionProvider allIds={items.map((i) => i.slug)}>
+                <NewsBulkBar />
                 <div className="ar-list">
-                    {rows.map((r) => (
-                        <NewsRow
-                            key={r.slug}
-                            item={{
-                                slug: r.slug,
-                                title: r.title,
-                                source: r.source,
-                                date: r.pubDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                                image: r.image,
-                                hidden: r.hidden,
-                                categories: parseCategories(r.categories),
-                                dupeOf: r.dupeOf,
-                            }}
-                        />
+                    {items.map((item) => (
+                        <NewsRow key={item.slug} item={item} />
                     ))}
                 </div>
-            )}
+            </SelectionProvider>
 
             {!isDupes && totalPages > 1 && (
                 <nav className="ar-pager" aria-label="Pagination">

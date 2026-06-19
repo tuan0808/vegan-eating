@@ -1,10 +1,12 @@
-// lib/news.ts
+// src/lib/news.ts
 // Server-side helper for the /news page. Pulls vegan + vegetarian stories
 // from newsdata.io. Keep the key in .env as NEWSDATA_API_KEY — it must never
 // reach the client, so only import this from server components / route handlers.
+//
+// The query itself now lives in the Setting table (editable from the admin News
+// settings panel) via src/lib/news-query.ts — so it can change with no rebuild.
 import { prisma } from "@/lib/prisma"; // ← adjust if your Prisma client lives elsewhere (e.g. @/lib/db)
-
-const ENDPOINT = "https://newsdata.io/api/1/latest";
+import { buildNewsUrl, getNewsQueryString } from "@/lib/news-query";
 
 export type NewsItem = {
     id: string;
@@ -43,17 +45,13 @@ export async function getVeganNews(): Promise<NewsItem[]> {
         return [];
     }
 
-    const params = new URLSearchParams({
-        apikey: apiKey,
-        q: "vegan OR vegetarian", // UPPERCASE boolean; lowercase "and" is read as a literal search word
-        country: "us",
-        language: "en",
-        category: "food,health,lifestyle",
-        full_content: "1", // pull the full article body (Basic tier and up)
-    });
+    // Query comes from Settings (falls back to the built-in default). apikey is
+    // injected by buildNewsUrl from the env, never from the stored string.
+    const queryString = await getNewsQueryString();
+    const url = buildNewsUrl(apiKey, queryString);
 
     try {
-        const res = await fetch(`${ENDPOINT}?${params.toString()}`, {
+        const res = await fetch(url, {
             // One cached copy per hour, shared across all visitors. The free tier is
             // 200 credits/day — without this every page view would spend a credit.
             next: { revalidate: 3600 },

@@ -81,10 +81,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 </div>
             </div>
 
-            {/* body: sidebar + content */}
-            <div style={{ flex: 1, display: "flex" }}>
+            {/* body: sidebar + content.
+                app-shell-body flips to a column on mobile (see app-sidebar.css) so the
+                sidebar stacks above the content instead of being stretched beside it. */}
+            <div className="app-shell-body" style={{ flex: 1, display: "flex" }}>
                 <AppSidebar isAdmin={user.role === "ADMIN"} />
-                <div style={{ flex: 1, minWidth: 0, padding: "40px 40px 80px" }}>{children}</div>
+                {/* padding lives in .app-shell-main so the mobile breakpoint can shrink it */}
+                <div className="app-shell-main" style={{ flex: 1, minWidth: 0 }}>{children}</div>
             </div>
         </div>
     );

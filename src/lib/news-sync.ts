@@ -1,7 +1,6 @@
 // src/lib/news-sync.ts
 import { prisma } from "@/lib/prisma"; // ← adjust if your Prisma client is exported elsewhere (e.g. @/lib/db)
-
-const ENDPOINT = "https://newsdata.io/api/1/latest";
+import { buildNewsUrl, getNewsQueryString } from "@/lib/news-query";
 
 type RawArticle = {
     article_id: string;
@@ -59,20 +58,15 @@ export async function syncNews(): Promise<{ fetched: number; saved: number; dupl
     const apiKey = process.env.NEWSDATA_API_KEY;
     if (!apiKey) throw new Error("NEWSDATA_API_KEY is not set");
 
-    // Build the query string by hand. URLSearchParams percent-encodes the commas in
-    // `category` to %2C, which newsdata reads as one bogus category and returns nothing.
-    // Keeping the commas literal makes this request identical to one that works in curl.
-    const query = [
-        `apikey=${apiKey}`,
-        `q=${encodeURIComponent("vegan OR vegetarian")}`,
-        "country=us",
-        "language=en",
-        "category=food,health,lifestyle",
-        "full_content=1",
-    ].join("&");
+    // The query now comes from the admin-editable Setting (falls back to the
+    // built-in default). buildNewsUrl injects the apikey and keeps commas literal,
+    // so `category`/`excludefield` aren't mangled into a single bogus value the way
+    // raw URLSearchParams encoding would — same request that works in curl.
+    const queryString = await getNewsQueryString();
+    const url = buildNewsUrl(apiKey, queryString);
 
     // The sync is the one place we deliberately hit the API fresh; pages read the DB.
-    const res = await fetch(`${ENDPOINT}?${query}`, { cache: "no-store" });
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`newsdata.io returned HTTP ${res.status}`);
 
     const data: RawResponse = await res.json();

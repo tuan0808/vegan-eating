@@ -17,6 +17,11 @@
     transition: width 0.2s ease, padding 0.2s ease;
 }
 
+/* App shell (set on the two flex wrappers in (app)/layout.tsx). The desktop
+   content padding lives here so the mobile rule can override it without !important
+   fighting an inline style. */
+.app-shell-main { padding: 40px 40px 80px; }
+
 /* Rail toggle */
 .sidebar .rail-toggle {
     align-self: flex-end;
@@ -131,17 +136,33 @@
 }
 
 @media (max-width: 760px) {
+    /* Shell: stack the sidebar ABOVE the content instead of beside it.
+       layout.tsx sets `display:flex` inline (no direction), so flipping the
+       direction here is enough — no !important needed. */
+    .app-shell-body { flex-direction: column; }
+    .app-shell-main { padding: 24px 18px 64px; }
+
+    /* Single stacked column. Previously this was `flex-direction: row` +
+       `flex-wrap: wrap`, which — combined with the shell being a full-height
+       flex row — stretched the wrapped lines (and the green .active item) to
+       fill the viewport. Column layout gives each item its natural height. */
     .sidebar {
         width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
         border-right: none;
         border-bottom: 1px solid var(--line, #e6e3da);
-        padding: 12px 14px;
-        gap: 6px;
+        padding: 14px 14px 16px;
+        gap: 2px;
         min-height: 0;
     }
-    .sidebar .sec,
+
+    /* Roomier tap targets (~44px) on touch. */
+    .sidebar .item,
+    .sidebar .back { padding: 11px 12px; }
+
+    /* Back-to-site already lives in the top bar; the collapse rail is
+       desktop-only. Section labels stay visible — they read as natural
+       dividers in the stacked list (esp. Account vs Admin). */
     .sidebar .foot,
     .sidebar .rail-toggle { display: none; }
 }

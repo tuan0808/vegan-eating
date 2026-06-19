@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { renameNews } from "./actions";
 import NewsRowActions from "./NewsRowActions";
+import SelectCheckbox from "@/components/admin/selection/SelectCheckbox";
 
 type Row = {
     slug: string;
@@ -53,6 +54,8 @@ export default function NewsRow({ item }: { item: Row }) {
             style={isDupe ? { borderLeft: "3px solid #c98a1e", background: "#fffaf0" } : undefined}
         >
             <div className="ar-itemtop">
+                <SelectCheckbox id={item.slug} label={`Select ${item.title}`} style={{ marginLeft: 12 }} />
+
                 <div className="ar-thumb">
                     {item.image ? (
                         // eslint-disable-next-line @next/next/no-img-element

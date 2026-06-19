@@ -8,7 +8,7 @@ import ContactThread from "@/components/ContactThread";
 import ContactReplyForm from "@/components/ContactReplyForm";
 import PageHero from "@/components/PageHero";
 import { openTicketForUser, threadMessages } from "@/lib/contact";
-import "@/app/submit/submit.css";
+import "@/app/(site)/submit/submit.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {

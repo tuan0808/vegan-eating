@@ -151,8 +151,8 @@ export default async function MessagesPage({
                             <p style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{m.body}</p>
 
                             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                                <Link href={`/messages/${m.user.username}`} className="cm-btn ghost">
-                                    Reply via DM
+                                <Link href={`/messages/website/${m.id}`} className="cm-btn ghost">
+                                    Open conversation
                                 </Link>
                                 <form action={setContactStatus.bind(null, m.id, m.status === "OPEN" ? "HANDLED" : "OPEN")}>
                                     <button type="submit" className="cm-btn ghost">

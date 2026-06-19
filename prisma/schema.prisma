@@ -96,6 +96,7 @@ model User {
   // --- direct messaging ---
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+  contactReplies  ContactReply[]
 
   // --- recipe interactions ---
   bookmarks     Bookmark[]
@@ -379,7 +380,20 @@ model ContactMessage {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies ContactReply[]
 
   @@index([status])
   @@index([createdAt])
+}
+model ContactReply {
+  id        String   @id @default(cuid())
+  ticketId  String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  ticket ContactMessage @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
 }

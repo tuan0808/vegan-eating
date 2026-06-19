@@ -4,8 +4,10 @@ import Link from "next/link";
 import { currentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import ContactForm from "@/components/ContactForm";
+import ContactThread from "@/components/ContactThread";
+import ContactReplyForm from "@/components/ContactReplyForm";
 import PageHero from "@/components/PageHero";
-// Reuse the submit page's form/card styling so the two pages feel identical.
+import { openTicketForUser, threadMessages } from "@/lib/contact";
 import "@/app/submit/submit.css";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +26,9 @@ export default async function ContactPage() {
         : null;
     const defaultName = record?.name ?? record?.username ?? "";
 
+    // One open ticket at a time — show its conversation instead of a new form.
+    const openTicket = user ? await openTicketForUser(user.id) : null;
+
     return (
         <>
             <PageHero
@@ -36,9 +41,7 @@ export default async function ContactPage() {
 
             <div className="wrap" style={{ paddingBottom: 70 }}>
                 <section style={{ paddingTop: 28 }}>
-                    {user ? (
-                        <ContactForm defaultName={defaultName} />
-                    ) : (
+                    {!user ? (
                         <div className="tool-box submit-gate">
                             <span className="kicker">Members only</span>
                             <h2>You&rsquo;re not logged in</h2>
@@ -51,6 +54,27 @@ export default async function ContactPage() {
                                 <Link href="/register" className="btn-ghost">Create an account</Link>
                             </div>
                         </div>
+                    ) : openTicket ? (
+                        <div className="tool-box">
+                            <ContactThread
+                                category={openTicket.category}
+                                status={openTicket.status}
+                                messages={threadMessages(openTicket)}
+                                meId={user.id}
+                            />
+                            <ContactReplyForm ticketId={openTicket.id} />
+                            <p style={{ marginTop: 14, fontSize: 13, color: "var(--muted, #6f7468)" }}>
+                                One inquiry at a time — you can start a new one once this is resolved.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <p style={{ margin: "0 0 16px", color: "var(--muted, #6f7468)", lineHeight: 1.6 }}>
+                                Sending as <strong>{defaultName || "your account"}</strong>. Pick a topic and
+                                we&rsquo;ll route it to the right people.
+                            </p>
+                            <ContactForm defaultName={defaultName} />
+                        </>
                     )}
                 </section>
             </div>

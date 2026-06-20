@@ -17,10 +17,25 @@
     transition: width 0.2s ease, padding 0.2s ease;
 }
 
-/* App shell (set on the two flex wrappers in (app)/layout.tsx). The desktop
-   content padding lives here so the mobile rule can override it without !important
-   fighting an inline style. */
+/* App shell. The desktop content padding lives here so the mobile rule can
+   override it without an !important fight against an inline style. */
 .app-shell-main { padding: 40px 40px 80px; }
+
+/* Hamburger trigger (rendered in the top bar). Hidden on desktop. */
+.mnav-burger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line, #e6e3da);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ink, #1c2317);
+    cursor: pointer;
+    transition: background 0.14s ease;
+}
+.mnav-burger:hover { background: rgba(28, 35, 23, 0.05); }
 
 /* Rail toggle */
 .sidebar .rail-toggle {
@@ -135,36 +150,59 @@
     }
 }
 
+/* ---- Mobile: off-canvas drawer triggered by the hamburger ---- */
 @media (max-width: 760px) {
-    /* Shell: stack the sidebar ABOVE the content instead of beside it.
-       layout.tsx sets `display:flex` inline (no direction), so flipping the
-       direction here is enough — no !important needed. */
-    .app-shell-body { flex-direction: column; }
     .app-shell-main { padding: 24px 18px 64px; }
 
-    /* Single stacked column. Previously this was `flex-direction: row` +
-       `flex-wrap: wrap`, which — combined with the shell being a full-height
-       flex row — stretched the wrapped lines (and the green .active item) to
-       fill the viewport. Column layout gives each item its natural height. */
-    .sidebar {
-        width: 100%;
-        flex-direction: column;
-        border-right: none;
-        border-bottom: 1px solid var(--line, #e6e3da);
-        padding: 14px 14px 16px;
-        gap: 2px;
-        min-height: 0;
+    /* Hamburger appears and sits above the drawer + backdrop, so the X icon
+       stays bright and tappable while the drawer is open. */
+    .mnav-burger {
+        display: inline-flex;
+        position: relative;
+        z-index: 65;
     }
 
-    /* Roomier tap targets (~44px) on touch. */
+    /* The sidebar becomes a left drawer, hidden off-canvas until opened. Because
+       it's fixed, it leaves the content flow — the page content fills the width. */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        height: 100%;
+        z-index: 60;
+        width: 272px;
+        max-width: 82vw;
+        flex-direction: column;
+        border-right: 1px solid var(--line, #e6e3da);
+        padding: 64px 16px 22px; /* top padding clears the floating hamburger */
+        gap: 2px;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transform: translateX(-100%);
+        transition: transform 0.24s ease, box-shadow 0.24s ease;
+        box-shadow: none;
+    }
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 0 18px 50px rgba(28, 35, 23, 0.30);
+    }
+
+    /* Collapse rail makes no sense on mobile. */
+    .sidebar .rail-toggle { display: none; }
+
+    /* Roomier tap targets on touch. */
     .sidebar .item,
     .sidebar .back { padding: 11px 12px; }
 
-    /* Back-to-site already lives in the top bar; the collapse rail is
-       desktop-only. Section labels stay visible — they read as natural
-       dividers in the stacked list (esp. Account vs Admin). */
-    .sidebar .foot,
-    .sidebar .rail-toggle { display: none; }
+    /* Dimmed backdrop behind the drawer. */
+    .mnav-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        background: rgba(20, 24, 16, 0.42);
+    }
 }
 /* ---- notification badges on sidebar items ---- */
 .sidebar .item { position: relative; }

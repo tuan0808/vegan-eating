@@ -42,6 +42,11 @@ model Recipe {
   sort        Int       @default(0)
   hidden      Boolean   @default(false)
   category    String    @default("")
+  // --- AI image generation (gpt-image-2) ---
+  imageBackup       String?                // previous/alternate hero — enables swap-back
+  imagePending      String?                // freshly generated hero, awaiting review
+  stepImages        String  @default("[]") // live per-step image keys, aligned to steps[]
+  stepImagesPending String  @default("[]") // generated step images, awaiting review
 
   @@index([recipeType])
   @@index([sort])

@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { useMobileNav } from "@/components/MobileNav";
 import "./app-sidebar.css";
 
 type Item = { href?: string; label: string; soon?: boolean; icon: ReactNode };
@@ -56,6 +57,7 @@ const ADMIN: Item[] = [
 
 export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
     const path = usePathname();
+    const { open: mobileOpen, close } = useMobileNav();
     const [collapsed, setCollapsed] = useState(false);
     const [noti, setNoti] = useState({ unread: 0, pending: 0, inquiries: 0 });
 
@@ -65,6 +67,12 @@ export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
             setCollapsed(true);
         }
     }, []);
+
+    // Close the mobile drawer whenever the route changes (covers nav-item taps,
+    // programmatic navigation, and back/forward).
+    useEffect(() => {
+        close();
+    }, [path, close]);
 
     // Same notification feed the header uses; we paint the counts on the
     // matching items below. Refetch on focus so they freshen.
@@ -118,42 +126,54 @@ export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
         return it.soon || !it.href ? (
             <span key={it.label} className="item soon" title={it.label}>{inner}</span>
         ) : (
-            <Link key={it.href} href={it.href} className={`item ${isActive(it.href) ? "active" : ""}`} title={it.label}>
+            <Link
+                key={it.href}
+                href={it.href}
+                onClick={close}
+                className={`item ${isActive(it.href) ? "active" : ""}`}
+                title={it.label}
+            >
                 {inner}
             </Link>
         );
     };
 
     return (
-        <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
-            <button
-                type="button"
-                className="rail-toggle"
-                onClick={toggle}
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                aria-expanded={!collapsed}
-                title={collapsed ? "Expand" : "Collapse"}
-            >
-                <span className="ico">{collapsed ? icoChevRight : icoChevLeft}</span>
-            </button>
+        <>
+            {mobileOpen && (
+                <div className="mnav-backdrop" onClick={close} aria-hidden="true" />
+            )}
 
-            <p className="sec">Account</p>
-            {ACCOUNT.map(renderItem)}
+            <aside className={`sidebar${collapsed ? " collapsed" : ""}${mobileOpen ? " mobile-open" : ""}`}>
+                <button
+                    type="button"
+                    className="rail-toggle"
+                    onClick={toggle}
+                    aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    aria-expanded={!collapsed}
+                    title={collapsed ? "Expand" : "Collapse"}
+                >
+                    <span className="ico">{collapsed ? icoChevRight : icoChevLeft}</span>
+                </button>
 
-            {isAdmin ? (
-                <>
-                    <p className="sec" style={{ marginTop: 22 }}>Admin</p>
-                    {ADMIN.map(renderItem)}
-                </>
-            ) : null}
+                <p className="sec">Account</p>
+                {ACCOUNT.map(renderItem)}
 
-            <div className="foot">
-                <Link href="/" className="back" title="Back to site">
-                    <span className="ico">{icoBack}</span>
-                    <span className="lbl">Back to site</span>
-                </Link>
-                <p className="mark">vegan eating · admin</p>
-            </div>
-        </aside>
+                {isAdmin ? (
+                    <>
+                        <p className="sec" style={{ marginTop: 22 }}>Admin</p>
+                        {ADMIN.map(renderItem)}
+                    </>
+                ) : null}
+
+                <div className="foot">
+                    <Link href="/" className="back" onClick={close} title="Back to site">
+                        <span className="ico">{icoBack}</span>
+                        <span className="lbl">Back to site</span>
+                    </Link>
+                    <p className="mark">vegan eating · admin</p>
+                </div>
+            </aside>
+        </>
     );
 }

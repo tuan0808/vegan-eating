@@ -1,0 +1,32 @@
+/* src/app/(app)/admin/admin-members.css */
+/* Mobile responsiveness for the Members & roles page. Desktop layout is driven by
+   the inline styles in page.tsx; these rules only apply on small screens.
+   !important appears only where a rule must beat an inline style. */
+
+@media (max-width: 760px) {
+    /* Drop the desktop right gutter — the shell already pads on mobile. */
+    .am-wrap { padding-right: 0 !important; }
+
+    /* Let each row wrap. The avatar contributes its fixed width and the identity
+       column has flex-basis:0 (via inline `flex:1`) + min-width:0, so it counts as
+       ~0 when the browser decides line breaks. Result: avatar + identity + role
+       pill share the first line, and the edit form / self-note drop below. */
+    .am-row {
+        flex-wrap: wrap;
+        row-gap: 12px;
+    }
+
+    /* Long emails/usernames wrap instead of forcing horizontal overflow. */
+    .am-row .am-info { overflow-wrap: anywhere; }
+
+    /* Edit form takes its own full-width line; the select grows to fill it. */
+    .am-row .am-form { flex-basis: 100%; }
+    .am-row .am-form select { flex: 1; min-width: 0; }
+
+    /* "can't edit yourself" note: full width, left-aligned (was 180px / right). */
+    .am-row .am-self {
+        width: auto !important;
+        flex-basis: 100%;
+        text-align: left !important;
+    }
+}

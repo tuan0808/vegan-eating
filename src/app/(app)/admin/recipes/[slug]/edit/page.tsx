@@ -8,6 +8,7 @@ import RecipeListField from "./RecipeListField";
 import CookAlongField from "./CookAlongField";
 import { RECIPE_CATEGORIES } from "@/lib/categories";
 import DescriptionEditor from "./DescriptionEditor";
+import RecipeImagePanel from "../../_components/RecipeImagePanel";
 import { parseBody } from "@/lib/article-body";
 import "../../admin-recipes.css";
 import "@/app/(app)/admin/articles/[slug]/edit/article-editor.css";
@@ -241,6 +242,19 @@ export default async function EditRecipePage({
                     <Link href="/admin/recipes" className="ar-cancel">Cancel</Link>
                 </div>
             </form>
+
+            {/* AI image generation — lives OUTSIDE the form above so its buttons
+                never submit the recipe save form. Has its own server actions. */}
+            <div style={{ marginTop: 24 }}>
+                <RecipeImagePanel
+                    slug={recipe.slug}
+                    image={recipe.image}
+                    imageBackup={recipe.imageBackup}
+                    imagePending={recipe.imagePending}
+                    stepImagesPending={toArray(recipe.stepImagesPending)}
+                    stepCount={toArray(recipe.steps).length}
+                />
+            </div>
         </div>
     );
 }

@@ -1,0 +1,40 @@
+/* src/app/(app)/admin/forums/forums-admin.css */
+/* Mobile/tablet responsiveness for the Forum management page. Desktop layout
+   comes from the inline styles in page.tsx; these rules only apply on smaller
+   screens. !important appears only where a rule must beat an inline `flex:`
+   shorthand (which sets flex-basis inline).
+
+   NOTE on the breakpoint: this page uses 1100px, not the 760px used elsewhere
+   in the admin section. Its rows are far denser (name + description + Post
+   selector + Save + thread count + reorder arrows + Delete, all on one line).
+   With the desktop sidebar rail (~244px) still present below ~1100px, the
+   remaining content width can't fit that row, so the trailing controls get
+   clipped. Stacking earlier keeps everything reachable. */
+
+@media (max-width: 1100px) {
+    /* Drop the desktop right gutter — the shell pads on its own below 760px,
+       and the extra 40px just steals room at tablet widths. */
+    .fa-wrap { padding-right: 0 !important; }
+
+    /* Every editing row/form is allowed to wrap onto multiple lines. */
+    .fa-addbar,
+    .fa-cat-head,
+    .fa-cat-form,
+    .fa-board,
+    .fa-board-form { flex-wrap: wrap; }
+
+    /* Nested forms take a full line within their parent row, so their action
+       controls (reorder / delete / thread count) wrap underneath. */
+    .fa-cat-form,
+    .fa-board-form { flex-basis: 100% !important; }
+
+    /* Text inputs stack full-width instead of being squeezed side-by-side. */
+    .fa-addbar > input,
+    .fa-cat-form input,
+    .fa-board > input,
+    .fa-board-form input { flex-basis: 100% !important; }
+
+    /* Permission picker: full width, with the select filling the line. */
+    .fa-perm { flex-basis: 100%; }
+    .fa-perm select { flex: 1; }
+}

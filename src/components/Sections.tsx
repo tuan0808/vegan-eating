@@ -168,7 +168,7 @@ export function Footer() {
                 </div>
                 <div className="foot-bot">
                     <span>© 2026 vegan eating — eat green, feel green.</span>
-                    <span>Built custom. No WordPress in sight.</span>
+                    <span>Your gut, your glow, your rules..</span>
                 </div>
             </div>
         </footer>

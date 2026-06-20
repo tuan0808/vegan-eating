@@ -12,6 +12,7 @@ import {
     deleteForum,
     moveForum,
 } from "./actions";
+import "./forums-admin.css";
 
 export const metadata: Metadata = { title: "Forum management — vegan eating" };
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export default async function ForumAdminPage({
                     : null;
 
     return (
-        <div style={{ maxWidth: "none", paddingRight: 40 }}>
+        <div className="fa-wrap" style={{ maxWidth: "none", paddingRight: 40 }}>
 
             <p style={kicker}>Admin · Forums</p>
             <h1 style={h1}>Categories &amp; boards</h1>
@@ -53,7 +54,7 @@ export default async function ForumAdminPage({
             ) : null}
 
             {/* Add category */}
-            <form action={createCategory} style={addBar}>
+            <form action={createCategory} className="fa-addbar" style={addBar}>
                 <input name="name" className="forum-input" placeholder="New category name" required style={input} />
                 <input name="description" placeholder="Description (optional)" style={{ ...input, flex: 2 }} />
                 <button style={btnPrimary}>Add category</button>
@@ -63,8 +64,8 @@ export default async function ForumAdminPage({
                 {categories.map((cat) => (
                     <div key={cat.id} style={card}>
                         {/* Category header: rename + reorder + delete */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <form action={updateCategory} style={{ display: "flex", gap: 8, flex: 1 }}>
+                        <div className="fa-cat-head" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <form action={updateCategory} className="fa-cat-form" style={{ display: "flex", gap: 8, flex: 1 }}>
                                 <input type="hidden" name="id" value={cat.id} />
                                 <input name="name" defaultValue={cat.name} style={{ ...input, fontWeight: 600 }} />
                                 <input
@@ -91,8 +92,8 @@ export default async function ForumAdminPage({
                         {/* Boards in this category */}
                         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                             {cat.forums.map((f) => (
-                                <div key={f.id} style={boardRow}>
-                                    <form action={updateForum} style={{ display: "flex", gap: 8, flex: 1, alignItems: "center" }}>
+                                <div key={f.id} className="fa-board" style={boardRow}>
+                                    <form action={updateForum} className="fa-board-form" style={{ display: "flex", gap: 8, flex: 1, alignItems: "center" }}>
                                         <input type="hidden" name="id" value={f.id} />
                                         <input name="name" defaultValue={f.name} style={input} />
                                         <input
@@ -101,7 +102,7 @@ export default async function ForumAdminPage({
                                             placeholder="Description"
                                             style={{ ...input, flex: 2 }}
                                         />
-                                        <label style={permLabel} title="Who can post in this board">
+                                        <label className="fa-perm" style={permLabel} title="Who can post in this board">
                                             <span style={{ opacity: 0.7 }}>Post:</span>
                                             <select name="postMinRole" defaultValue={f.postMinRole} style={select}>
                                                 <option value="MEMBER">Everyone</option>
@@ -127,11 +128,11 @@ export default async function ForumAdminPage({
                             ))}
 
                             {/* Add board to this category */}
-                            <form action={createForum} style={{ ...boardRow, background: "transparent", border: "1px dashed var(--line,#d9d5c8)" }}>
+                            <form action={createForum} className="fa-board" style={{ ...boardRow, background: "transparent", border: "1px dashed var(--line,#d9d5c8)" }}>
                                 <input type="hidden" name="categoryId" value={cat.id} />
                                 <input name="name" placeholder="New board name" required style={input} />
                                 <input name="description" placeholder="Description (optional)" style={{ ...input, flex: 2 }} />
-                                <label style={permLabel} title="Who can post in this board">
+                                <label className="fa-perm" style={permLabel} title="Who can post in this board">
                                     <span style={{ opacity: 0.7 }}>Post:</span>
                                     <select name="postMinRole" defaultValue="MEMBER" style={select}>
                                         <option value="MEMBER">Everyone</option>

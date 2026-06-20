@@ -50,8 +50,11 @@ export default async function AdminCommentsPage({
                 <Link href={`${PATH}?tab=content`} className={tab === 'content' ? 'on' : ''}>
                     By content
                 </Link>
-                <PendingPosts />
             </nav>
+
+            {/* Sits below the tabs as its own block — was previously inside <nav>,
+                which laid it out as a stray third tab. */}
+            <PendingPosts />
 
             {tab === 'recent' && queue && (
                 <>

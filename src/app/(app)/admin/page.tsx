@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { setUserRole } from "./actions";
+import "./admin-members.css";
 
 
 export const metadata: Metadata = { title: "Members & roles — admin" };
@@ -38,7 +39,7 @@ export default async function AdminPage({
                     : null;
 
     return (
-        <div style={{ maxWidth: "none", paddingRight: 40 }}>
+        <div className="am-wrap" style={{ maxWidth: "none", paddingRight: 40 }}>
             <p style={kicker}>Admin</p>
             <h1 style={h1}>Members &amp; roles</h1>
             <p style={{ color: "var(--muted, #6b7264)", marginTop: 8 }}>
@@ -66,12 +67,12 @@ export default async function AdminPage({
                     const display = u.name ?? u.username;
                     const isMe = u.id === me.id;
                     return (
-                        <div key={u.id} style={row}>
+                        <div key={u.id} className="am-row" style={row}>
               <span style={{ ...avatar, background: roleColor(u.role) }}>
                 {display.charAt(0).toUpperCase()}
               </span>
 
-                            <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="am-info" style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontWeight: 600, color: "var(--ink, #1c2317)" }}>
                                     {display} {isMe ? <span style={{ color: "var(--muted,#6b7264)", fontWeight: 400 }}>(you)</span> : null}
                                     <span style={{ color: "var(--muted,#6b7264)", fontWeight: 400 }}> · @{u.username}</span>
@@ -86,11 +87,11 @@ export default async function AdminPage({
               </span>
 
                             {isMe ? (
-                                <span style={{ width: 180, textAlign: "right", fontSize: 13, color: "var(--muted,#6b7264)" }}>
+                                <span className="am-self" style={{ width: 180, textAlign: "right", fontSize: 13, color: "var(--muted,#6b7264)" }}>
                   can't edit yourself
                 </span>
                             ) : (
-                                <form action={setUserRole} style={{ display: "flex", gap: 8 }}>
+                                <form action={setUserRole} className="am-form" style={{ display: "flex", gap: 8 }}>
                                     <input type="hidden" name="userId" value={u.id} />
                                     <select name="role" defaultValue={u.role} style={select}>
                                         {ROLES.map((r) => (

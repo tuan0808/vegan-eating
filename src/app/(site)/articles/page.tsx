@@ -26,8 +26,8 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
             <PageHero
                 image="/header/articles.jpg"
                 kicker="Health & Living"
-                title="We rebuilt the whole thing by hand"
-                dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."
+                title="Real talk on feeling good, fueled entirely by plants."
+                dek="Smart, no-nonsense reads on living well — minus the meat and the myths. Just a community, a recipe archive, and a lot of testing."
             />
 
             <div className="cats" style={{ borderTop: "1px solid var(--line)" }}>

@@ -2,6 +2,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { requireUser } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -39,21 +40,20 @@ function bodyJson(value: FormDataEntryValue | null): string {
     }
 }
 
-/** Validate the cook-along payload: a JSON array of { src, step } — re-stringified clean. */
-function cookalongJson(value: FormDataEntryValue | null): string {
-    if (typeof value !== "string") return "[]";
+/** Clean the cook-along payload into an array of { src, step }. */
+function cookalongClean(value: FormDataEntryValue | null): { src: string; step: number | null }[] {
+    if (typeof value !== "string") return [];
     try {
         const v = JSON.parse(value);
-        if (!Array.isArray(v)) return "[]";
-        const clean = v
+        if (!Array.isArray(v)) return [];
+        return v
             .filter((x) => x && typeof x.src === "string" && x.src.trim())
             .map((x) => ({
                 src: String(x.src).trim(),
                 step: x.step === null || x.step === undefined || x.step === "" ? null : Number(x.step),
             }));
-        return JSON.stringify(clean);
     } catch {
-        return "[]";
+        return [];
     }
 }
 
@@ -68,36 +68,50 @@ export async function updateRecipe(formData: FormData) {
     // One uploader drives both: the FIRST image is the hero, the rest is the gallery collage.
     // (RecipeListField submits newline-joined values, so we read it through lines().)
     const imgs = lines(formData.get("gallery"));
-    const heroImage = imgs[0] ?? null;
-    const galleryRest = JSON.stringify(imgs.slice(1));
+    const cookalong = cookalongClean(formData.get("cookalong"));
 
-    await prisma.recipe.update({
-        where: { slug },
-        data: {
-            title: str(formData.get("title")),
-            description: bodyJson(formData.get("description")), // Tiptap JSON doc
-            recipeType: str(formData.get("recipeType")),
-            category: str(formData.get("category")),
-            author: str(formData.get("author")),
-            date: str(formData.get("date")),
-            image: heroImage,        // first uploaded image
-            servings: str(formData.get("servings")),
-            prepTime: intOrNull(formData.get("prepTime")),
-            cookTime: intOrNull(formData.get("cookTime")),
-            readyIn: intOrNull(formData.get("readyIn")),
-            calories: intOrNull(formData.get("calories")),
-            // list fields are JSON strings — SQLite has no array type
-            ingredients: JSON.stringify(lines(formData.get("ingredients"))),
-            steps: JSON.stringify(lines(formData.get("steps"))),
-            gallery: galleryRest,    // everything after the hero
-            cookalong: cookalongJson(formData.get("cookalong")),
-            courses: JSON.stringify(lines(formData.get("courses"))),
-            seasons: JSON.stringify(lines(formData.get("seasons"))),
-            allergens: JSON.stringify(lines(formData.get("allergens"))),
-            cuisines: JSON.stringify(lines(formData.get("cuisines"))),
-            // intentionally NOT touched: slug/id (primary key + public URL) and `ph`
-        },
-    });
+    const data: Prisma.RecipeUpdateInput = {
+        title: str(formData.get("title")),
+        description: bodyJson(formData.get("description")), // Tiptap JSON doc
+        recipeType: str(formData.get("recipeType")),
+        category: str(formData.get("category")),
+        author: str(formData.get("author")),
+        date: str(formData.get("date")),
+        servings: str(formData.get("servings")),
+        prepTime: intOrNull(formData.get("prepTime")),
+        cookTime: intOrNull(formData.get("cookTime")),
+        readyIn: intOrNull(formData.get("readyIn")),
+        calories: intOrNull(formData.get("calories")),
+        // list fields are JSON strings — SQLite has no array type
+        ingredients: JSON.stringify(lines(formData.get("ingredients"))),
+        steps: JSON.stringify(lines(formData.get("steps"))),
+        courses: JSON.stringify(lines(formData.get("courses"))),
+        seasons: JSON.stringify(lines(formData.get("seasons"))),
+        allergens: JSON.stringify(lines(formData.get("allergens"))),
+        cuisines: JSON.stringify(lines(formData.get("cuisines"))),
+        // intentionally NOT touched: slug/id (primary key + public URL), `ph`,
+        // and the AI-image columns (image*/stepImages*) which the image panel owns.
+    };
+
+    // Hero + gallery: the AI image panel lives OUTSIDE this form and writes the
+    // hero (recipe.image) directly. A form rendered BEFORE an AI hero was
+    // approved carries an empty image list — and writing that would null the
+    // freshly-approved hero. So the form's image list only wins when it actually
+    // has entries; an empty list leaves the existing hero + gallery untouched.
+    if (imgs.length > 0) {
+        data.image = imgs[0] ?? null;            // first uploaded image
+        data.gallery = JSON.stringify(imgs.slice(1)); // everything after the hero
+    }
+
+    // Same guard for cook-along: a stale/empty field shouldn't wipe the step
+    // photos the AI panel pinned (those live in `cookalong`, recoverable from
+    // `stepImages` via relinkStepImages, but better not to wipe them at all).
+    // A non-empty field is authoritative and replaces what's stored.
+    if (cookalong.length > 0) {
+        data.cookalong = JSON.stringify(cookalong);
+    }
+
+    await prisma.recipe.update({ where: { slug }, data });
 
     // Make the change show up immediately on the live recipe page and the admin list.
     revalidatePath(`/recipes/${slug}`);

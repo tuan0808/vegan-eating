@@ -1,8 +1,9 @@
 // src/lib/recipe-image-pipeline.ts
-// Orchestrates a full AI image set for one recipe. Two modes:
+// Orchestrates a full AI image set for one recipe. Three modes:
 //   - "generate": make a fresh hero (text-to-image), then step photos that match it.
 //   - "existing": use the recipe's current image as the reference; keep it as the
 //                 hero (no new hero generated) and only generate matching steps.
+//   - "hero":     make a fresh hero and STOP — no step images touched.
 // Pure logic — no DB, no Next imports. Emits unified progress via opts.onProgress.
 
 import {
@@ -18,7 +19,7 @@ export const MAX_IMAGES_PER_RUN = MAX_STEPS + 1;
 const STEP_CONCURRENCY = 4; // parallel step generations; lower this if you hit 429 rate limits
 const ROUGH_USD_PER_IMAGE = 0.08; // gpt-image-2 medium — ROUGH. Tune from your usage dashboard.
 
-export type ReferenceMode = "generate" | "existing";
+export type ReferenceMode = "generate" | "existing" | "hero";
 
 export type RecipeInput = {
     slug: string;
@@ -168,7 +169,7 @@ export async function generateRecipeImageSet(
         heroUrl = null; // hero unchanged
         emit({ type: "progress", done, label: "Using your current photo as the reference…" });
     } else {
-        // Generate a fresh hero and anchor the steps to it.
+        // Generate a fresh hero and anchor the steps to it ("generate" and "hero").
         const heroBuf = await generateImage({
             prompt: buildHeroPrompt(recipe, ingredients),
             size: "1536x1024",
@@ -178,7 +179,23 @@ export async function generateRecipeImageSet(
         heroUrl = hero.url;
         refBuf = heroBuf;
         done++;
-        emit({ type: "progress", done, label: "Hero ready · generating steps…" });
+        emit({
+            type: "progress",
+            done,
+            label: mode === "hero" ? "Hero ready." : "Hero ready · generating steps…",
+        });
+    }
+
+    // ---- Hero-only run: stop here, leave step photos untouched. ----
+    if (mode === "hero") {
+        const generated = heroUrl ? 1 : 0;
+        return {
+            heroUrl,
+            stepUrls: [],
+            imagesGenerated: generated,
+            failed: 0,
+            estimatedCostUsd: +(generated * ROUGH_USD_PER_IMAGE).toFixed(2),
+        };
     }
 
     // ---- Step images (edits anchored to the reference) ----

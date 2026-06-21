@@ -33,8 +33,12 @@ export async function POST(
     const quality: ImageQuality =
         body?.quality === "low" || body?.quality === "high" ? body.quality : "medium";
     const force = !!body?.force;
-    const referenceMode: "generate" | "existing" =
-        body?.referenceMode === "existing" ? "existing" : "generate";
+    const referenceMode: "generate" | "existing" | "hero" =
+        body?.referenceMode === "existing"
+            ? "existing"
+            : body?.referenceMode === "hero"
+                ? "hero"
+                : "generate";
 
     const recipe = await prisma.recipe.findUnique({ where: { slug } });
     if (!recipe) return new Response("Recipe not found", { status: 404 });
@@ -64,8 +68,14 @@ export async function POST(
             };
             try {
                 const est = estimateImageCount(recipe.steps);
-                const total = referenceMode === "existing" ? est.steps : est.total;
-                send({ type: "start", total, steps: est.steps });
+                const steps = referenceMode === "hero" ? 0 : est.steps;
+                const total =
+                    referenceMode === "existing"
+                        ? est.steps
+                        : referenceMode === "hero"
+                            ? 1
+                            : est.total;
+                send({ type: "start", total, steps });
 
                 const set = await generateRecipeImageSet(
                     {

@@ -7,6 +7,7 @@
 // These remaining actions are all fast, so they stay as plain server actions.
 
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma"; // ← adjust if your Prisma client lives elsewhere
 import { requireUser } from "@/lib/auth-helpers";
 
@@ -40,57 +41,71 @@ function parseStepUrls(json: string | null | undefined): string[] {
     }
 }
 
-// Promote pending -> live:
-//  - new hero becomes the recipe image; the old one is saved as the backup
-//  - generated step photos are merged into the cook-along system, pinned to
-//    their step index, so they render beside the method AND show up in the
-//    Cook-along editor where you can reassign / delete them.
+// Promote pending -> live. The hero and the step photos are handled
+// INDEPENDENTLY so a hero-only run (no pending steps) only swaps the hero and
+// never rebuilds cook-along, and a steps-only run never disturbs the hero:
+//  - if a hero is pending: it becomes the recipe image; the old one is saved as backup.
+//  - if step photos are pending: they merge into the cook-along system, pinned to
+//    their step index, so they render beside the method AND show in the editor.
 //
-// Merge rules: keep your manual cook-along photos; drop any prior AI step photos
-// (path contains "/ai/") so re-publishing replaces rather than duplicates; and
-// only assign a generated photo to a step that has no manual photo already.
+// Step merge rules: keep your manual cook-along photos; drop any prior AI step
+// photos (path contains "/ai/") so re-publishing replaces rather than duplicates;
+// and only assign a generated photo to a step that has no manual photo already.
 export async function approvePendingImages(slug: string): Promise<Result> {
     await requireAdmin();
     if (!slug) return { ok: false, message: "Missing slug" };
 
     const recipe = await prisma.recipe.findUnique({ where: { slug } });
     if (!recipe) return { ok: false, message: "Recipe not found" };
-    if (!recipe.imagePending && (!recipe.stepImagesPending || recipe.stepImagesPending === "[]")) {
+
+    const hasPendingHero = !!recipe.imagePending;
+    const stepUrls = parseStepUrls(recipe.stepImagesPending);
+    const hasPendingSteps = stepUrls.filter(Boolean).length > 0;
+
+    if (!hasPendingHero && !hasPendingSteps) {
         return { ok: false, message: "Nothing pending to approve" };
     }
 
-    const stepUrls = parseStepUrls(recipe.stepImagesPending);
+    const data: Prisma.RecipeUpdateInput = {};
 
-    const existing = parseCookalong(recipe.cookalong);
-    const manual = existing.filter((c) => !c.src.includes("/ai/")); // keep your own photos, drop old AI ones
-    const stepsWithManual = new Set(
-        manual.filter((c) => c.step != null).map((c) => c.step as number)
-    );
+    // --- Hero (only when one is actually pending) ---
+    if (hasPendingHero) {
+        data.imageBackup = recipe.image ?? null; // keep the old hero for swap-back
+        data.image = recipe.imagePending as string;
+        data.imagePending = null;
+    }
 
-    const generated: CookAlong[] = stepUrls
-        .map((src, i) => ({ src: src.trim(), step: i }))
-        .filter((c) => c.src !== "" && !stepsWithManual.has(c.step as number));
+    // --- Step photos (only when some were generated) ---
+    let pinned = 0;
+    if (hasPendingSteps) {
+        const existing = parseCookalong(recipe.cookalong);
+        const manual = existing.filter((c) => !c.src.includes("/ai/")); // keep your own, drop old AI ones
+        const stepsWithManual = new Set(
+            manual.filter((c) => c.step != null).map((c) => c.step as number)
+        );
+        const generated: CookAlong[] = stepUrls
+            .map((src, i) => ({ src: src.trim(), step: i }))
+            .filter((c) => c.src !== "" && !stepsWithManual.has(c.step as number));
+        pinned = generated.length;
 
-    const mergedCookalong = [...manual, ...generated];
+        data.stepImages = recipe.stepImagesPending || "[]"; // durable record of the AI set
+        data.stepImagesPending = "[]";
+        data.cookalong = JSON.stringify([...manual, ...generated]);
+    } else {
+        // Hero-only (or nothing generated for steps): clear the pending marker
+        // WITHOUT rebuilding cook-along, so existing step photos are preserved.
+        data.stepImagesPending = "[]";
+    }
 
-    await prisma.recipe.update({
-        where: { slug },
-        data: {
-            imageBackup: recipe.image ?? null, // keep the old hero for swap-back
-            image: recipe.imagePending ?? recipe.image,
-            imagePending: null,
-            stepImages: recipe.stepImagesPending || "[]", // kept as a record of the AI set
-            stepImagesPending: "[]",
-            cookalong: JSON.stringify(mergedCookalong),
-        },
-    });
+    await prisma.recipe.update({ where: { slug }, data });
 
     revalidatePath(`/admin/recipes/${slug}/edit`);
     revalidatePath(`/recipes/${slug}`);
-    return {
-        ok: true,
-        message: `Published. ${generated.length} step photo(s) pinned to steps; previous hero saved as backup.`,
-    };
+
+    const parts: string[] = [];
+    if (hasPendingHero) parts.push("hero updated (previous saved as backup)");
+    if (hasPendingSteps) parts.push(`${pinned} step photo(s) pinned`);
+    return { ok: true, message: `Published — ${parts.join("; ")}.` };
 }
 
 export async function discardPendingImages(slug: string): Promise<Result> {

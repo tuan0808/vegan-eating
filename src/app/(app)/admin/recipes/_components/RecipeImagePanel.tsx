@@ -35,7 +35,7 @@ export default function RecipeImagePanel(props: Props) {
     const { slug } = props;
     const [quality, setQuality] = useState<Quality>("medium");
     const canUseExisting = !!props.image;
-    const [referenceMode, setReferenceMode] = useState<"generate" | "existing">("generate");
+    const [referenceMode, setReferenceMode] = useState<"generate" | "existing" | "hero">("generate");
     const [pending, startTransition] = useTransition(); // approve/discard/swap
     const [msg, setMsg] = useState("");
 
@@ -51,7 +51,7 @@ export default function RecipeImagePanel(props: Props) {
     const [heroPending, setHeroPending] = useState(props.imagePending);
     const [stepsPending, setStepsPending] = useState<string[]>(props.stepImagesPending);
 
-    const genCount = referenceMode === "existing" ? props.stepCount : props.stepCount + 1;
+    const genCount = referenceMode === "existing" ? props.stepCount : referenceMode === "hero" ? 1 : props.stepCount + 1;
     const roughCost = (genCount * 0.08).toFixed(2);
     const hasPending = !!heroPending || stepsPending.length > 0;
     const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
@@ -73,7 +73,9 @@ export default function RecipeImagePanel(props: Props) {
         const what =
             referenceMode === "existing"
                 ? `Generate ${props.stepCount} step photo(s) matched to your current image (hero stays)`
-                : `Generate ${props.stepCount + 1} images (1 hero + ${props.stepCount} steps)`;
+                : referenceMode === "hero"
+                    ? `Generate a new hero image only — steps are left untouched`
+                    : `Generate ${props.stepCount + 1} images (1 hero + ${props.stepCount} steps)`;
         if (
             !confirm(`${what} at ~$${roughCost}? This calls the OpenAI API and will spend real credit.`)
         )
@@ -199,11 +201,12 @@ export default function RecipeImagePanel(props: Props) {
                     Reference{" "}
                     <select
                         value={referenceMode}
-                        onChange={(e) => setReferenceMode(e.target.value as "generate" | "existing")}
+                        onChange={(e) => setReferenceMode(e.target.value as "generate" | "existing" | "hero")}
                         disabled={busy}
                         title={canUseExisting ? "" : "This recipe has no current image to match"}
                     >
-                        <option value="generate">Fresh hero</option>
+                        <option value="generate">Fresh hero + steps</option>
+                        <option value="hero">Hero only</option>
                         <option value="existing" disabled={!canUseExisting}>
                             Match current photo
                         </option>

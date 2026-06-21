@@ -1,7 +1,8 @@
 // src/components/SubstitutionsPanel.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { RecipeSub } from "@/lib/subs";
 
 type Props = {
@@ -12,6 +13,11 @@ type Props = {
 };
 
 export default function SubstitutionsPanel({ open, loading, items, onClose }: Props) {
+    // Portal to <body>, so the fixed overlay is positioned against the viewport
+    // and can't be offset by a transformed/relative ancestor on the recipe page.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     useEffect(() => {
         if (!open) return;
         const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -24,9 +30,9 @@ export default function SubstitutionsPanel({ open, loading, items, onClose }: Pr
         };
     }, [open, onClose]);
 
-    if (!open) return null;
+    if (!open || !mounted) return null;
 
-    return (
+    const node = (
         <div className="sp" role="dialog" aria-modal="true" aria-label="Ingredient substitutions" onClick={onClose}>
             <div className="sp-card" onClick={(e) => e.stopPropagation()}>
                 <div className="sp-head">
@@ -64,11 +70,12 @@ export default function SubstitutionsPanel({ open, loading, items, onClose }: Pr
             </div>
 
             <style jsx>{`
+                /* centered modal — desktop & laptop */
                 .sp { position: fixed; inset: 0; z-index: 1100; background: rgba(15, 24, 17, 0.5);
-                    display: flex; align-items: flex-end; justify-content: center; }
-                .sp-card { background: var(--card, #fffdf7); width: 100%; max-width: 620px;
-                    border-radius: 20px 20px 0 0; padding: 22px 24px 28px; max-height: 78vh; overflow: auto;
-                    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18); }
+                    display: flex; align-items: center; justify-content: center; padding: 24px; }
+                .sp-card { position: relative; background: var(--card, #fffdf7); width: 100%; max-width: 620px;
+                    border-radius: 20px; padding: 22px 24px 28px; max-height: 85vh; overflow: auto;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28); }
                 .sp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
                 .sp-kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--terra, #2f7d38); font-weight: 700; }
                 .sp-head h3 { font-family: "Fraunces", Georgia, serif; font-size: 24px; margin: 4px 0 0; color: var(--ink, #20271c); }
@@ -89,7 +96,15 @@ export default function SubstitutionsPanel({ open, loading, items, onClose }: Pr
                     border: 1px solid rgba(47, 125, 56, 0.16); border-radius: 12px; padding: 7px 12px;
                     font-size: 14px; font-weight: 600; color: var(--olive, #225f27); }
                 .sp-sub em { font-style: normal; font-weight: 400; font-size: 12.5px; color: var(--muted, #6f7468); }
+
+                /* bottom sheet — phones */
+                @media (max-width: 560px) {
+                    .sp { align-items: flex-end; padding: 0; }
+                    .sp-card { max-width: none; border-radius: 18px 18px 0 0; max-height: 88vh; padding-bottom: 32px; }
+                }
             `}</style>
         </div>
     );
+
+    return createPortal(node, document.body);
 }

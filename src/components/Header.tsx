@@ -53,7 +53,7 @@ const MENU: Item[] = [
                     { label: "Submit recipe", href: "/submit", note: "Share yours with the community" },
                 ] },
             { heading: "Tools", links: [
-                    { label: "Veganize recipe", href: "/tools/veganize", note: "Coming Soon!" },
+                    { label: "Veganize recipe", href: "/tools/veganize", note: "Powered by Plants. Inspired by Everything." },
                 ] },
         ],
         blurb: "The best recipes here come from the community. Share yours — or paste any recipe into the Veganizer to make it plant-based in seconds.",

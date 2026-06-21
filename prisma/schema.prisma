@@ -421,3 +421,13 @@ model VeganizeRequest {
   @@index([userId, createdAt])
   @@index([inputHash])
 }
+model IngredientSub {
+  id        String   @id @default(cuid())
+  name      String   @unique          // canonical, lowercased: "olive oil"
+  aliases   String   @default("[]")
+  subs      String   @default("[]")   // [{ "name": "avocado oil", "note": "1:1, neutral" }]
+  vegan     Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}

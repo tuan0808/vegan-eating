@@ -124,3 +124,38 @@ export async function swapHero(slug: string): Promise<Result> {
     revalidatePath(`/recipes/${slug}`);
     return { ok: true, message: "Swapped hero ↔ backup." };
 }
+
+// Rebuild `cookalong` from the durable `stepImages` record. Used to recover a
+// recipe whose cook-along was wiped by a form Save (which overwrites cookalong
+// but never touches stepImages). Same merge rules as approve: keep manual
+// photos, replace prior AI ones, fill only steps without a manual photo.
+export async function relinkStepImages(slug: string): Promise<Result> {
+    await requireAdmin();
+    if (!slug) return { ok: false, message: "Missing slug" };
+
+    const recipe = await prisma.recipe.findUnique({ where: { slug } });
+    if (!recipe) return { ok: false, message: "Recipe not found" };
+
+    const stepUrls = parseStepUrls(recipe.stepImages);
+    if (stepUrls.filter(Boolean).length === 0) {
+        return { ok: false, message: "No stored AI step images to re-link." };
+    }
+
+    const existing = parseCookalong(recipe.cookalong);
+    const manual = existing.filter((c) => !c.src.includes("/ai/"));
+    const stepsWithManual = new Set(
+        manual.filter((c) => c.step != null).map((c) => c.step as number)
+    );
+    const generated = stepUrls
+        .map((src, i) => ({ src: src.trim(), step: i }))
+        .filter((c) => c.src !== "" && !stepsWithManual.has(c.step as number));
+
+    await prisma.recipe.update({
+        where: { slug },
+        data: { cookalong: JSON.stringify([...manual, ...generated]) },
+    });
+
+    revalidatePath(`/admin/recipes/${slug}/edit`);
+    revalidatePath(`/recipes/${slug}`);
+    return { ok: true, message: `Re-linked ${generated.length} step photo(s) to the method.` };
+}

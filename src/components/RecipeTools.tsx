@@ -3,11 +3,14 @@
 
 import { useMemo, useState, useTransition } from "react";
 import CookMode from "./CookMode";
+import SubstitutionsPanel from "./SubstitutionsPanel";
 import { scaleAll } from "@/lib/recipe-scale";
 import { addRecipeToShoppingList } from "@/lib/actions/kitchen";
+import { getSubstitutions } from "@/lib/actions/subs";
+import type { RecipeSub } from "@/lib/subs";
 
 export default function RecipeTools({
-                                        ingredients, baseServings, steps, title, timing, recipeId,
+                                        ingredients, baseServings, steps, title, timing, recipeId, photos,
                                     }: {
     ingredients: string[];
     baseServings: number;
@@ -15,6 +18,7 @@ export default function RecipeTools({
     title: string;
     timing?: string;
     recipeId: string;
+    photos?: { src: string; step: number | null }[];
 }) {
     const [servings, setServings] = useState(baseServings);
     const [system, setSystem] = useState<"metric" | "imperial">("metric");
@@ -22,6 +26,9 @@ export default function RecipeTools({
     const [cook, setCook] = useState(false);
     const [added, setAdded] = useState(false);
     const [pending, start] = useTransition();
+    const [subsOpen, setSubsOpen] = useState(false);
+    const [subs, setSubs] = useState<RecipeSub[] | null>(null);
+    const [subsPending, startSubs] = useTransition();
 
     const ratio = servings / baseServings;
     const scaled = useMemo(() => scaleAll(ingredients, ratio, system), [ratio, system, ingredients]);
@@ -37,6 +44,18 @@ export default function RecipeTools({
             const n = await addRecipeToShoppingList(recipeId);
             if (n > 0) { setAdded(true); setTimeout(() => setAdded(false), 1800); }
         });
+
+    // Open the panel; fetch matches once (the action reads the DB, no OpenAI at runtime).
+    // Matched on the original lines — scaling only changes quantities, not the ingredient.
+    const openSubs = () => {
+        setSubsOpen(true);
+        if (subs === null) {
+            startSubs(async () => {
+                const res = await getSubstitutions(ingredients);
+                setSubs(res);
+            });
+        }
+    };
 
     return (
         <>
@@ -82,13 +101,34 @@ export default function RecipeTools({
                         Start Cook Mode
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 3l14 9-14 9V3z" /></svg>
                     </button>
-                    <button className={`rt-shop${added ? " ok" : ""}`} onClick={addToList} disabled={pending}>
-                        {added ? "✓ Added to your shopping list" : "🛒 One-tap shopping list"}
-                    </button>
+
+                    <div className="rt-actions">
+                        <button className={`rt-shop${added ? " ok" : ""}`} onClick={addToList} disabled={pending}>
+                            {added ? (
+                                <>✓ Added</>
+                            ) : (
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /><path d="M2 3h2l2.3 12a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H5.2" /></svg>
+                                    Shopping list
+                                </>
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            className="rt-subs"
+                            onClick={openSubs}
+                            aria-label="Find ingredient substitutions"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3" /></svg>
+                            Substitutions
+                        </button>
+                    </div>
                 </div>
             </aside>
 
-            <CookMode open={cook} onClose={() => setCook(false)} title={title} steps={steps} ingredients={scaled} timing={timing} />
+            <CookMode open={cook} onClose={() => setCook(false)} title={title} steps={steps} ingredients={scaled} timing={timing} photos={photos} />
+
+            <SubstitutionsPanel open={subsOpen} loading={subsPending} items={subs ?? []} onClose={() => setSubsOpen(false)} />
 
             <style jsx>{`
                 .rt-servings { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
@@ -110,11 +150,16 @@ export default function RecipeTools({
                 .rt-scaled-note { font-size: 12px; color: var(--muted, #6f7468); margin: 8px 0 0; }
                 .ing-list li.done span { text-decoration: line-through; opacity: .45; }
                 .rt-cook { margin-top: 20px; width: 100%; justify-content: center; }
-                .rt-shop { margin-top: 10px; width: 100%; background: transparent; border: 1px solid var(--line, #e2e0d5);
-                    border-radius: 12px; padding: 13px; font-weight: 600; font-size: 14.5px; cursor: pointer; color: var(--ink, #1b2a1d); }
-                .rt-shop:hover { border-color: #5BB35F; }
-                .rt-shop.ok { border-color: #5BB35F; color: #1f4a2f; background: rgba(91,179,95,.10); }
-                .rt-shop:disabled { cursor: default; opacity: .8; }
+                .rt-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+                .rt-actions > button { flex: 1 1 130px; min-width: 0; display: inline-flex; align-items: center;
+                    justify-content: center; gap: 7px; border-radius: 12px; padding: 13px 12px;
+                    font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+                .rt-shop { background: #1f4a2f; color: #fff; border: 1px solid #1f4a2f; }
+                .rt-shop:hover { background: #225f27; border-color: #225f27; }
+                .rt-shop.ok { background: rgba(91,179,95,.14); color: #1f4a2f; border-color: #5BB35F; }
+                .rt-shop:disabled { cursor: default; opacity: .85; }
+                .rt-subs { background: #fff; color: var(--ink, #1b2a1d); border: 1px solid var(--line, #e2e0d5); }
+                .rt-subs:hover { border-color: #5BB35F; }
             `}</style>
         </>
     );

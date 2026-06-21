@@ -2,10 +2,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { extractTimer, stepIngredientIndices } from "@/lib/recipe-scale";
 import "./method-steps.css";
 
 type Photo = { src: string; step: number | null };
-type Props = { steps: string[]; photos: Photo[] };
+type Props = {
+    steps: string[];
+    photos: Photo[];
+    /** Optional — when passed, each step shows quiet chips for the ingredients it uses
+     *  (these become the tap target for substitutions later). Omit to hide chips. */
+    ingredients?: string[];
+};
 
 function imgSrc(src: string): string {
     const v = (src || "").trim();
@@ -14,7 +21,32 @@ function imgSrc(src: string): string {
     return "/" + v.replace(/^\.?\//, "");
 }
 
-export default function MethodSteps({ steps, photos }: Props) {
+// "1200" -> "20 min", under a minute -> seconds, over an hour -> "1 hr 10 min".
+function timeLabel(secs: number): string {
+    if (secs < 60) return `${secs} sec`;
+    const m = Math.round(secs / 60);
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    const r = m % 60;
+    return r ? `${h} hr ${r} min` : `${h} hr`;
+}
+
+// Turn a full ingredient line into a short chip label:
+// "2 cloves garlic, minced" -> "Garlic"  ·  "1 cup split peas, rinsed" -> "Split peas"
+function chipLabel(line: string): string {
+    let s = (line || "").toLowerCase();
+    s = s.replace(/\([^)]*\)/g, " ");                                   // drop parentheticals
+    s = s.split(",")[0];                                                // drop prep clause after first comma
+    s = s.replace(/^[\s\d¼½¾⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞/.\-\u2013]+/, "");           // strip a leading amount
+    s = s.replace(
+        /^\s*(kilograms?|kgs?|kg|grams?|g|millilitres?|milliliters?|mls?|ml|litres?|liters?|l|ounces?|oz|pounds?|lbs?|lb|fluid\s*ounces?|fl\s*oz|tablespoons?|tbsps?|tbsp|teaspoons?|tsps?|tsp|cups?|cup|cloves?|cans?|tins?|pinch(?:es)?|handfuls?|pieces?)\b\.?\s*/i,
+        "",
+    );                                                                  // strip a leading unit word
+    s = s.trim();
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : line;
+}
+
+export default function MethodSteps({ steps, photos, ingredients }: Props) {
     // step index -> first photo assigned to it
     const stepPhoto: (string | undefined)[] = new Array(steps.length).fill(undefined);
     for (const p of photos || []) {
@@ -69,25 +101,45 @@ export default function MethodSteps({ steps, photos }: Props) {
 
     return (
         <>
-            <ol className="steps method-steps">
+            <ol className="method-steps">
                 {steps.map((s, i) => {
                     const photo = stepPhoto[i];
+                    const secs = extractTimer(s);
+                    const used = ingredients ? stepIngredientIndices(s, ingredients) : [];
+                    const hasMeta = secs != null || used.length > 0;
                     return (
                         <li key={i}>
-                            <div className={`ms-row${photo ? " has-photo" : ""}`}>
-                                <p>{s}</p>
-                                {photo ? (
-                                    <button
-                                        type="button"
-                                        className="ms-thumb"
-                                        onClick={() => openFor(i)}
-                                        aria-label={`View photo for step ${i + 1}`}
-                                    >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={photo} alt={`Step ${i + 1}`} loading="lazy" />
-                                        <span className="ms-thumb-zoom" aria-hidden="true">⤢</span>
-                                    </button>
-                                ) : null}
+                            <span className="ms-node">{i + 1}</span>
+                            <div className="ms-card">
+                                <div className={`ms-body${photo ? "" : " no-photo"}`}>
+                                    <div className="ms-text">
+                                        <p>{s}</p>
+                                        {hasMeta ? (
+                                            <div className="ms-meta">
+                                                {secs != null ? (
+                                                    <span className="ms-time">⏱ {timeLabel(secs)}</span>
+                                                ) : null}
+                                                {used.map((idx) => (
+                                                    <span key={idx} className="ms-chip">
+                                                        {chipLabel((ingredients as string[])[idx])}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                    {photo ? (
+                                        <button
+                                            type="button"
+                                            className="ms-figure"
+                                            onClick={() => openFor(i)}
+                                            aria-label={`View photo for step ${i + 1}`}
+                                        >
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={photo} alt={`Step ${i + 1}`} loading="lazy" />
+                                            <span className="ms-thumb-zoom" aria-hidden="true">⤢</span>
+                                        </button>
+                                    ) : null}
+                                </div>
                             </div>
                         </li>
                     );

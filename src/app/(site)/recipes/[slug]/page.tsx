@@ -124,6 +124,7 @@ export default async function RecipePage({
                 title={r.title}
                 timing={timing}
                 recipeId={r.id}
+                photos={r.cookalong}
             />
             <div>
               <span className="kicker">About this recipe</span>
@@ -135,7 +136,7 @@ export default async function RecipePage({
               <p style={{ color: "var(--muted)", marginBottom: 28 }}>
                 {[r.prepTime ? `${r.prepTime} min prep` : null, r.cookTime ? `${r.cookTime} min cook` : null].filter(Boolean).join(" · ") || "Tested in our kitchen"}
               </p>
-              <MethodSteps steps={r.steps} photos={r.cookalong} />
+              <MethodSteps steps={r.steps} photos={r.cookalong} ingredients={r.ingredients} />
               {r.courses.length > 0 && (
                   <p style={{ marginTop: 30, fontSize: 14, color: "var(--muted)" }}>Courses: {r.courses.map((c) => titleCase(c)).join(", ")}</p>
               )}

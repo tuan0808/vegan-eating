@@ -1,13 +1,23 @@
 // src/components/CookMode.tsx
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { extractTimer, stepIngredientIndices } from "@/lib/recipe-scale";
+
+type Photo = { src: string; step: number | null };
+
+function imgSrc(src: string): string {
+    const v = (src || "").trim();
+    if (!v) return "";
+    if (/^https?:\/\//i.test(v) || v.startsWith("/")) return v;
+    return "/" + v.replace(/^\.?\//, "");
+}
+
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, "0")}`;
 
 export default function CookMode({
-                                     open, onClose, title, steps, ingredients, timing,
+                                     open, onClose, title, steps, ingredients, timing, photos,
                                  }: {
     open: boolean;
     onClose: () => void;
@@ -15,6 +25,7 @@ export default function CookMode({
     steps: string[];
     ingredients: string[];
     timing?: string;
+    photos?: Photo[];
 }) {
     const [i, setI] = useState(0);
     const [remaining, setRemaining] = useState<number | null>(null);
@@ -31,6 +42,20 @@ export default function CookMode({
     const recRef = useRef<any>(null);
     const touchX = useRef<number | null>(null);
     const swiped = useRef(false);
+
+    // step index -> image src, carrying the most recent photo forward to steps without one
+    const stepSrc = useMemo(() => {
+        const byStep: (string | undefined)[] = new Array(steps.length).fill(undefined);
+        for (const p of photos || []) {
+            if (p.step !== null && p.step !== undefined && p.step >= 0 && p.step < steps.length && byStep[p.step] === undefined) {
+                byStep[p.step] = imgSrc(p.src);
+            }
+        }
+        const out: (string | undefined)[] = new Array(steps.length).fill(undefined);
+        let cur: string | undefined;
+        for (let n = 0; n < steps.length; n++) { if (byStep[n] !== undefined) cur = byStep[n]; out[n] = cur; }
+        return out;
+    }, [photos, steps]);
 
     const stepText = steps[i] ?? "";
     const timerSecs = extractTimer(stepText);
@@ -186,6 +211,12 @@ export default function CookMode({
             </div>
 
             <div className="cm-stage" onClick={onStageClick}>
+                {stepSrc[i] ? (
+                    <div className="cm-photo">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={stepSrc[i]} alt={`Step ${i + 1}`} />
+                    </div>
+                ) : null}
                 <span className="cm-count">Step {i + 1} <i>/ {steps.length}</i></span>
                 <p className="cm-step">{stepText}</p>
 
@@ -253,6 +284,8 @@ export default function CookMode({
                 .cm-dot.on { background: #A7D98C; }
                 .cm-stage { flex: 1; display: flex; flex-direction: column; justify-content: center;
                     padding: 24px 28px; cursor: pointer; max-width: 900px; margin: 0 auto; width: 100%; user-select: none; }
+                .cm-photo { width: 100%; margin-bottom: 22px; }
+                .cm-photo img { display: block; width: 100%; height: min(38vh, 340px); object-fit: cover; border-radius: 16px; }
                 .cm-count { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #9bb295; font-weight: 700; }
                 .cm-count i { font-style: normal; opacity: .55; }
                 .cm-step { font-size: clamp(26px, 4.6vw, 44px); line-height: 1.32; margin: 18px 0 0; font-weight: 500; }

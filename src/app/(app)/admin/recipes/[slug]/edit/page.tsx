@@ -253,6 +253,7 @@ export default async function EditRecipePage({
                     imagePending={recipe.imagePending}
                     stepImagesPending={toArray(recipe.stepImagesPending)}
                     stepCount={toArray(recipe.steps).length}
+                    hasStepImages={toArray(recipe.stepImages).length > 0}
                 />
             </div>
         </div>

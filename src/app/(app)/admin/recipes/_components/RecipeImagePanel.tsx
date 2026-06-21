@@ -6,6 +6,7 @@ import {
     approvePendingImages,
     discardPendingImages,
     swapHero,
+    relinkStepImages,
 } from "../_actions/recipe-images";
 
 type Quality = "low" | "medium" | "high";
@@ -17,6 +18,7 @@ type Props = {
     imagePending: string | null;
     stepImagesPending: string[]; // already parsed from JSON by the server page
     stepCount: number;
+    hasStepImages: boolean; // recipe already has stored AI step images (for re-link)
 };
 
 // Matches the recipe admin convention: absolute URLs and leading-slash paths
@@ -181,11 +183,7 @@ export default function RecipeImagePanel(props: Props) {
                         onClick={() =>
                             run(async () => {
                                 const r = await swapHero(slug);
-                                if (r.ok) {
-                                    const t = image;
-                                    setImage(imageBackup);
-                                    setImageBackup(t);
-                                }
+                                if (r.ok) window.location.reload(); // re-sync the editor form
                                 return r;
                             })
                         }
@@ -234,6 +232,27 @@ export default function RecipeImagePanel(props: Props) {
                 )}
             </div>
 
+            {props.hasStepImages && (
+                <div className="relink">
+                    <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() =>
+                            run(async () => {
+                                const r = await relinkStepImages(slug);
+                                if (r.ok) window.location.reload();
+                                return r;
+                            })
+                        }
+                    >
+                        ↻ Re-link step photos to method
+                    </button>
+                    <span className="relink-hint">
+            Rebuilds the cook-along from the stored AI images — use if a Save wiped them.
+          </span>
+                </div>
+            )}
+
             {/* Progress */}
             {gen && (
                 <div className="prog">
@@ -260,12 +279,7 @@ export default function RecipeImagePanel(props: Props) {
                                 onClick={() =>
                                     run(async () => {
                                         const r = await approvePendingImages(slug);
-                                        if (r.ok) {
-                                            setImageBackup(image);
-                                            if (heroPending) setImage(heroPending);
-                                            setHeroPending(null);
-                                            setStepsPending([]);
-                                        }
+                                        if (r.ok) window.location.reload(); // re-sync editor form with the new cook-along/hero
                                         return r;
                                     })
                                 }
@@ -404,6 +418,17 @@ export default function RecipeImagePanel(props: Props) {
                     background: #fff;
                     border-color: var(--carrot, #e15a22);
                     color: var(--carrot, #e15a22);
+                }
+                .relink {
+                    margin-top: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+                .relink-hint {
+                    font-size: 12px;
+                    color: #6b7066;
                 }
                 .prog {
                     margin-top: 14px;

@@ -18,6 +18,7 @@
 // Flags:
 //   --list-images  print distinct current image values + counts, then exit
 //   --dry          show what would happen; no API calls, no DB writes
+//   --include-hidden  also process hidden (unpublished) articles
 //   --limit N      process at most N articles this run
 //   --start N      1-based resume position within the candidate list
 //   --quality Q    low | medium | high   (default: medium)
@@ -83,6 +84,7 @@ async function main() {
     const dry = hasFlag("dry");
     const force = hasFlag("force");
     const yes = hasFlag("yes");
+    const includeHidden = hasFlag("include-hidden");
 
     const start = Math.max(1, parseInt(getOpt("start") || "1", 10) || 1);
     const limitRaw = parseInt(getOpt("limit") || "0", 10);
@@ -92,7 +94,7 @@ async function main() {
     const quality = (["low", "medium", "high"].includes(qRaw) ? qRaw : "medium") as ImageQuality;
 
     const all = await prisma.article.findMany({
-        where: { hidden: false },
+        where: includeHidden ? {} : { hidden: false },
         orderBy: { id: "asc" },
         select: { id: true, slug: true, title: true, image: true },
     });
@@ -131,7 +133,8 @@ async function main() {
 
     console.log(`\nArticle hero batch (Phase 1)`);
     console.log(`  quality:        ${quality}`);
-    console.log(`  mode:           ${force ? "force (every visible article)" : "missing or placeholder hero only"}`);
+    console.log(`  scope:          ${includeHidden ? "ALL articles (incl. hidden)" : "visible articles only"}`);
+    console.log(`  mode:           ${force ? "force (every article in scope)" : "missing or placeholder hero only"}`);
     console.log(`  placeholder set:${PLACEHOLDER_MARKERS.length ? " " + PLACEHOLDER_MARKERS.join(", ") : " (none — only truly-empty images count as missing!)"}`);
     console.log(`  needs a hero:   ${placeholderCount}`);
     console.log(`  candidates:     ${totalCandidates}`);

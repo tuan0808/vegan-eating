@@ -46,8 +46,7 @@ const ROUGH_USD_PER_IMAGE = 0.08; // mirrors the pipeline's rough estimate
 // fragment of it here (e.g. "default-article", "vegan-eating-bg").
 // ----------------------------------------------------------------------------
 const PLACEHOLDER_MARKERS: string[] = [
-    // "vegan-eating-bg",
-    // "default",
+    "vegan-eating-blog", // matches the default placeholder (vegan-eating-blog.jpg)
 ];
 
 function hasFlag(name: string): boolean {

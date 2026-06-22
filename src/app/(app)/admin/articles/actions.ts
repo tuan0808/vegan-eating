@@ -51,3 +51,40 @@ export async function quickUpdateArticle(
     revalidatePath("/admin/articles");
     revalidatePath(`/articles/${slug}`);
 }
+
+// ---------------------------------------------------------------------------
+// Bulk actions. All operate on an explicit list of slugs the client collected
+// (per-row checkboxes or "select all matching"), so nothing is ever acted on
+// implicitly by filter. Empty list = no-op. Each returns a count for feedback.
+// ---------------------------------------------------------------------------
+
+/** Hide or unhide many articles at once. */
+export async function bulkSetArticlesHidden(slugs: string[], hidden: boolean): Promise<{ count: number }> {
+    await requireAdmin();
+    const list = Array.from(new Set((slugs ?? []).filter(Boolean)));
+    if (list.length === 0) return { count: 0 };
+
+    const res = await prisma.article.updateMany({
+        where: { slug: { in: list } },
+        data: { hidden },
+    });
+
+    revalidatePath("/admin/articles");
+    revalidatePath("/articles");
+    return { count: res.count };
+}
+
+/** Hard-delete many articles at once. Comments cascade via the schema relation. */
+export async function bulkDeleteArticles(slugs: string[]): Promise<{ count: number }> {
+    await requireAdmin();
+    const list = Array.from(new Set((slugs ?? []).filter(Boolean)));
+    if (list.length === 0) return { count: 0 };
+
+    const res = await prisma.article.deleteMany({
+        where: { slug: { in: list } },
+    });
+
+    revalidatePath("/admin/articles");
+    revalidatePath("/articles");
+    return { count: res.count };
+}

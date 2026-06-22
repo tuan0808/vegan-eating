@@ -29,7 +29,17 @@ const initForm = (a: QuickArticle) => ({
 
 const toList = (s: string): string[] => s.split(",").map((t) => t.trim()).filter(Boolean);
 
-export default function ArticleRow({ article }: { article: QuickArticle }) {
+export default function ArticleRow({
+                                       article,
+                                       selectable = false,
+                                       selected = false,
+                                       onToggleSelect,
+                                   }: {
+    article: QuickArticle;
+    selectable?: boolean;
+    selected?: boolean;
+    onToggleSelect?: (slug: string) => void;
+}) {
     const [expanded, setExpanded] = useState(false);
     const [f, setF] = useState(() => initForm(article));
     const [isPending, start] = useTransition();
@@ -57,10 +67,21 @@ export default function ArticleRow({ article }: { article: QuickArticle }) {
     };
 
     return (
-        <div className={`ar-item${article.hidden ? " is-hidden" : ""}${expanded ? " is-editing" : ""}`}>
+        <div className={`ar-item${article.hidden ? " is-hidden" : ""}${expanded ? " is-editing" : ""}${selected ? " is-selected" : ""}`}>
             {!expanded && <Link href={editHref} className="ar-rowlink" aria-label={`Edit ${article.title}`} />}
 
             <div className="ar-itemtop">
+                {selectable && (
+                    <label className="ar-selectbox" title="Select">
+                        <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => onToggleSelect?.(article.slug)}
+                            aria-label={`Select ${article.title}`}
+                        />
+                    </label>
+                )}
+
                 <div className="ar-thumb">
                     {article.image ? (
                         // eslint-disable-next-line @next/next/no-img-element

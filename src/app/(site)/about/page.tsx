@@ -34,8 +34,8 @@ export default function AboutPage() {
         <><PageHero
             image="/header/about.jpg"
             kicker="About Us"
-            title="We rebuilt the whole thing by hand"
-            dek="No WordPress, no plugins, no ads creeping in at the margins. Just a community, a recipe archive, and a lot of testing."
+            title="Made by people who actually cook"
+            dek="Whatever brought you to plants, you're welcome here. Come for the recipes, stay for the community."
         />
             <div className="abt-wrap abt-story">
                 <figure className="abt-portrait">

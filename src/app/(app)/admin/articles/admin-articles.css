@@ -1,0 +1,80 @@
+/* src/app/(app)/admin/articles/admin-articles.css */
+/* Bulk selection + Hidden/Duplicates views for the admin articles list.
+   Scoped under .admin-recipes so it inherits the same --ar-* tokens. */
+
+/* ---- View toggle group (sits opposite the category pills) ---- */
+.admin-recipes .ar-views { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.admin-recipes .ar-views-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ar-muted); margin-right: 2px;
+}
+
+/* Second filter row that holds only the sort toggle, right-aligned. */
+.admin-recipes .ar-filterbar-sort { margin-top: -8px; }
+
+/* ---- Duplicate-view explainer ---- */
+.admin-recipes .ar-dupe-note {
+    font-size: 0.88rem; color: var(--ar-muted); background: var(--ar-field-bg, #fcf9f2);
+    border: 1px solid var(--ar-line); border-radius: 10px; padding: 10px 14px; margin: 0 0 14px;
+    max-width: 720px; line-height: 1.45;
+}
+
+/* ---- Bulk header: select-page + select-all-matching ---- */
+.admin-recipes .ar-bulkhead { display: flex; align-items: center; gap: 18px; margin: 0 0 6px; min-height: 26px; }
+.admin-recipes .ar-bulk-selpage { margin-top: 0; }
+.admin-recipes .ar-bulk-selall {
+    background: none; border: 0; cursor: pointer; font: inherit; font-size: 0.9rem;
+    color: var(--ar-green); font-weight: 600; padding: 0; text-decoration: underline;
+}
+.admin-recipes .ar-bulk-selall:hover { color: #4a5733; }
+.admin-recipes .ar-bulk-count { font-size: 0.88rem; color: var(--ar-muted); }
+
+/* ---- Per-row checkbox (sits above the .ar-rowlink overlay) ---- */
+.admin-recipes .ar-selectbox {
+    position: relative; z-index: 2; flex: 0 0 auto;
+    display: grid; place-items: center; width: 24px; margin-right: -4px; cursor: pointer;
+}
+.admin-recipes .ar-selectbox input { width: 18px; height: 18px; accent-color: var(--ar-green); cursor: pointer; }
+.admin-recipes .ar-item.is-selected { background: rgba(91, 107, 63, 0.10); }
+.admin-recipes .ar-item.is-selected:hover { background: rgba(91, 107, 63, 0.14); }
+
+/* ---- Sticky bulk action bar ---- */
+.admin-recipes .ar-bulkbar {
+    position: sticky; bottom: 16px; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    margin: 16px 0 0; padding: 12px 18px;
+    background: var(--ar-card); border: 1px solid var(--ar-green); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(35, 41, 29, 0.16);
+}
+.admin-recipes .ar-bulkbar-count { font-weight: 600; font-size: 0.95rem; }
+.admin-recipes .ar-bulkbar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.admin-recipes .ar-bulk-btn {
+    background: var(--ar-field-bg, #fcf9f2); color: var(--ar-ink); border: 1px solid var(--ar-line);
+    border-radius: 9px; padding: 8px 14px; font: inherit; font-size: 0.9rem; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+.admin-recipes .ar-bulk-btn:hover { border-color: var(--ar-green); background: #fff; }
+.admin-recipes .ar-bulk-btn:disabled { opacity: 0.55; cursor: default; }
+
+.admin-recipes .ar-bulk-del {
+    background: none; border: 0; color: var(--ar-danger); cursor: pointer;
+    font: inherit; font-size: 0.9rem; padding: 8px 6px;
+}
+.admin-recipes .ar-bulk-del:hover { text-decoration: underline; }
+.admin-recipes .ar-bulk-del:disabled { opacity: 0.55; cursor: default; }
+
+.admin-recipes .ar-bulk-confirm { display: inline-flex; align-items: center; gap: 10px; }
+.admin-recipes .ar-bulk-del-yes {
+    color: #fff; background: var(--ar-danger); border: 0; border-radius: 8px;
+    padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.admin-recipes .ar-bulk-del-yes:hover { background: #8f4230; }
+.admin-recipes .ar-bulk-del-yes:disabled { opacity: 0.6; cursor: default; }
+
+.admin-recipes .ar-bulk-del-no,
+.admin-recipes .ar-bulk-clear {
+    background: none; border: 0; color: var(--ar-muted); cursor: pointer; font: inherit; font-size: 0.9rem;
+}
+.admin-recipes .ar-bulk-del-no:hover,
+.admin-recipes .ar-bulk-clear:hover { color: var(--ar-ink); }

@@ -31,7 +31,7 @@ export const ArticleImage = Image.extend({
 
 export const articleExtensions = [
     StarterKit.configure({
-        heading: { levels: [2, 3] }, // H1 is the page title; codeBlock stays on (from StarterKit)
+        heading: { levels: [2, 3, 4, 5, 6] }, // H1 is the page title; codeBlock stays on (from StarterKit)
     }),
     Link.configure({ openOnClick: false, autolink: true, protocols: ["http", "https", "mailto"] }),
     ArticleImage.configure({ inline: false, allowBase64: false }),

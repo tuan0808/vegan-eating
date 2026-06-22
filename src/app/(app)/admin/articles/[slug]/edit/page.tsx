@@ -7,7 +7,9 @@ import { updateArticle } from "./actions";
 import { ARTICLE_CATEGORIES } from "@/lib/categories";
 import ArticleImagesField from "./ArticleImagesField";
 import ArticleEditor from "./ArticleEditor";
+import ArticleImagePanel from "../../_components/ArticleImagePanel";
 import { parseBody } from "@/lib/article-body";
+import { extractArticleSubtitles } from "@/lib/article-image-pipeline";
 import "../../../recipes/admin-recipes.css";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +22,17 @@ function toTagsText(json: string | null | undefined): string {
         return Array.isArray(v) ? v.join(", ") : "";
     } catch {
         return "";
+    }
+}
+
+// JSON array of image URLs -> string[].
+function toStrArray(json: string | null | undefined): string[] {
+    if (!json) return [];
+    try {
+        const v = JSON.parse(json);
+        return Array.isArray(v) ? v.map(String) : [];
+    } catch {
+        return [];
     }
 }
 
@@ -118,6 +131,21 @@ export default async function EditArticlePage({
                     <Link href="/admin/articles" className="ar-cancel">Cancel</Link>
                 </div>
             </form>
+
+            {/* AI image generation — lives OUTSIDE the form so it never submits it.
+                Generates a hero from the title + one image per subtitle; you drag the
+                results into the body above and save. */}
+            <div style={{ marginTop: 24 }}>
+                <ArticleImagePanel
+                    slug={article.slug}
+                    image={article.image}
+                    imageBackup={article.imageBackup}
+                    imagePending={article.imagePending}
+                    sectionImages={toStrArray(article.sectionImages)}
+                    subtitleCount={extractArticleSubtitles(article.body).length}
+                    hasExistingImage={!!(article.image && article.image.trim())}
+                />
+            </div>
         </div>
     );
 }

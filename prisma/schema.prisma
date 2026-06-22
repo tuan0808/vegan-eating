@@ -68,6 +68,9 @@ model Article {
   hidden    Boolean   @default(false)
   gallery   String    @default("[]")
   comments  Comment[]
+  imageBackup   String?               // previous hero, for swap-back
+  imagePending  String?               // freshly generated hero, awaiting "Set as hero"
+  sectionImages String  @default("[]") // generated per-subtitle images (the draggable gallery)
 
   @@index([sort])
 }

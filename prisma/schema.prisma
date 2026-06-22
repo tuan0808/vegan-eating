@@ -71,7 +71,7 @@ model Article {
   imageBackup   String?               // previous hero, for swap-back
   imagePending  String?               // freshly generated hero, awaiting "Set as hero"
   sectionImages String  @default("[]") // generated per-subtitle images (the draggable gallery)
-
+  bodyBackup String?
 
   @@index([sort])
 }

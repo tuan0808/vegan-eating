@@ -17,8 +17,9 @@ export const maxDuration = 600; // seconds; honored on platforms that read it (h
 // timeouts, which a silent 2-minute server action would trip.
 export async function POST(
     req: NextRequest,
-    { params }: { params: { slug: string } }
+    { params: paramsP }: { params: Promise<{ slug: string }> }
 ) {
+    const params = await paramsP;
     // ---- auth (same pattern as /api/upload: auth() + manual 403, since a
     // redirect thrown inside a route handler does not return cleanly) ----
     const session = await auth();

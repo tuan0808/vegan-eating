@@ -60,12 +60,14 @@ const btnStyle: CSSProperties = {
 };
 
 export default async function NewThreadPage({
-                                                params,
-                                                searchParams,
+                                                params: paramsP,
+                                                searchParams: searchParamsP,
                                             }: {
-    params: { category: string; forum: string };
-    searchParams: { error?: string };
+    params: Promise<{ category: string; forum: string }>;
+    searchParams: Promise<{ error?: string }>;
 }) {
+    const params = await paramsP;
+    const searchParams = await searchParamsP;
     const user = await currentUser();
     if (!user) redirect("/login");
 

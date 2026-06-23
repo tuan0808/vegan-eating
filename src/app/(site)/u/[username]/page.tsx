@@ -10,10 +10,11 @@ import "@/styles/community.css";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
-                                           params,
+                                           params: paramsP,
                                        }: {
-    params: { username: string };
+    params: Promise<{ username: string }>;
 }): Promise<Metadata> {
+    const params = await paramsP;
     return { title: `${params.username} — vegan eating` };
 }
 
@@ -37,10 +38,11 @@ const greenBtn: React.CSSProperties = {
 };
 
 export default async function PublicProfilePage({
-                                                    params,
+                                                    params: paramsP,
                                                 }: {
-    params: { username: string };
+    params: Promise<{ username: string }>;
 }) {
+    const params = await paramsP;
     const data = await publicProfile(params.username);
     if (!data || data.user.banned) notFound();
 

@@ -21,10 +21,11 @@ import { newsJsonLdScript } from "@/lib/news-jsonld";
 export const revalidate = 3600;
 
 export async function generateMetadata({
-                                           params,
+                                           params: paramsP,
                                        }: {
-    params: { slug: string };
+    params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+    const params = await paramsP;
     const a = await getNewsArticleBySlug(params.slug);
     if (!a) return { title: "Story not found", robots: { index: false, follow: false } };
     return pageMetadata({
@@ -74,7 +75,8 @@ function NewsRail({ title, items }: { title: string; items: NewsCard[] }) {
     );
 }
 
-export default async function NewsArticlePage({ params }: { params: { slug: string } }) {
+export default async function NewsArticlePage({ params: paramsP }: { params: Promise<{ slug: string }> }) {
+    const params = await paramsP;
     const a = await getNewsArticleBySlug(params.slug);
     if (!a) notFound();
 

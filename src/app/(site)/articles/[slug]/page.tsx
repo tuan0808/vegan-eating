@@ -62,7 +62,8 @@ function Rail({ title, items }: { title: string; items: Article[] }) {
     );
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params: paramsP }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const params = await paramsP;
     const a = await getArticleBySlug(params.slug);
     if (!a) return { title: "Article not found", robots: { index: false, follow: false } };
     return pageMetadata({
@@ -74,7 +75,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     });
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params: paramsP }: { params: Promise<{ slug: string }> }) {
+    const params = await paramsP;
     const a = await getArticleBySlug(params.slug);
     if (!a) notFound();
 

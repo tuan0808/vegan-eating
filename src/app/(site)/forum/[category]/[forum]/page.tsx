@@ -11,8 +11,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export async function generateMetadata(
-    { params }: { params: { category: string; forum: string } }
+    { params: paramsP }: { params: Promise<{ category: string; forum: string }> }
 ): Promise<Metadata> {
+    const params = await paramsP;
     const view = await getForumView(params.category, params.forum);
     if (!view) return { title: "Forum — vegan eating" };
     return {
@@ -22,8 +23,9 @@ export async function generateMetadata(
 }
 
 export default async function ForumViewPage(
-    { params }: { params: { category: string; forum: string } }
+    { params: paramsP }: { params: Promise<{ category: string; forum: string }> }
 ) {
+    const params = await paramsP;
     const view = await getForumView(params.category, params.forum);
     if (!view) notFound();
 

@@ -28,7 +28,8 @@ function statusPill(sub: { status: string } | null): { text: string; bg: string;
 
 const H2: React.CSSProperties = { fontFamily: "var(--display, 'Fraunces', serif)", fontSize: 20, margin: "24px 0 10px", color: "var(--ink, #1c2317)" };
 
-export default async function GenerationDetailPage({ params }: { params: { id: string } }) {
+export default async function GenerationDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+    const params = await paramsP;
     await requireRole(["ADMIN"]);
 
     const req = await prisma.veganizeRequest.findUnique({

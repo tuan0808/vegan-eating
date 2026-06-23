@@ -29,7 +29,8 @@ function statusPill(status: string): { text: string; bg: string; color: string }
     return { text: "In review", bg: "rgba(225,90,34,0.12)", color: "#9a3f1f" };
 }
 
-export default async function SubmissionDetailPage({ params }: { params: { id: string } }) {
+export default async function SubmissionDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+    const params = await paramsP;
     const user = await currentUser();
     if (!user) redirect("/login");
 

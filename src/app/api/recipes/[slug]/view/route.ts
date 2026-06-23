@@ -6,7 +6,8 @@ import { recordMemberView, viewSummary } from "@/lib/views";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_req: Request, { params }: { params: { slug: string } }) {
+export async function POST(_req: Request, { params: paramsP }: { params: Promise<{ slug: string }> }) {
+    const params = await paramsP;
     const slug = params?.slug;
     if (!slug) return NextResponse.json({ error: "missing slug" }, { status: 400 });
     try {

@@ -13,16 +13,18 @@ export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export async function generateMetadata(
-    { params }: { params: { category: string; forum: string; thread: string } }
+    { params: paramsP }: { params: Promise<{ category: string; forum: string; thread: string }> }
 ): Promise<Metadata> {
+    const params = await paramsP;
     const view = await getThreadView(params.category, params.forum, params.thread);
     if (!view) return { title: "Thread — vegan eating" };
     return { title: `${view.title} — Forums — vegan eating` };
 }
 
 export default async function ThreadPage(
-    { params }: { params: { category: string; forum: string; thread: string } }
+    { params: paramsP }: { params: Promise<{ category: string; forum: string; thread: string }> }
 ) {
+    const params = await paramsP;
     const view = await getThreadView(params.category, params.forum, params.thread);
     if (!view) notFound();
 

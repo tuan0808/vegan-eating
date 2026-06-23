@@ -41,7 +41,8 @@ function imgSrc(src?: string | null): string | null {
   return "/" + src.replace(/^\.?\//, "");
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params: paramsP }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await paramsP;
   const r = await getRecipeBySlug(params.slug);
   if (!r) return { title: "Recipe not found", robots: { index: false, follow: false } };
   return pageMetadata({
@@ -53,7 +54,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   });
 }
 
-export default async function RecipePage({ params }: { params: { slug: string } }) {
+export default async function RecipePage({ params: paramsP }: { params: Promise<{ slug: string }> }) {
+  const params = await paramsP;
   const r = await getRecipeBySlug(params.slug);
   if (!r) notFound();
 

@@ -11,10 +11,11 @@ import "@/styles/community.css";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
-                                           params,
+                                           params: paramsP,
                                        }: {
-    params: { username: string };
+    params: Promise<{ username: string }>;
 }): Promise<Metadata> {
+    const params = await paramsP;
     return { title: `Chat with ${params.username} — vegan eating` };
 }
 
@@ -28,10 +29,11 @@ function fmt(d: Date) {
 }
 
 export default async function ConversationPage({
-                                                   params,
+                                                   params: paramsP,
                                                }: {
-    params: { username: string };
+    params: Promise<{ username: string }>;
 }) {
+    const params = await paramsP;
     const me = await requireUser();
     const convo = await conversationWith(me.id, params.username);
     if (!convo) notFound();

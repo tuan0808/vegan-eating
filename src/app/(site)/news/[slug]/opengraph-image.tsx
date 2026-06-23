@@ -7,7 +7,8 @@ export const alt = "vegan eating — news";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
-export default async function Image({ params }: { params: { slug: string } }) {
+export default async function Image({ params: paramsP }: { params: Promise<{ slug: string }> }) {
+    const params = await paramsP;
     const a = await getNewsArticleBySlug(params.slug);
     return ogImage({ kicker: "News", title: a?.title || "vegan eating" });
 }

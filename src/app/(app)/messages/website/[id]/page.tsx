@@ -12,7 +12,8 @@ import "@/styles/community.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Inquiry — vegan eating" };
 
-export default async function TicketPage({ params }: { params: { id: string } }) {
+export default async function TicketPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+    const params = await paramsP;
     const me = await requireRole(["ADMIN"]);
     const ticket = await getTicketById(params.id);
     if (!ticket) notFound();

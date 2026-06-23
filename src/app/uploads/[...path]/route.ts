@@ -27,7 +27,8 @@ const TYPES: Record<string, string> = {
     ".svg": "image/svg+xml",
 };
 
-export async function GET(_req: NextRequest, { params }: { params: { path: string[] } }) {
+export async function GET(_req: NextRequest, { params: paramsP }: { params: Promise<{ path: string[] }> }) {
+    const params = await paramsP;
     const rel = (params.path || []).join("/");
     const abs = path.join(ROOT, rel);
 

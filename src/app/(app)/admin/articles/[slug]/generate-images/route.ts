@@ -17,7 +17,8 @@ export const maxDuration = 600;
 // generated hero to `imagePending` (you "Set as hero" when ready) and the section
 // images to `sectionImages` (the draggable gallery). It never touches `body`,
 // `image`, or `gallery`, so it can't clobber the editor or your hero.
-export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function POST(req: NextRequest, { params: paramsP }: { params: Promise<{ slug: string }> }) {
+    const params = await paramsP;
     const session = await auth();
     if (session?.user?.role !== "ADMIN") {
         return new Response("Forbidden", { status: 403 });

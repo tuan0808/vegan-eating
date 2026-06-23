@@ -37,12 +37,14 @@ function toStrArray(json: string | null | undefined): string[] {
 }
 
 export default async function EditArticlePage({
-                                                  params,
-                                                  searchParams,
+                                                  params: paramsP,
+                                                  searchParams: searchParamsP,
                                               }: {
-    params: { slug: string };
-    searchParams: { saved?: string };
+    params: Promise<{ slug: string }>;
+    searchParams: Promise<{ saved?: string }>;
 }) {
+    const params = await paramsP;
+    const searchParams = await searchParamsP;
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 

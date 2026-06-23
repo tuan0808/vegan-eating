@@ -7,10 +7,11 @@ import CommentModActions from '@/components/admin/CommentModActions'
 import '../../comments-admin.css'
 
 export default async function ContentThreadPage({
-                                                    params,
+                                                    params: paramsP,
                                                 }: {
-    params: { type: string; id: string }
+    params: Promise<{ type: string; id: string }>
 }) {
+    const params = await paramsP
     const user = await currentUser()
     if (!user || !(user.role === 'ADMIN' || user.role === 'MODERATOR')) redirect('/')
 

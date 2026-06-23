@@ -7,7 +7,8 @@ export const alt = "vegan eating — recipe";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
-export default async function Image({ params }: { params: { slug: string } }) {
+export default async function Image({ params: paramsP }: { params: Promise<{ slug: string }> }) {
+    const params = await paramsP;
     const r = await getRecipeBySlug(params.slug);
     return ogImage({ kicker: r?.recipeType || "Recipe", title: r?.title || "vegan eating" });
 }

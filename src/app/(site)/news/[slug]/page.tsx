@@ -12,8 +12,12 @@ import "@/app/(site)/articles/[slug]/article-content.css";
 import PostFooter from "@/components/post/PostFooter";
 import { getNewsArticleBySlug, listRelatedNews, listLatestNews, type NewsCard } from "@/lib/news";
 import { textToTiptap } from "@/lib/news-body";
+import { pageMetadata, toISO, breadcrumbJsonLdScript } from "@/lib/seo";
+import { newsJsonLdScript } from "@/lib/news-jsonld";
 
-export const dynamic = "force-dynamic";
+// ISR: curated stories are stored in the DB and served statically, revalidated
+// hourly. No cookies/searchParams here, so the route stays cacheable.
+// (On hide/sync, call revalidatePath(`/news/${slug}`) to refresh immediately.)
 export const revalidate = 3600;
 
 export async function generateMetadata({
@@ -22,8 +26,14 @@ export async function generateMetadata({
     params: { slug: string };
 }): Promise<Metadata> {
     const a = await getNewsArticleBySlug(params.slug);
-    if (!a) return { title: "Story not found — vegan eating" };
-    return { title: `${a.title} — vegan eating`, description: a.description || undefined };
+    if (!a) return { title: "Story not found", robots: { index: false, follow: false } };
+    return pageMetadata({
+        title: a.title,
+        description: a.description || undefined,
+        path: `/news/${a.slug}`,
+        type: "article",
+        publishedTime: toISO(a.pubDate),
+    });
 }
 
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
@@ -77,8 +87,20 @@ export default async function NewsArticlePage({ params }: { params: { slug: stri
         listLatestNews(a.slug, 5),
     ]);
 
+    // schema.org/NewsArticle JSON-LD — same shape as recipes/articles.
+    const newsJsonLd = newsJsonLdScript(a, {
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://veganeating.com",
+        mediaBaseUrl: process.env.NEXT_PUBLIC_MEDIA_BASE_URL,
+    });
+    const breadcrumbJsonLd = breadcrumbJsonLdScript([
+        { name: "News", path: "/news" },
+        { name: a.title, path: `/news/${a.slug}` },
+    ]);
+
     return (
         <>
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: newsJsonLd }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
             {/* Hero — plain <img> so any publisher image host works without config. */}
             <section className="recipe-hero">
                 <div className="hero-bg">

@@ -140,6 +140,15 @@ export async function getNewsArticleBySlug(slug?: string | null): Promise<Stored
     };
 }
 
+// Slugs (+ pubDate) of every visible news story, for the sitemap.
+export async function allNewsSlugs(): Promise<{ slug: string; pubDate: Date }[]> {
+    return prisma.newsArticle.findMany({
+        where: { hidden: false },
+        select: { slug: true, pubDate: true },
+        orderBy: { pubDate: "desc" },
+    });
+}
+
 export async function listRelatedNews(
     categories: string[],
     excludeSlug: string,

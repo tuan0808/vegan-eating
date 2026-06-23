@@ -5,11 +5,15 @@ import Pagination from "@/components/Pagination";
 import { listRecipes } from "@/lib/recipes";
 import { slugify, buildWhere } from "@/lib/recipe-filters";
 import { pills } from "@/data/site";
-import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "All recipes — vegan eating", description: "Browse every tested plant-based recipe." };
+export const metadata = pageMetadata({
+    title: "All recipes",
+    description: "Browse every tested plant-based recipe — breakfasts, mains, baking, salads and more.",
+    path: "/recipes",
+});
 
 export default async function RecipesPage({ searchParams }: { searchParams: { page?: string; cat?: string; q?: string } }) {
     const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);

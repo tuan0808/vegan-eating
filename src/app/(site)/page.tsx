@@ -6,9 +6,13 @@ import HomeSearch from "@/components/HomeSearch";
 import RecipeCard from "@/components/RecipeCard";
 import { latestRecipes, randomRecipes } from "@/lib/recipes";
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 
 // random picks differ per visit, so render on each request
 export const dynamic = "force-dynamic";
+
+// Home uses the site-default title; this adds the self-canonical + OG card.
+export const metadata = pageMetadata({ path: "/" });
 
 const Arrow = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>

@@ -18,6 +18,7 @@ import RecipeCardActions from "@/components/kitchen/RecipeCardActions";
 import "@/app/(site)/articles/[slug]/article-content.css";
 import "@/styles/kitchen.css";
 import { recipeJsonLdScript } from "@/lib/recipe-jsonld";
+import { pageMetadata, toISO, breadcrumbJsonLdScript } from "@/lib/seo";
 
 
 // ISR: the page renders statically and revalidates hourly. Anything
@@ -42,8 +43,14 @@ function imgSrc(src?: string | null): string | null {
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const r = await getRecipeBySlug(params.slug);
-  if (!r) return { title: "Recipe not found — vegan eating" };
-  return { title: `${r.title} — vegan eating`, description: tiptapText(parseBody(r.description)).slice(0, 155) };
+  if (!r) return { title: "Recipe not found", robots: { index: false, follow: false } };
+  return pageMetadata({
+    title: r.title,
+    description: tiptapText(parseBody(r.description)).slice(0, 155),
+    path: `/recipes/${r.slug}`,
+    type: "article",
+    publishedTime: toISO(r.date),
+  });
 }
 
 export default async function RecipePage({ params }: { params: { slug: string } }) {
@@ -78,9 +85,15 @@ export default async function RecipePage({ params }: { params: { slug: string } 
       },
   );
 
+  const breadcrumbJsonLd = breadcrumbJsonLdScript([
+    { name: "Recipes", path: "/recipes" },
+    { name: r.title, path: `/recipes/${r.slug}` },
+  ]);
+
   return (
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeJsonLd }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
         <section className="recipe-hero">
           <div className="hero-bg">
             {heroImg ? (

@@ -135,3 +135,13 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
 export async function recipeCount(): Promise<number> {
     return prisma.recipe.count({ where: recipeWhere });
 }
+
+// Slugs (+ free-form date) of every public recipe, for the sitemap. Applies
+// recipeWhere so the non-recipe junk slugs and soft-hidden recipes are excluded.
+export async function allRecipeSlugs(): Promise<{ slug: string; date: string | null }[]> {
+    return prisma.recipe.findMany({
+        where: recipeWhere,
+        select: { slug: true, date: true },
+        orderBy: { sort: "asc" },
+    });
+}

@@ -36,7 +36,6 @@ export default function Comments({ target, path, page }: CommentsProps) {
     const [data, setData] = useState<Payload | null>(null)
     const [loading, setLoading] = useState(true)
     const sectionRef = useRef<HTMLElement>(null)
-    const didMount = useRef(false)
 
     // Read the deep-link page from the URL on mount (no useSearchParams, so the
     // host page can stay statically rendered without a Suspense boundary).
@@ -65,24 +64,32 @@ export default function Comments({ target, path, page }: CommentsProps) {
         if (ready) load(current)
     }, [ready, current, load])
 
-    // Reflect the page in the URL for shareable links. Pure history update —
-    // no Next navigation, since the static route ignores ?cpage anyway.
+    // Reflect the comment page in the URL for shareable links. Pure history
+    // update — no Next navigation, since the static route ignores ?cpage anyway.
+    // Only writes once the reader paginates (current > 1); on page 1 it leaves
+    // the URL untouched, so a plain visit never gets a spurious "?cpage=1#comments".
+    // We track whether we dirtied the URL so returning to page 1 can clean it up.
+    const urlDirty = useRef(false)
     useEffect(() => {
         if (!ready) return
-        const url = current > 1 ? `${path}?cpage=${current}#comments` : `${path}#comments`
-        window.history.replaceState(null, '', url)
+        if (current > 1) {
+            window.history.replaceState(null, '', `${path}?cpage=${current}#comments`)
+            urlDirty.current = true
+        } else if (urlDirty.current) {
+            // Paginated and came back to page 1 — restore the clean URL.
+            window.history.replaceState(null, '', path)
+            urlDirty.current = false
+        }
     }, [ready, current, path])
 
-    // Jump back to the section header when the page changes (not on first load).
-    useEffect(() => {
-        if (!didMount.current) {
-            didMount.current = true
-            return
-        }
+    // Pagination only. Scroll to the section header here — driven by the user's
+    // click, not an effect on `current` — so it never fires on mount (an effect
+    // would, because React Strict Mode double-invokes mount effects in dev and
+    // defeats a "skip first run" ref guard).
+    const goTo = (p: number) => {
+        setCurrent(Math.max(1, p))
         sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, [current])
-
-    const goTo = (p: number) => setCurrent(Math.max(1, p))
+    }
     const refresh = () => load(current)
 
     const ratable = 'recipeId' in target || 'articleId' in target

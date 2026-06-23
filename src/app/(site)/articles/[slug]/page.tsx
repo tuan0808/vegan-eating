@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { getArticleBySlug, listRelatedArticles, listPopularArticles, listRecentArticles } from "@/lib/articles";
 import { viewSummary } from "@/lib/views";
-import { auth } from "@/auth";
 import type { Article } from "@/data/articles";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -15,9 +14,16 @@ import NewsletterForm from "./NewsletterForm";
 import ArticleBody from "./ArticleBody";
 import { tiptapText, firstParagraphText } from "@/lib/article-body";
 import { articleJsonLdScript } from "@/lib/article-jsonld";
+import { pageMetadata, toISO, breadcrumbJsonLdScript } from "@/lib/seo";
 import "./article-content.css";
 
-export const dynamic = "force-dynamic";
+// ISR: renders statically and revalidates hourly. Per-request work (view
+// logging, session-scoped throttling, comment pagination) lives in client
+// islands — RecipeViews and Comments read the browser/URL themselves — so this
+// route never touches cookies/searchParams and stays cacheable. Like recipes.
+// (On an article edit, call revalidatePath(`/articles/${slug}`) to refresh now.)
+export const revalidate = 3600;
+
 function imgSrc(src?: string | null): string | null {
     if (!src) return null;
     if (/^https?:\/\//i.test(src) || src.startsWith("/")) return src;
@@ -58,22 +64,24 @@ function Rail({ title, items }: { title: string; items: Article[] }) {
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
     const a = await getArticleBySlug(params.slug);
-    if (!a) return { title: "Article not found — vegan eating" };
-    return { title: `${a.title} — vegan eating`, description: firstParagraphText(a.body).slice(0, 155) };
+    if (!a) return { title: "Article not found", robots: { index: false, follow: false } };
+    return pageMetadata({
+        title: a.title,
+        description: firstParagraphText(a.body).slice(0, 155),
+        path: `/articles/${a.slug}`,
+        type: "article",
+        publishedTime: toISO(a.date),
+    });
 }
 
-export default async function ArticlePage({ params, searchParams }: { params: { slug: string }; searchParams?: { cpage?: string } }) {
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
     const a = await getArticleBySlug(params.slug);
     if (!a) notFound();
-
-    const cpage = Number(searchParams?.cpage) || 1;
 
     const img = imgSrc(a.image);
     const bodyText = tiptapText(a.body);
     const mins = readingMinutes(bodyText);
     const views = await viewSummary("article", String(a.id));
-    const session = await auth();
-    const viewerKey = session?.user?.id ?? session?.user?.email ?? "anon";
 
     const [related, popular, recent] = await Promise.all([
         listRelatedArticles(a.category, a.slug, 6),
@@ -94,10 +102,16 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
         },
     );
 
+    const breadcrumbJsonLd = breadcrumbJsonLdScript([
+        { name: "Articles", path: "/articles" },
+        { name: a.title, path: `/articles/${a.slug}` },
+    ]);
+
     return (
         <>
             <ReadingProgress />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleJsonLd }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
 
             <section className="recipe-hero">
                 <div className="hero-bg">
@@ -116,7 +130,7 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                         {a.date ? <span>{a.date}</span> : null}
                         <span>⏱ <b>{mins} min read</b></span>
                     </div>
-                    <RecipeViews kind="article" slug={a.slug} count={views.count} initials={views.initials} viewerKey={viewerKey} log />
+                    <RecipeViews kind="article" slug={a.slug} count={views.count} initials={views.initials} log />
                 </div>
             </section>
 
@@ -140,7 +154,6 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
                             authorName="Vegor"
                             commentTarget={{ articleId: a.id! }}
                             commentPath={`/articles/${params.slug}`}
-                            commentPage={cpage}
                             related={related.map(toItem)}
                             more={recent.map(toItem)}
                             basePath="/articles"

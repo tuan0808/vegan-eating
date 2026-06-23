@@ -5,11 +5,15 @@ import Pagination from "@/components/Pagination";
 import { listArticles } from "@/lib/articles";
 import { ARTICLE_CATEGORIES } from "@/lib/categories";
 import { slugify } from "@/lib/recipe-filters";
-import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Health & articles — vegan eating" };
+export const metadata = pageMetadata({
+    title: "Health & articles",
+    description: "Plant-based nutrition, wellbeing and how-to guides from the vegan eating kitchen.",
+    path: "/articles",
+});
 
 export default async function ArticlesPage({ searchParams }: { searchParams: { page?: string; cat?: string } }) {
     const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);

@@ -78,6 +78,26 @@ npm run build
 npm run dev
 ```
 
+kill all instances
+```bash
+# 1) Kill every running Next process — dev server and its workers
+pkill -f "next dev"; pkill -f "next-server"
+# if something's still holding port 3000:
+lsof -ti:3000 | xargs -r kill -9
+
+# 2) Make sure your local Postgres container is up (prisma needs a live DB)
+docker compose down
+docker compose up -d
+
+# 3) Apply the schema (adds the 4 AI-image columns) and regenerate the client
+npx prisma db push
+npx prisma generate
+echo $DATABASE_URL
+
+rm -rf .next tsconfig.tsbuildinfo && npm run build
+npm run dev
+```
+
 ---
 
 ## Opening it in WebStorm

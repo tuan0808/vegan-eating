@@ -53,6 +53,10 @@ export default function PostFooter({
                 )}
             </div>
 
+            {commentTarget && commentPath ? (
+                <Comments target={commentTarget} path={commentPath} page={commentPage} />
+            ) : null}
+
             <ShareButtons title={shareTitle} noun={shareNoun} />
 
             {/* Static team card — same on every page type. */}
@@ -86,10 +90,6 @@ export default function PostFooter({
                     </div>
                 </div>
             </div>
-
-            {commentTarget && commentPath ? (
-                <Comments target={commentTarget} path={commentPath} page={commentPage} />
-            ) : null}
 
             <OtherPosts
                 related={related}

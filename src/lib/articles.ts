@@ -51,6 +51,16 @@ export async function articleCount(): Promise<number> {
     return prisma.article.count({ where: articleWhere });
 }
 
+// Slugs (+ free-form date) of every visible article, for the sitemap. Light
+// projection so we never hydrate full article bodies just to list URLs.
+export async function allArticleSlugs(): Promise<{ slug: string; date: string | null }[]> {
+    return prisma.article.findMany({
+        where: articleWhere,
+        select: { slug: true, date: true },
+        orderBy: { sort: "asc" },
+    });
+}
+
 // Articles in the same category (the "Related" rails). Falls back to recent
 // visible articles when the current article has no category set.
 export async function listRelatedArticles(category: string, excludeSlug: string, limit = 4): Promise<Article[]> {

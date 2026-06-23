@@ -9,8 +9,12 @@ import { allArticleSlugs } from "@/lib/articles";
 import { allRecipeSlugs } from "@/lib/recipes";
 import { allNewsSlugs } from "@/lib/news";
 
-// Re-fetch at most hourly — matches the content routes' ISR window.
-export const revalidate = 3600;
+// Render at request time, never at build. The slug queries below need the DB,
+// and on DigitalOcean DATABASE_URL is only in the *run* scope, not the build
+// scope — so a build-time prerender (which ISR/`revalidate` would force) fails
+// with "Environment variable not found: DATABASE_URL". force-dynamic defers the
+// render to request time, when the DB env is present.
+export const dynamic = "force-dynamic";
 
 const url = (path: string) => `${SITE_URL}${path}`;
 

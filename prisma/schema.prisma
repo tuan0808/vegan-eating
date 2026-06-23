@@ -72,6 +72,7 @@ model Article {
   imagePending  String?               // freshly generated hero, awaiting "Set as hero"
   sectionImages String  @default("[]") // generated per-subtitle images (the draggable gallery)
   bodyBackup String?
+  legacyBody String?
 
   @@index([sort])
 }

@@ -40,7 +40,7 @@ config({ path: ".env" });
 
 import * as readline from "node:readline";
 import { prisma } from "../src/lib/prisma";
-import { generateArticleImageSet, MAX_SECTIONS } from "../src/lib/article-image-pipeline";
+import { generateArticleImageSet, MAX_SECTIONS, parseSectionItems } from "../src/lib/article-image-pipeline";
 import type { ImageQuality } from "../src/lib/openai-images";
 
 const ROUGH_USD_PER_IMAGE = 0.08;
@@ -117,21 +117,42 @@ function stripAiImages(doc: any): any {
     return { ...doc, content };
 }
 
-function imageNode(src: string) {
-    // Matches the public renderer (ArticleBody): reads attrs.src + attrs.align (full|left|right).
-    return { type: "image", attrs: { src, align: "full" } };
+function imageNode(src: string, align: "full" | "left" | "right") {
+    // Matches the public renderer (ArticleBody): reads attrs.src + attrs.align.
+    return { type: "image", attrs: { src, align } };
+}
+
+// Alignment rhythm: multi-item sections become full-width compositions; single
+// subjects float, alternating left/right with the text wrapping around them.
+function computeAligns(anchors: { index: number; title: string }[]): ("full" | "left" | "right")[] {
+    let floatTurn = 0;
+    return anchors.map((a) => {
+        const items = parseSectionItems(a.title);
+        if (items.length >= 2 && items.length <= 4) return "full";
+        const al = floatTurn % 2 === 0 ? "left" : "right";
+        floatTurn++;
+        return al;
+    });
 }
 
 /** Splice an image node after each anchor block. urls aligned to anchors; "" skipped. */
-function insertAfterAnchors(doc: any, anchors: { index: number; title: string }[], urls: string[]): any {
-    const after = new Map<number, string>();
+function insertAfterAnchors(
+    doc: any,
+    anchors: { index: number; title: string }[],
+    urls: string[],
+    aligns: ("full" | "left" | "right")[]
+): any {
+    const after = new Map<number, { src: string; align: "full" | "left" | "right" }>();
     anchors.forEach((a, i) => {
-        if (urls[i]) after.set(a.index, urls[i]);
+        if (urls[i]) after.set(a.index, { src: urls[i], align: aligns[i] ?? "full" });
     });
     const out: any[] = [];
     (Array.isArray(doc?.content) ? doc.content : []).forEach((n: any, i: number) => {
         out.push(n);
-        if (after.has(i)) out.push(imageNode(after.get(i)!));
+        if (after.has(i)) {
+            const m = after.get(i)!;
+            out.push(imageNode(m.src, m.align));
+        }
     });
     return { ...doc, content: out };
 }
@@ -261,7 +282,8 @@ async function main() {
             );
 
             const urls = result.sectionUrls;
-            const newDoc = insertAfterAnchors(doc, anchors, urls);
+            const aligns = computeAligns(anchors);
+            const newDoc = insertAfterAnchors(doc, anchors, urls, aligns);
             const hadBackup = !!(row.bodyBackup && row.bodyBackup.trim());
 
             await prisma.article.update({

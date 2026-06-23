@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth-helpers";
 import { myProfileRecord } from "@/lib/community";
 import AccountForm from "./account-form";
+import PasswordSection from "./PasswordSection";
 import "@/styles/community.css";
 
 export const dynamic = "force-dynamic";
@@ -31,10 +32,7 @@ export default async function SettingsPage() {
             <div className="cm-sec">
                 <h2>Password</h2>
             </div>
-            <div className="cm-empty">
-                Password change wires into your existing hashing util — tell me which one your
-                sign-up uses (bcrypt? argon?) and I&apos;ll drop in the change-password action.
-            </div>
+            <PasswordSection />
         </div>
     );
 }

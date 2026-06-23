@@ -55,3 +55,40 @@ export async function sendVerificationEmail(to: string, token: string) {
 
     return data
 }
+
+export async function sendPasswordResetEmail(to: string, token: string) {
+    if (!process.env.RESEND_API_KEY) {
+        throw new Error(
+            'RESEND_API_KEY is not set at runtime — cannot send password reset email.'
+        )
+    }
+
+    const url = `${BASE}/settings/reset-password?token=${encodeURIComponent(token)}`
+
+    const { data, error } = await resend.emails.send({
+        from: FROM,
+        to,
+        subject: 'Reset your password — vegan eating',
+        html: `
+      <div style="font-family:Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;color:#2a2a24">
+        <h1 style="font-size:22px;margin:0 0 12px">Reset your password</h1>
+        <p style="line-height:1.55">We got a request to change the password on your vegan eating account. Click below to choose a new one.</p>
+        <p style="margin:26px 0">
+          <a href="${url}" style="background:#5b6b3f;color:#fff;text-decoration:none;padding:12px 24px;border-radius:999px;font-weight:600;display:inline-block">Reset password</a>
+        </p>
+        <p style="color:#7a7a70;font-size:13px;line-height:1.5">Or paste this link into your browser:<br>${url}</p>
+        <p style="color:#7a7a70;font-size:13px">This link expires in 1 hour. If you didn't ask for this, you can safely ignore this email — your password won't change.</p>
+      </div>
+    `,
+    })
+
+    if (error) {
+        throw new Error(
+            `Resend rejected the password reset email: ${error.name ?? 'error'} — ${
+                error.message ?? JSON.stringify(error)
+            }`
+        )
+    }
+
+    return data
+}

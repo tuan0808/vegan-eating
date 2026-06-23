@@ -98,7 +98,8 @@ model User {
   createdAt     DateTime  @default(now())
   onboardedAt   DateTime? // set when they read the welcome thread; gates posting
 
-  emailTokens EmailVerificationToken[]
+  emailTokens         EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
   comments    Comment[]
   threads     Thread[]
   posts       Post[]
@@ -254,6 +255,21 @@ model EmailVerificationToken {
   @@index([userId])
 }
 
+// Single-use, short-lived token for password resets. Mirrors
+// EmailVerificationToken. A reset is gated on email ownership: the token is
+// emailed, so possessing it proves the holder controls the inbox. One live
+// token per user (createPasswordResetToken clears prior ones).
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 // Direct messages between two users. Flat table — a "conversation" is just
 // the set of rows between two userIds, grouped in the query layer. Keeps the
 // inbox simple; no separate Conversation table to maintain.
@@ -283,6 +299,26 @@ model ItemView {
 
   @@unique([kind, itemId, userId])
   @@index([kind, itemId])
+}
+
+// One row per public pageview (anonymous + members), written by /api/track from
+// a client beacon — the only reliable counter for ISR/statically rendered pages.
+// Powers the admin Analytics dashboard. No PII: `visitor` is a cookieless daily
+// hash, query strings are stripped from `path`.
+model PageView {
+  id        String   @id @default(cuid())
+  path      String   // pathname only, e.g. "/recipes/creamy-pasta" (no query)
+  kind      String   @default("page") // "recipe" | "article" | "news" | "page"
+  slug      String?  // content slug when kind != "page"
+  referrer  String?  // raw external referrer URL, null for direct
+  source    String   @default("direct") // search | social | referral | direct | internal
+  visitor   String   // cookieless per-day visitor hash (for unique counts)
+  country   String?  // best-effort from edge/proxy headers
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([source, createdAt])
+  @@index([kind, slug])
 }
 
 model RecipeSubmission {

@@ -25,8 +25,8 @@ export type VeganizeResponse = {
 
 const HARD_MAX = 20000;
 
-function clientIp(): string | null {
-    const h = headers();
+async function clientIp(): Promise<string | null> {
+    const h = await headers();
     const fwd = h.get("x-forwarded-for");
     return fwd ? fwd.split(",")[0].trim() : h.get("x-real-ip");
 }
@@ -88,7 +88,7 @@ export async function veganizeRecipe(rawInput: string): Promise<VeganizeResponse
         input,
         output: JSON.stringify(result),
         cached: false,
-        ip: clientIp(),
+        ip: await clientIp(),
     });
 
     // Show the log immediately even though no submission exists yet.

@@ -30,7 +30,7 @@ export async function isMaintenanceBlocked(): Promise<boolean> {
     const { enabled } = await getMaintenance();
     if (!enabled) return false;
 
-    const pathname = headers().get("x-pathname") ?? "";
+    const pathname = (await headers()).get("x-pathname") ?? "";
     if (pathname.startsWith("/admin") || pathname.startsWith("/api") || pathname.startsWith("/login")) {
         return false;
     }
@@ -39,7 +39,7 @@ export async function isMaintenanceBlocked(): Promise<boolean> {
     if (user?.role === "ADMIN") return false;
 
     const token = process.env.MAINTENANCE_BYPASS_TOKEN;
-    if (token && cookies().get("mb")?.value === token) return false;
+    if (token && (await cookies()).get("mb")?.value === token) return false;
 
     return true;
 }

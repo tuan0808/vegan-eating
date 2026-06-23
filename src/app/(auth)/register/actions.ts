@@ -20,7 +20,7 @@ export async function registerAction(formData: FormData) {
     const captcha = formData.get("cf-turnstile-response");
 
     // Bot gate FIRST — verify the Turnstile token before doing any work.
-    const h = headers();
+    const h = await headers();
     const ip =
         h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || null;
     const human = await verifyTurnstile(captcha ? String(captcha) : null, ip);

@@ -26,8 +26,8 @@ export type GuardOk = {
 export type GuardFail = { ok: false; reason: GuardReason; error: string }
 export type GuardResult = GuardOk | GuardFail
 /** Best-effort client identity from proxy headers (null locally — that's fine). */
-export function getClientMeta() {
-    const h = headers()
+export async function getClientMeta() {
+    const h = await headers()
     const fwd = h.get('x-forwarded-for')
     const ip = (fwd ? fwd.split(',')[0]?.trim() : '') || h.get('x-real-ip') || null
     const userAgent = h.get('user-agent')
@@ -60,7 +60,7 @@ export async function guardCommunityPost(
     }
     const userId = session.user.id
     const authorName = session.user.username ?? session.user.name ?? 'Member'
-    const { ip, userAgent } = getClientMeta()
+    const { ip, userAgent } = await getClientMeta()
     const [user, blocked] = await Promise.all([
         prisma.user.findUnique({
             where: { id: userId },

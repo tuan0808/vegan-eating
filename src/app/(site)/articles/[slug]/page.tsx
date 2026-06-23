@@ -14,6 +14,7 @@ import PostFooter from "@/components/post/PostFooter";
 import NewsletterForm from "./NewsletterForm";
 import ArticleBody from "./ArticleBody";
 import { tiptapText, firstParagraphText } from "@/lib/article-body";
+import { articleJsonLdScript } from "@/lib/article-jsonld";
 import "./article-content.css";
 
 export const dynamic = "force-dynamic";
@@ -81,22 +82,22 @@ export default async function ArticlePage({ params, searchParams }: { params: { 
     ]);
     const toItem = (x: Article) => ({ slug: x.slug, title: x.title, date: x.date, image: x.image });
 
-    const jsonLd = {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: a.title,
-        image: img ? [img] : undefined,
-        datePublished: a.date || undefined,
-        articleBody: bodyText,
-        mainEntityOfPage: a.sourceUrl || undefined,
-        author: { "@type": "Organization", name: "vegan eating" },
-        publisher: { "@type": "Organization", name: "vegan eating" },
-    };
+    // schema.org/BlogPosting JSON-LD. Description comes from the first
+    // paragraph (articles have no description column). When you wire a real
+    // author column, add `author: a.author` to the opts below.
+    const articleJsonLd = articleJsonLdScript(
+        { slug: a.slug, title: a.title, image: img, date: a.date },
+        {
+            siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://veganeating.com",
+            mediaBaseUrl: process.env.NEXT_PUBLIC_MEDIA_BASE_URL,
+            description: firstParagraphText(a.body).slice(0, 155),
+        },
+    );
 
     return (
         <>
             <ReadingProgress />
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleJsonLd }} />
 
             <section className="recipe-hero">
                 <div className="hero-bg">

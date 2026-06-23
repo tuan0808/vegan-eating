@@ -3,7 +3,6 @@ import { getRecipeBySlug, randomRecipes, latestRecipes } from "@/lib/recipes";
 import { parseServings } from "@/lib/recipe-scale";
 import { fmtTime, titleCase } from "@/data/recipes";
 import { viewSummary } from "@/lib/views";
-import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -16,11 +15,17 @@ import RecipeViews from "@/components/RecipeViews";
 import ArticleBody from "@/app/(site)/articles/[slug]/ArticleBody";
 import { parseBody, tiptapText } from "@/lib/article-body";
 import RecipeCardActions from "@/components/kitchen/RecipeCardActions";
-import { savedRecipeIds } from "@/lib/kitchen";
 import "@/app/(site)/articles/[slug]/article-content.css";
 import "@/styles/kitchen.css";
+import { recipeJsonLdScript } from "@/lib/recipe-jsonld";
 
-export const dynamic = "force-dynamic";
+
+// ISR: the page renders statically and revalidates hourly. Anything
+// per-request (saved state, view logging, comments) lives in client islands
+// so this route never reads cookies/searchParams and stays cacheable.
+// (On a recipe edit, call revalidatePath(`/recipes/${slug}`) for instant refresh.)
+export const revalidate = 3600;
+
 // First sentence of the description — for the hero blurb.
 function firstSentence(text?: string | null): string {
   if (!text) return "";
@@ -41,27 +46,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return { title: `${r.title} — vegan eating`, description: tiptapText(parseBody(r.description)).slice(0, 155) };
 }
 
-export default async function RecipePage({
-                                           params,
-                                           searchParams,
-                                         }: {
-  params: { slug: string };
-  searchParams?: { cpage?: string };
-}) {
+export default async function RecipePage({ params }: { params: { slug: string } }) {
   const r = await getRecipeBySlug(params.slug);
   if (!r) notFound();
 
-  const cpage = Number(searchParams?.cpage) || 1;
   const heroImg = imgSrc(r.image);
   const baseServings = parseServings(r.servings);
   const descDoc = parseBody(r.description);
   const descText = tiptapText(descDoc);
   const views = await viewSummary("recipe", r.id);
-  const session = await auth();
-  const viewerKey = session?.user?.id ?? session?.user?.email ?? "anon";
-  const userId = session?.user?.id ?? null;
-  const savedSet = userId ? await savedRecipeIds(userId, [r.id]) : new Set<string>();
-  const isSaved = savedSet.has(r.id);
 
   // Footer "other posts" + tag chips (recipes have no tags field, so use courses + cuisines).
   const [randoms, latest] = await Promise.all([randomRecipes(7), latestRecipes(7)]);
@@ -74,22 +67,20 @@ export default async function RecipePage({
     r.readyIn ? `${fmtTime(r.readyIn)} total` : null,
   ].filter(Boolean).join(" · ");
 
-  const jsonLd = {
-    "@context": "https://schema.org", "@type": "Recipe",
-    name: r.title, description: descText, recipeCategory: r.recipeType,
-    recipeYield: r.servings || undefined,
-    prepTime: r.prepTime ? `PT${r.prepTime}M` : undefined,
-    cookTime: r.cookTime ? `PT${r.cookTime}M` : undefined,
-    totalTime: r.readyIn ? `PT${r.readyIn}M` : undefined,
-    keywords: ["vegan", "plant-based", ...r.courses].join(", "),
-    nutrition: r.calories ? { "@type": "NutritionInformation", calories: `${r.calories} kcal` } : undefined,
-    recipeIngredient: r.ingredients,
-    recipeInstructions: r.steps.map((s) => ({ "@type": "HowToStep", text: s })),
-  };
+  // schema.org/Recipe JSON-LD. Pass the clean description text (r.description
+  // is Tiptap JSON). The helper handles ISO durations, absolute URLs, and
+  // the array fields your data layer already parsed.
+  const recipeJsonLd = recipeJsonLdScript(
+      { ...r, description: descText },
+      {
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://veganeating.com",
+        mediaBaseUrl: process.env.NEXT_PUBLIC_MEDIA_BASE_URL,
+      },
+  );
 
   return (
       <>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeJsonLd }} />
         <section className="recipe-hero">
           <div className="hero-bg">
             {heroImg ? (
@@ -106,9 +97,9 @@ export default async function RecipePage({
               {r.calories ? <span>🔥 <b>{r.calories} cal</b></span> : null}
               {r.allergens.length ? <span>🏷 <b>{r.allergens.slice(0, 3).join(", ")}</b></span> : null}
             </div>
-            <RecipeViews kind="recipe" slug={r.slug} count={views.count} initials={views.initials} viewerKey={viewerKey} log />
+            <RecipeViews kind="recipe" slug={r.slug} count={views.count} initials={views.initials} log />
             <div style={{ marginTop: 18 }}>
-              <RecipeCardActions recipeId={r.id} initialSaved={isSaved} />
+              <RecipeCardActions recipeId={r.id} fetchSaved />
             </div>
           </div>
         </section>
@@ -148,7 +139,6 @@ export default async function RecipePage({
                   authorName={r.author || "The vegan eating kitchen"}
                   commentTarget={{ recipeId: r.id }}
                   commentPath={`/recipes/${params.slug}`}
-                  commentPage={cpage}
                   related={related}
                   more={more}
                   basePath="/recipes"

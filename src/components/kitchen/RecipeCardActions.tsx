@@ -1,21 +1,41 @@
 // src/components/kitchen/RecipeCardActions.tsx
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toggleBookmark, addRecipeToShoppingList } from "@/lib/actions/kitchen";
 
 export default function RecipeCardActions({
                                               recipeId,
                                               initialSaved = false,
+                                              fetchSaved = false,
                                               className = "",
                                           }: {
     recipeId: string;
     initialSaved?: boolean;
+    // On statically-cached pages (e.g. the ISR recipe detail page) the server
+    // can't know the viewer's saved state, so opt in to a client-side read.
+    // Card grids that already pass initialSaved leave this off → no extra fetch.
+    fetchSaved?: boolean;
     className?: string;
 }) {
     const [saved, setSaved] = useState(initialSaved);
     const [added, setAdded] = useState(false);
     const [pending, start] = useTransition();
+
+    // Read the real saved state once on mount when asked to.
+    useEffect(() => {
+        if (!fetchSaved) return;
+        let alive = true;
+        fetch(`/api/kitchen/saved?recipeId=${encodeURIComponent(recipeId)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (alive && d && typeof d.saved === "boolean") setSaved(d.saved);
+            })
+            .catch(() => {});
+        return () => {
+            alive = false;
+        };
+    }, [fetchSaved, recipeId]);
 
     // Cards are links — keep taps on these controls from navigating.
     const stop = (e: React.MouseEvent) => {

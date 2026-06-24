@@ -208,7 +208,17 @@ export function JoinBand() {
                     <BandNewsletter />
                 </div>
                 <div className="band-img">
-                    <div className="photo"><div className="ph p2" /><span className="ph-label">Your photo here</span></div>
+                    <div className="photo">
+                        <video
+                            src="/media/veganeating.mp4"
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            aria-hidden="true"
+                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

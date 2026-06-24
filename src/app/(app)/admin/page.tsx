@@ -21,20 +21,21 @@ function roleColor(role: string): string {
 export default async function AdminPage({
                                             searchParams,
                                         }: {
-    searchParams: { ok?: string; error?: string };
+    searchParams: Promise<{ ok?: string; error?: string }>;
 }) {
     const me = await requireRole(["ADMIN"]); // redirects non-admins to /dashboard
+    const sp = await searchParams;
     const users = await prisma.user.findMany({
         orderBy: { createdAt: "asc" },
         select: { id: true, name: true, username: true, email: true, role: true, createdAt: true },
     });
 
     const banner =
-        searchParams?.ok === "1"
+        sp?.ok === "1"
             ? { text: "Role updated.", good: true }
-            : searchParams?.error === "self"
+            : sp?.error === "self"
                 ? { text: "You can't change your own role.", good: false }
-                : searchParams?.error === "role"
+                : sp?.error === "role"
                     ? { text: "That isn't a valid role.", good: false }
                     : null;
 

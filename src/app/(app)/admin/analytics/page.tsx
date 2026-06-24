@@ -22,10 +22,11 @@ const SOURCE_LABEL: Record<string, string> = {
     search: "Search", social: "Social", referral: "Referral", direct: "Direct", internal: "Internal",
 };
 
-export default async function AnalyticsPage({ searchParams }: { searchParams: { range?: string } }) {
+export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
     await requireRole(["ADMIN"]); // redirects non-admins to /dashboard
 
-    const range = (RANGES.includes(Number(searchParams.range) as RangeDays) ? Number(searchParams.range) : 30) as RangeDays;
+    const sp = await searchParams;
+    const range = (RANGES.includes(Number(sp.range) as RangeDays) ? Number(sp.range) : 30) as RangeDays;
 
     const [kpis, traffic, sources, content, referrers, gsc] = await Promise.all([
         getKpis(range),

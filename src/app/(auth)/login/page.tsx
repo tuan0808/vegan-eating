@@ -5,15 +5,16 @@ import { loginAction, resendVerificationAction } from "./actions";
 
 export const metadata: Metadata = { title: "Log in — vegan eating" };
 
-export default function LoginPage({
+export default async function LoginPage({
                                       searchParams,
                                   }: {
-    searchParams: { error?: string; registered?: string; resent?: string };
+    searchParams: Promise<{ error?: string; registered?: string; resent?: string }>;
 }) {
+    const sp = await searchParams;
     const notice =
-        searchParams?.registered === "1"
+        sp?.registered === "1"
             ? "registered"
-            : searchParams?.resent === "1"
+            : sp?.resent === "1"
                 ? "resent"
                 : undefined;
 
@@ -21,7 +22,7 @@ export default function LoginPage({
         <AuthForm
             mode="login"
             action={loginAction}
-            error={searchParams?.error}
+            error={sp?.error}
             notice={notice}
             resendAction={resendVerificationAction}
         />

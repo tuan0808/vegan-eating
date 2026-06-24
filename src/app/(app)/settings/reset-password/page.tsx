@@ -12,12 +12,13 @@ export const metadata: Metadata = { title: "Reset password — vegan eating" };
 export default async function ResetPasswordPage({
     searchParams,
 }: {
-    searchParams?: { token?: string };
+    searchParams?: Promise<{ token?: string }>;
 }) {
     // The (app) layout already requires login; this re-binds the token to the
     // signed-in user so a leaked link can't be used from someone else's session.
     const me = await requireUser();
-    const token = searchParams?.token ?? "";
+    const sp = await searchParams;
+    const token = sp?.token ?? "";
     const peek = token ? await peekPasswordResetToken(token) : { status: "invalid" as const };
     const valid = peek.status === "valid" && peek.userId === me.id;
 

@@ -37,16 +37,17 @@ function parseCategories(json: string): string[] {
 export default async function AdminNewsPage({
                                                 searchParams,
                                             }: {
-    searchParams: { q?: string; page?: string; sort?: string; cat?: string; view?: string };
+    searchParams: Promise<{ q?: string; page?: string; sort?: string; cat?: string; view?: string }>;
 }) {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 
-    const q = (searchParams?.q ?? "").trim();
-    const sort = searchParams?.sort || "newest";
-    const activeCat = searchParams?.cat || "all";
-    const view = searchParams?.view === "dupes" ? "dupes" : "all";
-    const page = Math.max(1, parseInt(searchParams?.page ?? "1", 10) || 1);
+    const sp = await searchParams;
+    const q = (sp?.q ?? "").trim();
+    const sort = sp?.sort || "newest";
+    const activeCat = sp?.cat || "all";
+    const view = sp?.view === "dupes" ? "dupes" : "all";
+    const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
 
     const orderBy: Prisma.NewsArticleOrderByWithRelationInput =
         sort === "oldest" ? { pubDate: "asc" } : { pubDate: "desc" };

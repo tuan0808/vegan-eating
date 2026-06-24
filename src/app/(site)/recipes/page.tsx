@@ -15,11 +15,12 @@ export const metadata = pageMetadata({
     path: "/recipes",
 });
 
-export default async function RecipesPage({ searchParams }: { searchParams: { page?: string; cat?: string; q?: string } }) {
-    const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);
-    const activeCat = searchParams.cat || "all";
-    const q = (searchParams.q || "").trim();
-    const { items, total, totalPages } = await listRecipes(page, 12, buildWhere(searchParams.cat, q));
+export default async function RecipesPage({ searchParams }: { searchParams: Promise<{ page?: string; cat?: string; q?: string }> }) {
+    const sp = await searchParams;
+    const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
+    const activeCat = sp.cat || "all";
+    const q = (sp.q || "").trim();
+    const { items, total, totalPages } = await listRecipes(page, 12, buildWhere(sp.cat, q));
 
     return (
         <>
@@ -47,7 +48,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: { pa
                     {items.length > 0 ? (
                         <>
                             <div className="grid">{items.map((r) => <RecipeCard key={r.slug} r={r} />)}</div>
-                            <Pagination page={page} totalPages={totalPages} basePath="/recipes" params={{ cat: searchParams.cat, q: q || undefined }} />
+                            <Pagination page={page} totalPages={totalPages} basePath="/recipes" params={{ cat: sp.cat, q: q || undefined }} />
                         </>
                     ) : (
                         <p style={{ textAlign: "center", color: "var(--muted)", padding: "60px 0" }}>

@@ -30,11 +30,12 @@ function fmt(d: Date): string {
 export default async function AllNewsPage({
                                               searchParams,
                                           }: {
-    searchParams: { cat?: string; q?: string; page?: string };
+    searchParams: Promise<{ cat?: string; q?: string; page?: string }>;
 }) {
-    const cat = (searchParams?.cat ?? "").trim();
-    const q = (searchParams?.q ?? "").trim();
-    const page = Math.max(1, parseInt(searchParams?.page ?? "1", 10) || 1);
+    const sp = await searchParams;
+    const cat = (sp?.cat ?? "").trim();
+    const q = (sp?.q ?? "").trim();
+    const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
     const activeCat = CATS.some((c) => c.value === cat) ? cat : "";
 
     const where: Prisma.NewsArticleWhereInput = {

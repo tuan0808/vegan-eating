@@ -15,9 +15,10 @@ export const metadata = pageMetadata({
     path: "/articles",
 });
 
-export default async function ArticlesPage({ searchParams }: { searchParams: { page?: string; cat?: string } }) {
-    const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);
-    const activeCat = searchParams.cat || "all";
+export default async function ArticlesPage({ searchParams }: { searchParams: Promise<{ page?: string; cat?: string }> }) {
+    const sp = await searchParams;
+    const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
+    const activeCat = sp.cat || "all";
 
     // Pills carry a slug; the stored category is the human label, so map back before filtering.
     const catLabel =
@@ -64,7 +65,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
                                     </Link>
                                 ))}
                             </div>
-                            <Pagination page={page} totalPages={totalPages} basePath="/articles" params={{ cat: searchParams.cat }} />
+                            <Pagination page={page} totalPages={totalPages} basePath="/articles" params={{ cat: sp.cat }} />
                         </>
                     ) : (
                         <p style={{ textAlign: "center", color: "var(--muted)", padding: "60px 0" }}>

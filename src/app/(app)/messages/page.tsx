@@ -45,12 +45,13 @@ const tabNoti = {
 export default async function MessagesPage({
                                                searchParams,
                                            }: {
-    searchParams?: { tab?: string };
+    searchParams?: Promise<{ tab?: string }>;
 }) {
     const user = await requireUser();
     const isAdmin = user.role === "ADMIN";
+    const sp = await searchParams;
     // Only admins can land on the Website tab; everyone else stays on Forum.
-    const tab = isAdmin && searchParams?.tab === "website" ? "website" : "forum";
+    const tab = isAdmin && sp?.tab === "website" ? "website" : "forum";
 
     const conversations = tab === "forum" ? await inbox(user.id) : [];
     const inquiries = tab === "website" ? await listContactMessages() : [];

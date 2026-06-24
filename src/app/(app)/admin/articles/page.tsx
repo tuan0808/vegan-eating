@@ -19,16 +19,17 @@ const PER_PAGE = 20;
 export default async function AdminArticlesPage({
                                                     searchParams,
                                                 }: {
-    searchParams: { q?: string; page?: string; sort?: string; cat?: string; view?: string };
+    searchParams: Promise<{ q?: string; page?: string; sort?: string; cat?: string; view?: string }>;
 }) {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 
-    const q = (searchParams?.q ?? "").trim();
-    const sort = searchParams?.sort || "default";
-    const activeCat = searchParams?.cat || "all";
-    const view = searchParams?.view === "hidden" || searchParams?.view === "dupes" ? searchParams.view : "";
-    const page = Math.max(1, parseInt(searchParams?.page ?? "1", 10) || 1);
+    const sp = await searchParams;
+    const q = (sp?.q ?? "").trim();
+    const sort = sp?.sort || "default";
+    const activeCat = sp?.cat || "all";
+    const view = sp?.view === "hidden" || sp?.view === "dupes" ? sp.view : "";
+    const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
 
     // Pills carry a slug in the URL; the stored category is the human label, so map back.
     const catLabel =

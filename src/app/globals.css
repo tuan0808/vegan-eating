@@ -32,7 +32,6 @@ body{
   background:radial-gradient(1100px 620px at 80% -8%,rgba(46,125,52,.11),transparent 58%),
   radial-gradient(900px 520px at 0% 28%,rgba(225,90,34,.06),transparent 60%),
   var(--paper);
-  background-attachment:fixed;
   color:var(--ink);
   line-height:1.6;
   -webkit-font-smoothing:antialiased;

@@ -35,13 +35,14 @@ function timeBits(p: number | null, c: number | null, r: number | null) {
 export default async function SubmissionsReviewPage({
                                                         searchParams,
                                                     }: {
-    searchParams: { tab?: string };
+    searchParams: Promise<{ tab?: string }>;
 }) {
     const user = await currentUser();
     if (!user) redirect("/login");
     if (user.role !== "ADMIN") redirect("/dashboard");
 
-    const tab = searchParams?.tab === "history" ? "history" : "pending";
+    const sp = await searchParams;
+    const tab = sp?.tab === "history" ? "history" : "pending";
     const pendingCount = await countPendingSubmissions();
 
     return (

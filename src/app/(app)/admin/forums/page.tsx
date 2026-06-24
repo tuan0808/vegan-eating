@@ -20,9 +20,10 @@ export const dynamic = "force-dynamic";
 export default async function ForumAdminPage({
                                                  searchParams,
                                              }: {
-    searchParams: { ok?: string; error?: string };
+    searchParams: Promise<{ ok?: string; error?: string }>;
 }) {
     await requireRole(["ADMIN"]);
+    const sp = await searchParams;
     const categories = await prisma.category.findMany({
         orderBy: { position: "asc" },
         include: {
@@ -32,11 +33,11 @@ export default async function ForumAdminPage({
     });
 
     const banner =
-        searchParams?.ok === "1"
+        sp?.ok === "1"
             ? { text: "Saved.", good: true }
-            : searchParams?.error === "name"
+            : sp?.error === "name"
                 ? { text: "A name is required.", good: false }
-                : searchParams?.error === "notempty"
+                : sp?.error === "notempty"
                     ? { text: "Empty it first — that still has boards or threads inside.", good: false }
                     : null;
 

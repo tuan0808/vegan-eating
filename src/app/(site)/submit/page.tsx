@@ -13,16 +13,17 @@ export const metadata: Metadata = { title: "Submit a recipe — vegan eating" };
 export default async function SubmitPage({
                                              searchParams,
                                          }: {
-    searchParams: { from?: string };
+    searchParams: Promise<{ from?: string }>;
 }) {
     const user = await currentUser();
+    const sp = await searchParams;
 
     // "Save & test" from the veganizer arrives as ?from=<veganizeRequestId>.
     // Load it (only if it belongs to this member) and pre-fill the form.
     let initial: SubmitInitial | undefined;
-    if (user && searchParams?.from) {
+    if (user && sp?.from) {
         const req = await prisma.veganizeRequest.findFirst({
-            where: { id: searchParams.from, userId: user.id },
+            where: { id: sp.from, userId: user.id },
             select: { id: true, output: true },
         });
         if (req) {

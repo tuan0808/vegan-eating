@@ -21,9 +21,10 @@ const COPY: Record<VerifyResult, { title: string; body: string }> = {
 export default async function VerifyPage({
                                              searchParams,
                                          }: {
-    searchParams?: { token?: string }
+    searchParams?: Promise<{ token?: string }>
 }) {
-    const token = searchParams?.token
+    const sp = await searchParams
+    const token = sp?.token
     const result: VerifyResult = token ? await consumeVerificationToken(token) : 'invalid'
     const copy = COPY[result]
 

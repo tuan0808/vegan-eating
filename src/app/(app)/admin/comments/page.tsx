@@ -17,13 +17,14 @@ const PATH = '/admin/comments'
 export default async function AdminCommentsPage({
                                                     searchParams,
                                                 }: {
-    searchParams?: { tab?: string; page?: string }
+    searchParams?: Promise<{ tab?: string; page?: string }>
 }) {
     const user = await currentUser()
     if (!user || !(user.role === 'ADMIN' || user.role === 'MODERATOR')) redirect('/')
 
-    const tab = searchParams?.tab === 'content' ? 'content' : 'recent'
-    const page = Number(searchParams?.page) || 1
+    const sp = await searchParams
+    const tab = sp?.tab === 'content' ? 'content' : 'recent'
+    const page = Number(sp?.page) || 1
 
     const [newCount, queue, groups] = await Promise.all([
         getNewCommentCount(),

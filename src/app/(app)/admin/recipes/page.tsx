@@ -17,15 +17,16 @@ const PER_PAGE = 20;
 export default async function AdminRecipesPage({
                                                    searchParams,
                                                }: {
-    searchParams: { q?: string; page?: string; cat?: string; sort?: string };
+    searchParams: Promise<{ q?: string; page?: string; cat?: string; sort?: string }>;
 }) {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 
-    const q = (searchParams?.q ?? "").trim();
-    const cat = searchParams?.cat || "all";
-    const sort = searchParams?.sort || "default";
-    const page = Math.max(1, parseInt(searchParams?.page ?? "1", 10) || 1);
+    const sp = await searchParams;
+    const q = (sp?.q ?? "").trim();
+    const cat = sp?.cat || "all";
+    const sort = sp?.sort || "default";
+    const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
 
     // sort=newest|oldest order by date; otherwise the default seed order.
     const orderBy: Prisma.RecipeOrderByWithRelationInput =

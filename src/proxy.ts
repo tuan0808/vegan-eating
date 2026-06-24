@@ -1,9 +1,9 @@
-// src/middleware.ts
+// src/proxy.ts
 import { NextRequest, NextResponse } from "next/server";
 
 const BYPASS_COOKIE = "mb";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const { pathname, searchParams } = req.nextUrl;
 
     // One-time preview: hit any URL with ?bypass=TOKEN to set a cookie and browse

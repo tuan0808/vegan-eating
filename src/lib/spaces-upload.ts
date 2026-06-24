@@ -4,8 +4,23 @@
 // and fall back to public/ in dev — identical behaviour to manual uploads.
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { writeFile, mkdir, readFile } from "node:fs/promises";
-import path from "node:path";
+import type * as FsPromises from "node:fs/promises";
+import type * as NodePath from "node:path";
+
+// Load fs/promises and path through turbopackIgnore'd dynamic imports so Turbopack
+// neither models `path.join(process.cwd(), "public", ...)` as an asset glob nor
+// recognises writeFile/readFile/mkdir as filesystem sinks. Statically imported,
+// either makes it trace the dynamic `public/<key>` paths and warn about an
+// "overly broad pattern" matching every file under the project. These are
+// runtime-only dev writes (production uses the Spaces/S3 branch).
+let _fs: Promise<typeof FsPromises> | null = null;
+function fsp(): Promise<typeof FsPromises> {
+    return (_fs ??= import(/* turbopackIgnore: true */ "node:fs/promises"));
+}
+let _path: Promise<typeof NodePath> | null = null;
+function nodePath(): Promise<typeof NodePath> {
+    return (_path ??= import(/* turbopackIgnore: true */ "node:path"));
+}
 
 const SPACES_ENDPOINT = process.env.SPACES_ENDPOINT;
 const SPACES_BUCKET = process.env.SPACES_BUCKET;
@@ -58,8 +73,10 @@ export async function uploadPngToSpaces(
     }
 
     // ---------- Dev / no Spaces: write to public/ so it serves at /<key> ----------
-    const abs = path.join(process.cwd(), "public", ...key.split("/"));
-    await mkdir(path.dirname(abs), { recursive: true });
+    const { writeFile, mkdir } = await fsp();
+    const { join, dirname } = await nodePath();
+    const abs = join(process.cwd(), "public", ...key.split("/"));
+    await mkdir(dirname(abs), { recursive: true });
     await writeFile(abs, buffer);
     return { key, url: "/" + key };
 }
@@ -89,7 +106,9 @@ export async function loadImageBuffer(
     }
 
     // local path under public/  (e.g. /uploads/2025/01/photo.jpg)
+    const { readFile } = await fsp();
+    const { join } = await nodePath();
     const rel = clean.replace(/^\/+/, "");
-    const abs = path.join(process.cwd(), "public", ...rel.split("/"));
+    const abs = join(process.cwd(), "public", ...rel.split("/"));
     return { buffer: await readFile(abs), contentType, name };
 }

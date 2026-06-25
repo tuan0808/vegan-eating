@@ -237,6 +237,11 @@ export default function RichEditor({
           padding-left: 1.4em;
           margin: 0 0 0.7em;
         }
+        /* Tailwind Preflight resets list-style to none — restore markers so
+           bullet/numbered lists are visible while typing. */
+        .rte :global(.ProseMirror ul) { list-style: disc; }
+        .rte :global(.ProseMirror ol) { list-style: decimal; }
+        .rte :global(.ProseMirror li) { margin: 0.15em 0; }
         .rte :global(.ProseMirror blockquote) {
           border-left: 3px solid var(--terra, #c2603a);
           margin: 0 0 0.7em;

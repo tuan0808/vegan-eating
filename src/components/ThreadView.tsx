@@ -312,6 +312,10 @@ export default function ThreadView({
                     padding-left: 1.4em;
                     margin: 0 0 0.7em;
                 }
+                /* Tailwind Preflight resets list-style to none — restore markers. */
+                .body :global(ul) { list-style: disc; }
+                .body :global(ol) { list-style: decimal; }
+                .body :global(li) { margin: 0.15em 0; }
                 .body :global(blockquote) {
                     border-left: 3px solid var(--terra, #c2603a);
                     margin: 0 0 0.7em;

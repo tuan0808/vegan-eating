@@ -103,6 +103,11 @@ export default async function AdminRecipesPage({
                             <Link key={p} href={href} className={`ar-pill${isActive ? " active" : ""}`}>{p}</Link>
                         );
                     })}
+                    {/* Admin-only: recipes with no category assigned yet (or missed by the bulk pass). */}
+                    <Link
+                        href={hrefWith({ cat: "na", q: "", page: 1 })}
+                        className={`ar-pill${!q && cat === "na" ? " active" : ""}`}
+                    >NA</Link>
                 </div>
 
                 {/* Sort by date — clicking the active one returns to default order. */}

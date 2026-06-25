@@ -2,6 +2,7 @@
 import { prisma } from "./prisma";
 import type { Prisma } from "@prisma/client";
 import type { Recipe } from "@/data/recipes";
+import { catFilter } from "./recipe-filters";
 
 const arr = (s: string | null | undefined): string[] => {
     if (!s) return [];
@@ -46,6 +47,12 @@ const NON_RECIPE_SLUGS = [
 
 // Reusable Prisma filter that hides the non-recipe pages — and soft-hidden recipes — from every public list.
 const recipeWhere = { slug: { notIn: NON_RECIPE_SLUGS }, hidden: false };
+
+// Live count for a collection — uses the SAME filter the /recipes page applies,
+// so a homepage card count always equals what the visitor sees on the page.
+export function countByCat(cat: string): Promise<number> {
+    return prisma.recipe.count({ where: { ...recipeWhere, ...catFilter(cat) } });
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toRecipe(r: any): Recipe {

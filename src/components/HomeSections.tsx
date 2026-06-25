@@ -4,6 +4,7 @@ import { pills, stats, collections, cooks } from "@/data/site";
 import { latestThreads } from "@/lib/home-threads";
 import { prisma } from "@/lib/prisma";
 import { buildWhere } from "@/lib/recipe-filters";
+import { countByCat } from "@/lib/recipes";
 import BandNewsletter from "./BandNewsletter";
 
 const Arrow = () => (
@@ -59,8 +60,12 @@ async function collectionImage(cat: string): Promise<string | null> {
 }
 
 export async function Collections() {
-    // One image per collection, in parallel; rotates on each request.
-    const images = await Promise.all(collections.map((c) => collectionImage(c.cat)));
+    // One image + live recipe count per collection, in parallel. Counts use the
+    // same filter as the /recipes page so the card never drifts from the page.
+    const [images, counts] = await Promise.all([
+        Promise.all(collections.map((c) => collectionImage(c.cat))),
+        Promise.all(collections.map((c) => countByCat(c.cat))),
+    ]);
 
     return (
         <div className="wrap">
@@ -107,7 +112,7 @@ export async function Collections() {
                                 ) : null}
                                 <div className="col-tile-body" style={{ zIndex: 3 }}>
                                     <h3>{c.name}</h3>
-                                    <span>{c.count} recipes <svg className="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+                                    <span>{counts[i]} recipes <svg className="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
                                 </div>
                             </Link>
                         );

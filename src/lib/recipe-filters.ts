@@ -23,6 +23,8 @@ export const CATEGORY_KEYWORDS: Record<string, string[]> = {
 export function catFilter(slug?: string): Prisma.RecipeWhereInput {
     if (!slug || slug === "all") return {};
     if (slug === "30-minutes") return { readyIn: { lte: 30 } }; // readyIn is minutes
+    // Admin-only "NA" pill: recipes with no explicit category assigned yet.
+    if (slug === "na" || slug === "uncategorized") return { category: "" };
     // Explicit category wins; keyword match on courses/recipeType is the legacy fallback.
     const OR: Prisma.RecipeWhereInput[] = [{ category: slug }];
     const kws = CATEGORY_KEYWORDS[slug];

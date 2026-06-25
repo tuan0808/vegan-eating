@@ -8,8 +8,12 @@ import { slugifyCategory, type Category } from "@/lib/categorize";
 const PH_OPTIONS = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
 const initialState: SaveState = { ok: false, message: null };
 
-function newRow(order: number): Category {
-    return { slug: "", label: "", ph: "p1", keywords: [], showOnHome: false, showAsPill: true, order };
+// Internal row: keywords stay as raw text while editing (so you can type commas
+// and spaces freely) and are parsed to string[] only when serialising to save.
+type Row = Omit<Category, "keywords"> & { keywords: string };
+
+function newRow(order: number): Row {
+    return { slug: "", label: "", ph: "p1", keywords: "", showOnHome: false, showAsPill: true, order };
 }
 
 function SaveButton() {
@@ -22,12 +26,15 @@ function SaveButton() {
 }
 
 export default function CategoryEditor({ initial }: { initial: Category[] }) {
-    const [rows, setRows] = useState<Category[]>(
-        initial.slice().sort((a, b) => a.order - b.order),
+    const [rows, setRows] = useState<Row[]>(
+        initial
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((c) => ({ ...c, keywords: c.keywords.join(", ") })),
     );
     const [state, formAction] = useActionState(saveCategoriesAction, initialState);
 
-    const patch = (i: number, p: Partial<Category>) =>
+    const patch = (i: number, p: Partial<Row>) =>
         setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...p } : r)));
     const remove = (i: number) => setRows((rs) => rs.filter((_, j) => j !== i));
     const add = () => setRows((rs) => [...rs, newRow(rs.length)]);
@@ -40,9 +47,15 @@ export default function CategoryEditor({ initial }: { initial: Category[] }) {
             return copy;
         });
 
-    // Serialise with order = current position so reordering sticks.
+    // Serialise with order = current position so reordering sticks; keywords
+    // text -> string[] here (the server action also normalises, so it's safe).
     const payload = JSON.stringify(
-        rows.map((r, i) => ({ ...r, order: i, slug: r.slug || slugifyCategory(r.label) })),
+        rows.map((r, i) => ({
+            ...r,
+            order: i,
+            slug: r.slug || slugifyCategory(r.label),
+            keywords: r.keywords.split(",").map((k) => k.trim().toLowerCase()).filter(Boolean),
+        })),
     );
 
     return (
@@ -79,9 +92,9 @@ export default function CategoryEditor({ initial }: { initial: Category[] }) {
                             <label className="cat-field cat-field-kw">
                                 <span>{r.dynamic === "thirtyMin" ? "Keywords (n/a — dynamic ≤30 min rule)" : "Title keywords (comma-separated)"}</span>
                                 <input
-                                    value={r.keywords.join(", ")}
+                                    value={r.keywords}
                                     disabled={r.dynamic === "thirtyMin"}
-                                    onChange={(e) => patch(i, { keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean) })}
+                                    onChange={(e) => patch(i, { keywords: e.target.value })}
                                     placeholder="salad, bowl, slaw"
                                 />
                             </label>

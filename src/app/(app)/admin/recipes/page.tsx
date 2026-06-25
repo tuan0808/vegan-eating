@@ -3,8 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { listRecipesAdmin } from "@/lib/recipes";
-import { slugify, buildWhere } from "@/lib/recipe-filters";
-import { pills } from "@/data/site";
+import { buildWhere } from "@/lib/recipe-filters";
+import { pillCategories } from "@/lib/category-config";
 import RecipeRow from "./RecipeRow";
 import RecipeImport from "./RecipeImport";
 import "./admin-recipes.css";
@@ -27,6 +27,7 @@ export default async function AdminRecipesPage({
     const cat = sp?.cat || "all";
     const sort = sp?.sort || "default";
     const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
+    const cats = await pillCategories();
 
     // sort=newest|oldest order by date; otherwise the default seed order.
     const orderBy: Prisma.RecipeOrderByWithRelationInput =
@@ -93,14 +94,13 @@ export default async function AdminRecipesPage({
                 {/* Filter pills — mirror the public recipes page. */}
                 <div className="ar-pills">
                     <span className="ar-pills-label">Filter</span>
-                    {pills.map((p) => {
-                        const slug = slugify(p);
-                        const isActive = !q && slug === cat;
-                        const href = slug === "all"
+                    {cats.map((c) => {
+                        const isActive = !q && c.slug === cat;
+                        const href = c.slug === "all"
                             ? hrefWith({ cat: "all", q: "", page: 1 })
-                            : hrefWith({ cat: slug, q: "", page: 1 });
+                            : hrefWith({ cat: c.slug, q: "", page: 1 });
                         return (
-                            <Link key={p} href={href} className={`ar-pill${isActive ? " active" : ""}`}>{p}</Link>
+                            <Link key={c.slug} href={href} className={`ar-pill${isActive ? " active" : ""}`}>{c.label}</Link>
                         );
                     })}
                     {/* Admin-only: recipes with no category assigned yet (or missed by the bulk pass). */}

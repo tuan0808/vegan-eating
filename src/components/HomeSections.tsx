@@ -1,10 +1,11 @@
 // src/components/HomeSections.tsx
 import Link from "next/link";
-import { pills, stats, collections, cooks } from "@/data/site";
+import { stats, cooks } from "@/data/site";
 import { latestThreads } from "@/lib/home-threads";
 import { prisma } from "@/lib/prisma";
 import { buildWhere } from "@/lib/recipe-filters";
 import { countByCat } from "@/lib/recipes";
+import { homeCollections, pillCategories } from "@/lib/category-config";
 import BandNewsletter from "./BandNewsletter";
 
 const Arrow = () => (
@@ -13,13 +14,14 @@ const Arrow = () => (
     </svg>
 );
 
-export function Pills() {
+export async function Pills() {
+    const cats = await pillCategories();
     return (
         <div className="cats">
             <div className="wrap">
                 <span className="label">Browse</span>
-                {pills.map((p, i) => (
-                    <span key={p} className={`pill${i === 0 ? " active" : ""}`}>{p}</span>
+                {cats.map((c, i) => (
+                    <span key={c.slug} className={`pill${i === 0 ? " active" : ""}`}>{c.label}</span>
                 ))}
             </div>
         </div>
@@ -60,11 +62,13 @@ async function collectionImage(cat: string): Promise<string | null> {
 }
 
 export async function Collections() {
+    // Admin-managed collections (homepage cards), in order.
+    const cats = await homeCollections();
     // One image + live recipe count per collection, in parallel. Counts use the
     // same filter as the /recipes page so the card never drifts from the page.
     const [images, counts] = await Promise.all([
-        Promise.all(collections.map((c) => collectionImage(c.cat))),
-        Promise.all(collections.map((c) => countByCat(c.cat))),
+        Promise.all(cats.map((c) => collectionImage(c.slug))),
+        Promise.all(cats.map((c) => countByCat(c.slug))),
     ]);
 
     return (
@@ -83,10 +87,10 @@ export async function Collections() {
                         .collections .col-tile { transition: transform .22s ease, box-shadow .22s ease; }
                         .collections .col-tile:hover { transform: translateY(-6px); box-shadow: 0 20px 44px -20px rgba(20,16,12,.5); }
                     `}</style>
-                    {collections.map((c, i) => {
+                    {cats.map((c, i) => {
                         const img = images[i];
                         return (
-                            <Link href={`/recipes?cat=${c.cat}`} className="col-tile" key={c.name} style={{ isolation: "isolate" }}>
+                            <Link href={`/recipes?cat=${c.slug}`} className="col-tile" key={c.slug} style={{ isolation: "isolate" }}>
                                 {/* photo base layer */}
                                 {img ? (
                                     // eslint-disable-next-line @next/next/no-img-element
@@ -111,7 +115,7 @@ export async function Collections() {
                                     />
                                 ) : null}
                                 <div className="col-tile-body" style={{ zIndex: 3 }}>
-                                    <h3>{c.name}</h3>
+                                    <h3>{c.label}</h3>
                                     <span>{counts[i]} recipes <svg className="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
                                 </div>
                             </Link>

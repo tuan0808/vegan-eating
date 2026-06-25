@@ -1,20 +1,18 @@
 // scripts/categorize-recipes.ts
 //
-// Bulk-assigns Recipe.category from the title for recipes that are still
-// uncategorized (category === ""). Manual categories are NEVER overwritten.
+// CLI twin of the admin "Bulk categorize" tool. Reads the SAME category config
+// (Setting key "categories.config", falling back to DEFAULT_CATEGORIES) and the
+// SAME scan logic (src/lib/categorize) so the two never drift.
 //
 // Usage:
-//   npx tsx scripts/categorize-recipes.ts            # dry-run against local DATABASE_URL
-//   npx tsx scripts/categorize-recipes.ts --prod     # dry-run against PROD_DATABASE_URL
+//   npx tsx scripts/categorize-recipes.ts            # dry-run vs local DATABASE_URL
+//   npx tsx scripts/categorize-recipes.ts --prod     # dry-run vs PROD_DATABASE_URL
 //   npx tsx scripts/categorize-recipes.ts --prod --apply   # WRITE to prod
-//
-// 30-minutes is intentionally NOT stored — catFilter("30-minutes") already
-// matches readyIn <= 30 dynamically, so it needs no category value.
 import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { DEFAULT_CATEGORIES, scanRecipes, type Category } from "../src/lib/categorize";
 
-// --- tiny .env reader (standalone scripts don't get Next's env loading) ------
 function loadEnv(): Record<string, string> {
   const out: Record<string, string> = {};
   try {
@@ -23,36 +21,13 @@ function loadEnv(): Record<string, string> {
       const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
       if (!m) continue;
       let v = m[2].trim();
-      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-        v = v.slice(1, -1);
-      }
+      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
       out[m[1]] = v;
     }
   } catch {
-    /* no .env — rely on process.env */
+    /* rely on process.env */
   }
   return out;
-}
-
-// --- title rules. Order = precedence (first match wins). ---------------------
-// Each pattern matches whole words, case-insensitively, against the title.
-const RULES: { category: string; re: RegExp }[] = [
-  { category: "salads-bowls", re: /\b(salads?|bowls?|slaw)\b/i },
-  {
-    // NB: "sweet" (matches "sweet potato") and "truffle" (matches savory truffle
-    // pasta/risotto) are deliberately excluded — too many savory false positives.
-    category: "desserts",
-    re: /\b(desserts?|cakes?|cupcakes?|cookies?|brownies?|pies?|tarts?|puddings?|cheesecakes?|mousse|ice ?cream|sorbet|custard|fudge|cobbler|crumble|do(ugh)?nuts?|parfait|gelato)\b/i,
-  },
-  {
-    category: "baking",
-    re: /\b(breads?|loaf|loaves|muffins?|scones?|buns?|bagels?|focaccia|cornbread|flatbread|pita|naan|rolls?|biscuits?|crackers?|croissants?|brioche|baguette|ciabatta|pretzels?|dough)\b/i,
-  },
-];
-
-function classify(title: string): string | null {
-  for (const r of RULES) if (r.re.test(title)) return r.category;
-  return null;
 }
 
 async function main() {
@@ -64,7 +39,6 @@ async function main() {
   const url = useProd
     ? env.PROD_DATABASE_URL || process.env.PROD_DATABASE_URL
     : env.DATABASE_URL || process.env.DATABASE_URL;
-
   if (!url) {
     console.error(`Missing ${useProd ? "PROD_DATABASE_URL" : "DATABASE_URL"} in .env`);
     process.exit(1);
@@ -75,56 +49,48 @@ async function main() {
   console.log(`  mode   : ${apply ? "APPLY (writing)" : "DRY-RUN (no writes)"}\n`);
 
   const prisma = new PrismaClient({ datasources: { db: { url } } });
-
   try {
-    const all = await prisma.recipe.findMany({
+    // Same config the admin UI edits.
+    const setting = await prisma.setting.findUnique({ where: { key: "categories.config" } });
+    let cats: Category[] = DEFAULT_CATEGORIES;
+    if (setting?.value) {
+      try {
+        const parsed = JSON.parse(setting.value);
+        if (Array.isArray(parsed) && parsed.length) cats = parsed as Category[];
+      } catch { /* keep defaults */ }
+    }
+    console.log(`  config : ${setting ? "from DB" : "defaults"} (${cats.length} categories)\n`);
+
+    const rows = await prisma.recipe.findMany({
       select: { id: true, title: true, category: true, readyIn: true },
     });
+    const scan = scanRecipes(rows, cats);
 
-    const alreadyCategorized = all.filter((r) => (r.category ?? "") !== "");
-    const uncategorized = all.filter((r) => (r.category ?? "") === "");
-
-    // Build assignments for uncategorized recipes only.
-    const buckets: Record<string, { id: string; title: string }[]> = {};
-    const stillNA: { id: string; title: string; readyIn: number | null }[] = [];
-    for (const r of uncategorized) {
-      const cat = classify(r.title);
-      if (cat) (buckets[cat] ??= []).push({ id: r.id, title: r.title });
-      else stillNA.push({ id: r.id, title: r.title, readyIn: r.readyIn });
+    console.log(`  total recipes ............ ${scan.total}`);
+    console.log(`  already categorized ...... ${scan.alreadyCategorized} (left untouched)`);
+    console.log(`  uncategorized scanned .... ${scan.total - scan.alreadyCategorized}\n`);
+    for (const b of scan.buckets) {
+      console.log(`  → ${b.slug.padEnd(13)} would assign ${b.titles.length}`);
+      b.titles.slice(0, 6).forEach((t) => console.log(`        · ${t.title}`));
+      if (b.titles.length > 6) console.log(`        … +${b.titles.length - 6} more`);
     }
-
-    // --- report ---
-    console.log(`  total recipes ............ ${all.length}`);
-    console.log(`  already categorized ...... ${alreadyCategorized.length} (left untouched)`);
-    console.log(`  uncategorized scanned .... ${uncategorized.length}\n`);
-
-    for (const { category } of RULES) {
-      const rows = buckets[category] ?? [];
-      console.log(`  → ${category.padEnd(13)} would assign ${rows.length}`);
-      rows.slice(0, 6).forEach((r) => console.log(`        · ${r.title}`));
-      if (rows.length > 6) console.log(`        … +${rows.length - 6} more`);
-    }
-
-    const sub30NA = stillNA.filter((r) => r.readyIn != null && r.readyIn <= 30).length;
-    console.log(`\n  → remaining NA ........... ${stillNA.length}  (of those, ${sub30NA} are sub-30 so still show under Weeknight in 30)`);
-    stillNA.slice(0, 8).forEach((r) => console.log(`        · ${r.title}`));
-    if (stillNA.length > 8) console.log(`        … +${stillNA.length - 8} more`);
+    console.log(`\n  → remaining NA ........... ${scan.naCount}  (${scan.naSub30} sub-30, still show under Weeknight in 30)`);
+    scan.naTitles.forEach((t) => console.log(`        · ${t}`));
 
     if (!apply) {
       console.log(`\n  DRY-RUN — nothing written. Re-run with --apply to write.\n`);
       return;
     }
 
-    // --- apply: one updateMany per category (only the ids we matched) ---
     let written = 0;
-    for (const [category, rows] of Object.entries(buckets)) {
-      if (!rows.length) continue;
+    for (const b of scan.buckets) {
+      if (!b.titles.length) continue;
       const res = await prisma.recipe.updateMany({
-        where: { id: { in: rows.map((r) => r.id) }, category: "" },
-        data: { category },
+        where: { id: { in: b.titles.map((t) => t.id) }, category: "" },
+        data: { category: b.slug },
       });
       written += res.count;
-      console.log(`  wrote ${res.count} → ${category}`);
+      console.log(`  wrote ${res.count} → ${b.slug}`);
     }
     console.log(`\n  DONE — ${written} recipes updated.\n`);
   } finally {

@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-helpers";
 import MaintenanceSection from "@/components/admin/MaintenanceSection";
+import CategoriesSection from "@/components/admin/CategoriesSection";
 
 export const metadata: Metadata = { title: "Maintenance — vegan eating" };
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export default async function AdminMaintenancePage() {
                 Admin · Site
             </p>
             <MaintenanceSection />
+            <CategoriesSection />
         </div>
     );
 }

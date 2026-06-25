@@ -3,8 +3,8 @@ import Link from "next/link";
 import RecipeCard from "@/components/RecipeCard";
 import Pagination from "@/components/Pagination";
 import { listRecipes } from "@/lib/recipes";
-import { slugify, buildWhere } from "@/lib/recipe-filters";
-import { pills } from "@/data/site";
+import { buildWhere } from "@/lib/recipe-filters";
+import { pillCategories } from "@/lib/category-config";
 import PageHero from "@/components/PageHero";
 import { pageMetadata } from "@/lib/seo";
 
@@ -20,6 +20,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
     const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
     const activeCat = sp.cat || "all";
     const q = (sp.q || "").trim();
+    const cats = await pillCategories();
     const { items, total, totalPages } = await listRecipes(page, 12, buildWhere(sp.cat, q));
 
     return (
@@ -34,11 +35,10 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
             <div className="cats" style={{ borderTop: "1px solid var(--line)" }}>
                 <div className="wrap">
                     <span className="label">Filter</span>
-                    {pills.map((p) => {
-                        const slug = slugify(p);
-                        const isActive = !q && slug === activeCat;
-                        const href = slug === "all" ? "/recipes" : `/recipes?cat=${slug}`;
-                        return <Link key={p} href={href} className={`pill${isActive ? " active" : ""}`}>{p}</Link>;
+                    {cats.map((c) => {
+                        const isActive = !q && c.slug === activeCat;
+                        const href = c.slug === "all" ? "/recipes" : `/recipes?cat=${c.slug}`;
+                        return <Link key={c.slug} href={href} className={`pill${isActive ? " active" : ""}`}>{c.label}</Link>;
                     })}
                 </div>
             </div>

@@ -392,15 +392,19 @@ export default function ThreadView({
                     cursor: pointer;
                 }
                 .cancel-btn {
-                    background: transparent;
-                    border: none;
-                    color: var(--muted, #6b7264);
+                    background: #fff;
+                    border: 1px solid var(--line, #dee3cf);
+                    color: var(--ink, #1c2317);
+                    border-radius: 999px;
+                    padding: 10px 22px;
                     font-size: 14px;
+                    font-weight: 600;
                     cursor: pointer;
                     font-family: inherit;
                 }
                 .cancel-btn:hover {
-                    color: var(--ink, #1c2317);
+                    background: var(--paper-2, #f1efe8);
+                    border-color: var(--muted, #6b7264);
                 }
 
                 /* ---- reply ---- */

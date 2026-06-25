@@ -1,5 +1,29 @@
 /* src/components/admin/categories-admin.css */
 
+/* Buttons + flash — self-contained (the .as-save rule elsewhere is scoped to
+   .as-panel, which these sections don't use). */
+.cat-editor .as-save,
+.cat-tool .as-save {
+    background: var(--green, #5b6b3f);
+    color: var(--paper, #fff);
+    border: none;
+    border-radius: 999px;
+    padding: 0.55rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+.cat-editor .as-save:hover,
+.cat-tool .as-save:hover { opacity: 0.9; }
+.cat-editor .as-save:disabled,
+.cat-tool .as-save:disabled { opacity: 0.5; cursor: default; }
+
+.cat-editor .as-flash,
+.cat-tool .as-flash { font-size: 13px; font-weight: 600; }
+.cat-editor .as-flash.ok, .cat-tool .as-flash.ok { color: var(--terra, #2F7D38); }
+.cat-editor .as-flash.err, .cat-tool .as-flash.err { color: #b4452a; }
+
 .cat-editor { margin-top: 4px; }
 .cat-rows { display: flex; flex-direction: column; gap: 12px; }
 

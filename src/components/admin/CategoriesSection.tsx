@@ -3,7 +3,6 @@ import CategoryEditor from "./CategoryEditor";
 import CategorizeRunner from "./CategorizeRunner";
 import { getCategories } from "@/lib/category-config";
 import "./settings.css";
-import "./antispam-panel.css"; // .as-save / .as-flash chrome
 import "./categories-admin.css";
 
 export default async function CategoriesSection() {

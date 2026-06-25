@@ -37,7 +37,15 @@ export default function HeroTitle({
     // first word of every SECOND line (lines 2, 4, ...). Recomputes on resize,
     // since where the text wraps depends on the viewport width.
     useIsoLayoutEffect(() => {
+        const fonts = typeof document !== "undefined" ? document.fonts : null;
+        // Gate on webfonts being loaded. If we measure wraps while the fallback
+        // font is showing, the highlighted words jump when Fraunces swaps in (the
+        // "glitch"). Until fonts are ready we render the plain title and emphasize
+        // once, measured in the final font — so it never moves.
+        let ready = fonts ? fonts.status === "loaded" : true;
+
         const compute = () => {
+            if (!ready) return;
             const firsts: number[] = [];
             let last: number | null = null;
             parts.forEach((p, i) => {
@@ -51,7 +59,10 @@ export default function HeroTitle({
             for (let ln = 1; ln < firsts.length; ln += 2) em.add(firsts[ln]);
             setLineEmph(em);
         };
+
         compute();
+        if (fonts && !ready) fonts.ready.then(() => { ready = true; compute(); });
+
         const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(compute) : null;
         if (ro && containerRef.current) ro.observe(containerRef.current);
         window.addEventListener("resize", compute);

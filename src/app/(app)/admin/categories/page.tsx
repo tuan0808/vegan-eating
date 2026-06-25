@@ -1,12 +1,12 @@
-// src/app/(app)/admin/maintenance/page.tsx
+// src/app/(app)/admin/categories/page.tsx
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-helpers";
-import MaintenanceSection from "@/components/admin/MaintenanceSection";
+import CategoriesSection from "@/components/admin/CategoriesSection";
 
-export const metadata: Metadata = { title: "Maintenance — vegan eating" };
+export const metadata: Metadata = { title: "Categories — vegan eating" };
 export const dynamic = "force-dynamic";
 
-export default async function AdminMaintenancePage() {
+export default async function AdminCategoriesPage() {
     await requireRole(["ADMIN"]);
 
     return (
@@ -20,9 +20,9 @@ export default async function AdminMaintenancePage() {
                     color: "var(--terra, #c2603a)",
                 }}
             >
-                Admin · Site
+                Admin · Recipes
             </p>
-            <MaintenanceSection />
+            <CategoriesSection />
         </div>
     );
 }

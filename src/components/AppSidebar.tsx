@@ -28,6 +28,7 @@ const icoForums = I(<path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20.5l1.9-5.4A8 8 0 1 
 const icoModeration = I(<path d="M12 3l7 3v5c0 4.6-3 8.5-7 9.8C8 19.5 5 15.6 5 11V6l7-3Z" />);
 const icoSecurity = I(<><rect x="4.5" y="10.5" width="15" height="9" rx="2" /><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" /><path d="M12 14v2" /></>);
 const icoMaintenance = I(<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />);
+const icoCategories = I(<><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V4a1.2 1.2 0 0 1 1.2-1.2H12a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8Z" /><path d="M7.5 7.5h.01" /></>);
 const icoBack = I(<path d="M19 12H5M11 6l-6 6 6 6" />);
 const icoChevLeft = I(<path d="M15 6l-6 6 6 6" />);
 const icoChevRight = I(<path d="M9 6l6 6-6 6" />);
@@ -48,6 +49,7 @@ const ADMIN: Item[] = [
     { href: "/admin", label: "Members", icon: icoMembers },
     { href: "/admin/analytics", label: "Analytics", icon: icoAnalytics },
     { href: "/admin/recipes", label: "Recipes", icon: icoRecipes },
+    { href: "/admin/categories", label: "Categories", icon: icoCategories },
     { href: "/admin/articles", label: "Articles", icon: icoArticles },
     { href: "/admin/news", label: "News", icon: icoNews },
     { href: "/admin/forums", label: "Forums", icon: icoForums },

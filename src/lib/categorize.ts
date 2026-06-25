@@ -54,7 +54,7 @@ export function classify(title: string, rules: Rule[]): string | null {
     return null;
 }
 
-export type ScanRow = { id: string; title: string; category: string | null; readyIn: number | null };
+export type ScanRow = { id: string; title: string; recipeType?: string | null; category: string | null; readyIn: number | null };
 export type ScanResult = {
     total: number;
     alreadyCategorized: number;
@@ -73,7 +73,10 @@ export function scanRecipes(rows: ScanRow[], cats: Category[]): ScanResult {
     const na: ScanRow[] = [];
 
     for (const r of uncategorized) {
-        const slug = classify(r.title, rules);
+        // Match keywords against the recipe TYPE as well as the title — the type
+        // field ("Main Course", "Dessert", "Salad"…) is the most reliable signal
+        // and is why title-only matching left so many recipes uncategorized.
+        const slug = classify(`${r.title} ${r.recipeType ?? ""}`, rules);
         if (slug) {
             if (!bucketMap.has(slug)) bucketMap.set(slug, []);
             bucketMap.get(slug)!.push({ id: r.id, title: r.title });

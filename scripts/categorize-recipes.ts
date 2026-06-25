@@ -62,7 +62,7 @@ async function main() {
     console.log(`  config : ${setting ? "from DB" : "defaults"} (${cats.length} categories)\n`);
 
     const rows = await prisma.recipe.findMany({
-      select: { id: true, title: true, category: true, readyIn: true },
+      select: { id: true, title: true, recipeType: true, category: true, readyIn: true },
     });
     const scan = scanRecipes(rows, cats);
 

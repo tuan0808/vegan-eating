@@ -60,7 +60,7 @@ export async function previewCategorize(): Promise<ScanResult & { ok: boolean; m
     await requireRole(["ADMIN"]);
     const cats = await getCategories();
     const rows = await prisma.recipe.findMany({
-        select: { id: true, title: true, category: true, readyIn: true },
+        select: { id: true, title: true, recipeType: true, category: true, readyIn: true },
     });
     return { ...scanRecipes(rows, cats), ok: true };
 }
@@ -70,7 +70,7 @@ export async function applyCategorize(): Promise<{ ok: boolean; written: number;
     await requireRole(["ADMIN"]);
     const cats = await getCategories();
     const rows = await prisma.recipe.findMany({
-        select: { id: true, title: true, category: true, readyIn: true },
+        select: { id: true, title: true, recipeType: true, category: true, readyIn: true },
     });
     const scan = scanRecipes(rows, cats);
 

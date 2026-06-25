@@ -1,8 +1,8 @@
 // src/app/(app)/admin/news/NewsQueryPanel.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { saveNewsQuery, type SaveState } from "@/lib/actions/news-query";
 import "@/components/admin/antispam-panel.css"; // provides the .as-* chrome (card, buttons, flash)
 
@@ -36,7 +36,7 @@ function Foot({ flash }: { flash: SaveState | null }) {
 }
 
 export default function NewsQueryPanel({ current }: { current: string }) {
-    const [state, formAction] = useFormState(saveNewsQuery, initialState);
+    const [state, formAction] = useActionState(saveNewsQuery, initialState);
     const [flash, setFlash] = useState<SaveState | null>(null);
 
     useEffect(() => {

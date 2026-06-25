@@ -1,7 +1,8 @@
 // src/app/(app)/settings/PasswordSection.tsx
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { requestPasswordReset, type PwResult } from "./actions";
 
 const initial: PwResult = { ok: false };
@@ -16,7 +17,7 @@ function SendButton() {
 }
 
 export default function PasswordSection() {
-    const [state, formAction] = useFormState(requestPasswordReset, initial);
+    const [state, formAction] = useActionState(requestPasswordReset, initial);
 
     if (state.ok) {
         return (

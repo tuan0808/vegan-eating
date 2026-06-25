@@ -1,9 +1,15 @@
 // src/components/HeroTitle.tsx
 "use client";
 
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const EM_STYLE: CSSProperties = { fontStyle: "italic", color: "var(--carrot, #E15A22)" };
+
+// Measure line wraps and apply emphasis BEFORE the browser paints, so the
+// styling lands in the same frame as hydration instead of flashing in a beat
+// after load. useLayoutEffect warns during SSR (no DOM to measure), so fall
+// back to useEffect on the server.
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export default function HeroTitle({
                                       title, className, style,
@@ -30,7 +36,7 @@ export default function HeroTitle({
     // After layout, find the first word of each wrapped line and emphasize the
     // first word of every SECOND line (lines 2, 4, ...). Recomputes on resize,
     // since where the text wraps depends on the viewport width.
-    useEffect(() => {
+    useIsoLayoutEffect(() => {
         const compute = () => {
             const firsts: number[] = [];
             let last: number | null = null;

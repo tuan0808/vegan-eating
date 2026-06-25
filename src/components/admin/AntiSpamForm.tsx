@@ -1,8 +1,8 @@
 // src/components/admin/AntiSpamForm.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { saveAntiSpamConfig, type SaveState } from "@/lib/actions/antispam";
 import type { AntiSpamConfig } from "@/lib/antispam-config";
 
@@ -18,7 +18,7 @@ function SaveButton() {
 }
 
 export default function AntiSpamForm({ config }: { config: AntiSpamConfig }) {
-    const [state, formAction] = useFormState(saveAntiSpamConfig, initialState);
+    const [state, formAction] = useActionState(saveAntiSpamConfig, initialState);
     const [flash, setFlash] = useState<SaveState | null>(null);
 
     // state.key changes on every submit (success or error) so the flash re-triggers.

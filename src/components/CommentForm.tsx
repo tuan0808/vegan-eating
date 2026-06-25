@@ -1,8 +1,8 @@
 // src/components/CommentForm.tsx
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState, useEffect, useRef, useState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { createComment } from '@/app/actions/comments'
 import type { CommentTarget, CommentFormState } from '@/lib/comments'
 
@@ -55,7 +55,7 @@ export default function CommentForm({
                                         compact = false,
                                         withRating = false,
                                     }: CommentFormProps) {
-    const [state, formAction] = useFormState(createComment, initialState)
+    const [state, formAction] = useActionState(createComment, initialState)
     const formRef = useRef<HTMLFormElement>(null)
     const [score, setScore] = useState(0)
     const [hover, setHover] = useState(0)

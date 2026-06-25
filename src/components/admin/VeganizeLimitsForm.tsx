@@ -1,8 +1,8 @@
 // src/components/admin/VeganizeLimitsForm.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { updateVeganizeSettings, type SaveState } from "@/lib/actions/veganize-admin";
 
 type Caps = Record<string, number>;
@@ -35,7 +35,7 @@ function SaveRow({ flash }: { flash: SaveState | null }) {
 }
 
 export default function VeganizeLimitsForm({ caps }: { caps: Caps }) {
-    const [state, formAction] = useFormState(updateVeganizeSettings, initialState);
+    const [state, formAction] = useActionState(updateVeganizeSettings, initialState);
     const [flash, setFlash] = useState<SaveState | null>(null);
 
     // state.key changes on every submit so the flash re-triggers, even though the

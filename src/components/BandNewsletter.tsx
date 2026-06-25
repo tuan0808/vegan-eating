@@ -1,7 +1,8 @@
 // src/components/BandNewsletter.tsx
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { subscribeNewsletter, type NewsletterState } from "@/app/actions/newsletter";
 
 const initial: NewsletterState = { ok: false, error: null };
@@ -16,7 +17,7 @@ function SignUpButton() {
 }
 
 export default function BandNewsletter() {
-    const [state, formAction] = useFormState(subscribeNewsletter, initial);
+    const [state, formAction] = useActionState(subscribeNewsletter, initial);
 
     if (state.ok) {
         return (

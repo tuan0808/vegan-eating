@@ -157,7 +157,7 @@ export function Footer() {
                     <div className="fcol">
                         <h4>Explore</h4>
                         <Link href="/recipes">All recipes</Link><Link href="/forum">Forum</Link>
-                        <Link href="/tools/veganize">Veganize a recipe</Link><Link href="/submit">Submit a recipe</Link>
+                        <Link href="/tools/veganize">Veganize a recipe</Link><Link href="/substitutions">Substitution glossary</Link><Link href="/submit">Submit a recipe</Link>
                     </div>
                     <div className="fcol">
                         <h4>About</h4>

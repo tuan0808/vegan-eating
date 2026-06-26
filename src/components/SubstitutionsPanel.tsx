@@ -67,6 +67,8 @@ export default function SubstitutionsPanel({ open, loading, items, onClose }: Pr
                         ))}
                     </ul>
                 )}
+
+                <a href="/substitutions" className="sp-all">Browse the full substitution glossary →</a>
             </div>
 
             <style jsx>{`
@@ -96,6 +98,9 @@ export default function SubstitutionsPanel({ open, loading, items, onClose }: Pr
                     border: 1px solid rgba(47, 125, 56, 0.16); border-radius: 12px; padding: 7px 12px;
                     font-size: 14px; font-weight: 600; color: var(--olive, #225f27); }
                 .sp-sub em { font-style: normal; font-weight: 400; font-size: 12.5px; color: var(--muted, #6f7468); }
+                .sp-all { display: inline-block; margin-top: 20px; font-size: 14px; font-weight: 600;
+                    color: var(--terra, #2f7d38); text-decoration: none; }
+                .sp-all:hover { text-decoration: underline; }
 
                 /* bottom sheet — phones */
                 @media (max-width: 560px) {

@@ -17,3 +17,6 @@ prisma/dev.db-journal
 
 # TypeScript incremental build cache
 tsconfig.tsbuildinfo
+
+# Local email template working files
+/newsletter

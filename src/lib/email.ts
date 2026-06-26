@@ -17,12 +17,22 @@ export const BASE = (
     'https://veganeating.com'
 ).replace(/\/+$/, '')
 
+// --- Merge tokens (what the HTML templates can call) ------------------------
+//   {{name}}            -> the member's first name (falls back to "there")
+//   {{unsubscribe_url}} -> the recipient's one-click unsubscribe link
+function applyTokens(html: string, name: string, unsubscribeUrl: string): string {
+    return html
+        .replace(/\{\{\s*name\s*\}\}/gi, name)
+        .replace(/\{\{\s*unsubscribe_url\s*\}\}/gi, unsubscribeUrl)
+}
+
 // --- Welcome email (fires once, on email verification) ----------------------
-// Content is admin-editable (Setting), with {{name}} replaced per recipient.
+// Content is admin-editable (Setting). Supports {{name}} + {{unsubscribe_url}}.
 export async function sendWelcomeEmail(
     to: string,
     name?: string | null,
     override?: { subject?: string; html?: string },
+    unsubscribeUrl?: string,
 ) {
     if (!process.env.RESEND_API_KEY) {
         throw new Error('RESEND_API_KEY is not set at runtime — cannot send welcome email.')
@@ -31,7 +41,7 @@ export async function sendWelcomeEmail(
     const subject = (override?.subject ?? '').trim() || stored.subject
     const rawHtml = (override?.html ?? '') || stored.html
     const safeName = (name ?? '').trim() || 'there'
-    const finalHtml = rawHtml.replace(/\{\{\s*name\s*\}\}/g, safeName)
+    const finalHtml = applyTokens(rawHtml, safeName, unsubscribeUrl ?? `${BASE}/api/unsubscribe`)
 
     const { data, error } = await resend.emails.send({ from: FROM, to, subject, html: finalHtml })
     if (error) {
@@ -41,6 +51,9 @@ export async function sendWelcomeEmail(
 }
 
 // --- Newsletter (admin broadcast) -------------------------------------------
+// Fallback footer, appended ONLY when the template doesn't carry its own
+// {{unsubscribe_url}} — so a full template (which has its own footer) isn't
+// doubled up.
 function newsletterFooter(unsubscribeUrl: string): string {
     return `<div style="font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:26px auto 0;padding:14px 8px 0;border-top:1px solid #e4e2d6;color:#9a9789;font-size:12px;line-height:1.5;text-align:center">
       You're receiving this because you have an account or subscribed at veganeating.com.<br>
@@ -48,12 +61,14 @@ function newsletterFooter(unsubscribeUrl: string): string {
     </div>`
 }
 
-function newsletterPayload(to: string, subject: string, html: string, unsubscribeUrl: string) {
+function newsletterPayload(to: string, name: string, subject: string, html: string, unsubscribeUrl: string) {
+    const carriesUnsub = /\{\{\s*unsubscribe_url\s*\}\}/i.test(html)
+    const body = applyTokens(html, name, unsubscribeUrl)
     return {
         from: FROM,
         to,
         subject,
-        html: html + newsletterFooter(unsubscribeUrl),
+        html: carriesUnsub ? body : body + newsletterFooter(unsubscribeUrl),
         headers: {
             'List-Unsubscribe': `<${unsubscribeUrl}>`,
             'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -62,11 +77,11 @@ function newsletterPayload(to: string, subject: string, html: string, unsubscrib
 }
 
 /** Send one newsletter email (used for the admin "send test"). */
-export async function sendNewsletterEmail(to: string, subject: string, html: string, unsubscribeUrl: string) {
+export async function sendNewsletterEmail(to: string, name: string, subject: string, html: string, unsubscribeUrl: string) {
     if (!process.env.RESEND_API_KEY) {
         throw new Error('RESEND_API_KEY is not set at runtime — cannot send newsletter.')
     }
-    const { data, error } = await resend.emails.send(newsletterPayload(to, subject, html, unsubscribeUrl))
+    const { data, error } = await resend.emails.send(newsletterPayload(to, name || 'there', subject, html, unsubscribeUrl))
     if (error) {
         throw new Error(`Resend rejected the newsletter email: ${error.name ?? 'error'} — ${error.message ?? JSON.stringify(error)}`)
     }
@@ -74,9 +89,9 @@ export async function sendNewsletterEmail(to: string, subject: string, html: str
 }
 
 /** Batch-send the newsletter (Resend caps batches at 100). Each recipient gets
- *  their own unsubscribe link. Returns the number sent. */
+ *  their own name + unsubscribe link substituted in. Returns the number sent. */
 export async function sendNewsletterBatch(
-    items: { to: string; unsubscribeUrl: string }[],
+    items: { to: string; name?: string | null; unsubscribeUrl: string }[],
     subject: string,
     html: string,
 ): Promise<number> {
@@ -85,7 +100,9 @@ export async function sendNewsletterBatch(
     }
     let sent = 0
     for (let i = 0; i < items.length; i += 100) {
-        const chunk = items.slice(i, i + 100).map((it) => newsletterPayload(it.to, subject, html, it.unsubscribeUrl))
+        const chunk = items.slice(i, i + 100).map((it) =>
+            newsletterPayload(it.to, (it.name ?? '').trim() || 'there', subject, html, it.unsubscribeUrl),
+        )
         const { error } = await resend.batch.send(chunk)
         if (error) {
             throw new Error(`Resend batch send failed: ${error.name ?? 'error'} — ${error.message ?? JSON.stringify(error)}`)

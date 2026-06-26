@@ -2,6 +2,7 @@
 import { prisma } from "./prisma";
 import { sendWelcomeEmail } from "./email";
 import { getWelcomeConfig } from "./newsletter-settings";
+import { unsubscribeUrl } from "./unsubscribe";
 
 // Fired after a user verifies their email. Honours the admin's enable + test-mode
 // settings. Never throws — a mail hiccup must not break the verification flow.
@@ -21,11 +22,11 @@ export async function sendWelcomeOnVerify(userId: string): Promise<void> {
         if (cfg.testMode) {
             const admin = await prisma.user.findFirst({ where: { role: "ADMIN" }, select: { email: true } });
             if (!admin?.email) return;
-            await sendWelcomeEmail(admin.email, user.name);
+            await sendWelcomeEmail(admin.email, user.name, undefined, unsubscribeUrl(admin.email));
             return;
         }
 
-        await sendWelcomeEmail(user.email, user.name);
+        await sendWelcomeEmail(user.email, user.name, undefined, unsubscribeUrl(user.email));
     } catch (e) {
         console.error("welcome email failed:", e);
     }

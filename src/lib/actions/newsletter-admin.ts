@@ -49,7 +49,7 @@ export async function sendTestWelcomeAction(_prev: State, formData: FormData): P
         html: String(formData.get("html") ?? ""),
     };
     try {
-        await sendWelcomeEmail(admin.email, admin.name, override);
+        await sendWelcomeEmail(admin.email, admin.name, override, unsubscribeUrl(admin.email));
         return { ok: true, message: `Test welcome sent to ${admin.email}.`, key: Date.now() };
     } catch (e) {
         return { ok: false, message: `Send failed: ${(e as Error).message}`, key: Date.now() };
@@ -73,15 +73,15 @@ export async function sendTestNewsletterAction(_prev: State, formData: FormData)
     const subject = String(formData.get("subject") ?? "").trim() || (await getNewsletter()).subject;
     const html = String(formData.get("html") ?? "") || (await getNewsletter()).html;
     try {
-        await sendNewsletterEmail(admin.email, `[TEST] ${subject}`, html, unsubscribeUrl(admin.email));
+        await sendNewsletterEmail(admin.email, admin.name ?? "there", `[TEST] ${subject}`, html, unsubscribeUrl(admin.email));
         return { ok: true, message: `Test sent to ${admin.email}.`, key: Date.now() };
     } catch (e) {
         return { ok: false, message: `Send failed: ${(e as Error).message}`, key: Date.now() };
     }
 }
 
-// Pull opted-in contacts from the Resend audience (best-effort).
-async function audienceEmails(): Promise<string[]> {
+// Pull opted-in contacts (with first names) from the Resend audience (best-effort).
+async function audienceContacts(): Promise<{ email: string; name: string | null }[]> {
     const apiKey = process.env.RESEND_API_KEY;
     const audienceId = process.env.RESEND_AUDIENCE_ID;
     if (!apiKey || !audienceId) return [];
@@ -95,24 +95,24 @@ async function audienceEmails(): Promise<string[]> {
         const list = Array.isArray(data?.data) ? data.data : [];
         return list
             .filter((c: { unsubscribed?: boolean; email?: string }) => !c.unsubscribed && c.email)
-            .map((c: { email: string }) => c.email.toLowerCase());
+            .map((c: { email: string; first_name?: string | null }) => ({ email: c.email.toLowerCase(), name: c.first_name ?? null }));
     } catch {
         return [];
     }
 }
 
-/** The deduped recipient set: verified users ∪ audience subscribers − suppressed. */
-async function recipients(): Promise<string[]> {
+/** The deduped recipient set with names: verified users ∪ subscribers − suppressed. */
+async function recipients(): Promise<{ email: string; name: string | null }[]> {
     const [users, subs, suppressed] = await Promise.all([
-        prisma.user.findMany({ where: { emailVerified: { not: null } }, select: { email: true } }),
-        audienceEmails(),
+        prisma.user.findMany({ where: { emailVerified: { not: null } }, select: { email: true, name: true } }),
+        audienceContacts(),
         getSuppressed(),
     ]);
-    const set = new Set<string>();
-    for (const u of users) if (u.email) set.add(u.email.toLowerCase());
-    for (const e of subs) set.add(e);
-    for (const s of suppressed) set.delete(s);
-    return Array.from(set);
+    const map = new Map<string, string | null>();
+    for (const u of users) if (u.email) map.set(u.email.toLowerCase(), u.name ?? null);
+    for (const c of subs) if (!map.has(c.email)) map.set(c.email, c.name);
+    for (const s of suppressed) map.delete(s);
+    return Array.from(map, ([email, name]) => ({ email, name }));
 }
 
 /** Read-only count for the UI (so the admin sees the reach before sending). */
@@ -136,7 +136,7 @@ export async function sendNewsletterToAllAction(_prev: State, formData: FormData
     if (list.length === 0) return { ok: false, message: "No recipients found.", key: Date.now() };
 
     try {
-        const items = list.map((email) => ({ to: email, unsubscribeUrl: unsubscribeUrl(email) }));
+        const items = list.map((r) => ({ to: r.email, name: r.name, unsubscribeUrl: unsubscribeUrl(r.email) }));
         const sent = await sendNewsletterBatch(items, subject, html);
         return { ok: true, message: `Newsletter sent to ${sent} recipient${sent === 1 ? "" : "s"}.`, key: Date.now() };
     } catch (e) {

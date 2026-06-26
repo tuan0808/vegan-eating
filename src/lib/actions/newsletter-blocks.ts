@@ -148,7 +148,7 @@ async function readItem(url: string): Promise<ReadItem | null> {
 
 function readCell(it: ReadItem, side: "left" | "right"): string {
     const pad = side === "left" ? "padding-right:12px;" : "padding-left:12px;";
-    return `<td class="stack" width="240" valign="top" style="${pad}">
+    return `<td class="stack" width="48%" valign="top" style="${pad}">
               <a href="${it.href}" target="_blank" style="text-decoration:none;">
                 <img src="${it.img}" width="240" alt="${esc(it.title)}" style="display:block; width:100%; max-width:240px; height:auto; border-radius:10px; background-color:#eae8de;">
               </a>
@@ -168,8 +168,8 @@ export async function worthReadBlock(urlA: string, urlB: string): Promise<BlockR
     if (!a && !b) return { ok: false, error: "Couldn't read those article/news URLs." };
 
     const cells = b
-        ? `${readCell(a!, "left")}\n                  <td class="gap" width="20" style="font-size:1px; line-height:1px;">&nbsp;</td>\n                  ${readCell(b, "right")}`
-        : readCell(a!, "left").replace('width="240"', 'width="100%"');
+        ? `${readCell(a!, "left")}\n                  <td class="gap" width="4%" style="font-size:1px; line-height:1px;">&nbsp;</td>\n                  ${readCell(b, "right")}`
+        : readCell(a!, "left").replace('width="48%"', 'width="100%"');
 
     const html = `
         <!-- ===== WORTH A READ ===== -->

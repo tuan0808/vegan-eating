@@ -61,7 +61,7 @@ export const DEFAULT_WELCOME_HTML = `<!DOCTYPE html>
 <body style="margin:0; padding:0; background-color:#F4F3EA;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F3EA" style="background-color:#F4F3EA;">
     <tr><td align="center" style="padding:32px 16px;">
-      <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background-color:#fffdf7; border-radius:18px; overflow:hidden;">
+      <table role="presentation" class="wrap" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px; background-color:#fffdf7; border-radius:18px; overflow:hidden;">
 
         <tr><td height="6" bgcolor="#2F7D38" style="height:6px; line-height:6px; font-size:6px; background-color:#2F7D38;">&nbsp;</td></tr>
 

@@ -25,7 +25,7 @@ const PH: Record<string, { solid: string; grad: string }> = {
 
 function categoryCard(label: string, count: number, href: string, ph: string, padStyle: string): string {
     const g = PH[ph] ?? PH.p1;
-    return `<td class="stack" width="248" valign="top" style="${padStyle}">
+    return `<td class="stack" width="48%" valign="top" style="${padStyle}">
       <a href="${href}" target="_blank" style="text-decoration:none; display:block;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${g.solid}" style="background-color:${g.solid}; background-image:${g.grad}; border-radius:14px;">
           <tr><td valign="bottom" style="padding:24px 20px; height:104px;">
@@ -47,7 +47,7 @@ export async function categoryCardsHtml(): Promise<string> {
         categoryCard(c.label, counts[i], `${SITE}/recipes?cat=${c.slug}`, c.ph, i === 0 ? "padding-right:8px;" : "padding-left:8px;"),
     );
     const row = cells.length === 2
-        ? `${cells[0]}<td class="gap" width="16" style="font-size:1px;line-height:1px;">&nbsp;</td>${cells[1]}`
+        ? `${cells[0]}<td class="gap" width="4%" style="font-size:1px;line-height:1px;">&nbsp;</td>${cells[1]}`
         : cells[0];
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${row}</tr></table>`;
 }

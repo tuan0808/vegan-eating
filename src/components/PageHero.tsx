@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import HeroTitle from "./HeroTitle";
 import "./page-hero.css";
 
 export type HeroMeta = { icon?: ReactNode; value: string; label: string };
@@ -18,6 +19,7 @@ export default function PageHero({
                                      breadcrumb,
                                      kicker,
                                      title,
+                                     emphasizeTitle = false,
                                      dek,
                                      cta,
                                      meta,
@@ -29,6 +31,9 @@ export default function PageHero({
     breadcrumb?: ReactNode;
     kicker?: string;
     title: string;
+    /** Render the title with the editorial HeroTitle treatment ("and"/"with" ->
+     *  "&" + orange word emphasis) so content titles match recipes/articles. */
+    emphasizeTitle?: boolean;
     dek?: string;
     cta?: { label: string; href: string };
     meta?: HeroMeta[];
@@ -62,7 +67,11 @@ export default function PageHero({
                         </div>
                     ) : null}
 
-                    <h1 className="phero-title">{title}</h1>
+                    {emphasizeTitle ? (
+                        <HeroTitle title={title} className="phero-title" />
+                    ) : (
+                        <h1 className="phero-title">{title}</h1>
+                    )}
 
                     {dek ? <p className="phero-dek">{dek}</p> : null}
 

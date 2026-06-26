@@ -50,6 +50,7 @@ export default async function ThreadPage(
                     </>
                 }
                 title={view.title}
+                emphasizeTitle
                 dek={`${view.posts.length} ${view.posts.length === 1 ? "post" : "posts"} in ${view.forum.name}`}
             />
 

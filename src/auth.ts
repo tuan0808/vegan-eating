@@ -14,7 +14,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(raw) {
+            async authorize(raw, request) {
                 const email = typeof raw?.email === "string" ? raw.email.trim().toLowerCase() : "";
                 const password = typeof raw?.password === "string" ? raw.password : "";
                 if (!email || !password) return null;
@@ -35,6 +35,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Optional, recommended one-liner to also lock out banned accounts at login:
                 // if (user.banned) return null;
+
+                // Record last-login time + IP (best-effort; never block login on it).
+                // The client IP is the first hop in x-forwarded-for behind DO's proxy.
+                const fwd = request?.headers?.get("x-forwarded-for") ?? "";
+                const ip = fwd.split(",")[0].trim() || request?.headers?.get("x-real-ip") || null;
+                await prisma.user
+                    .update({
+                        where: { id: user.id },
+                        data: { lastLoginAt: new Date(), ...(ip ? { lastLoginIp: ip } : {}) },
+                    })
+                    .catch(() => {});
 
                 return {
                     id: user.id,

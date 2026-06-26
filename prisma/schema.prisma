@@ -93,6 +93,8 @@ model User {
   showActivity  Boolean   @default(true) // show thread/post stats + recent threads on public profile
   emailVerified DateTime?
   signupIp      String?
+  lastLoginAt   DateTime?
+  lastLoginIp   String?
   role          String    @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
   banned        Boolean   @default(false)
   createdAt     DateTime  @default(now())
@@ -117,6 +119,7 @@ model User {
   contactMessages ContactMessage[]
 
   @@index([signupIp])
+  @@index([lastLoginIp])
 }
 
 // Top level: General, Vegan, Vegetarians, Around the World, Help

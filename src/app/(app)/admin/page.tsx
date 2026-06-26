@@ -27,7 +27,7 @@ export default async function AdminPage({
     const sp = await searchParams;
     const users = await prisma.user.findMany({
         orderBy: { createdAt: "asc" },
-        select: { id: true, name: true, username: true, email: true, role: true, createdAt: true },
+        select: { id: true, name: true, username: true, email: true, role: true, createdAt: true, lastLoginAt: true, lastLoginIp: true, signupIp: true },
     });
 
     const banner =
@@ -80,6 +80,13 @@ export default async function AdminPage({
                                 </div>
                                 <div style={{ fontSize: 13, color: "var(--muted, #6b7264)" }}>
                                     {u.email} · joined {new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                                </div>
+                                <div style={{ fontSize: 12, color: "var(--muted, #6b7264)", marginTop: 2 }}>
+                                    {u.lastLoginAt
+                                        ? `Last login ${new Date(u.lastLoginAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
+                                        : "Never logged in"}
+                                    {u.lastLoginIp ? ` · login IP ${u.lastLoginIp}` : ""}
+                                    {u.signupIp ? ` · signup IP ${u.signupIp}` : ""}
                                 </div>
                             </div>
 

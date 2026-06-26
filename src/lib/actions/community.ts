@@ -51,7 +51,7 @@ export async function markConversationRead(partnerId: string) {
 export async function updateProfile(formData: FormData) {
     const me = await requireUser();
 
-    const name = clamp(String(formData.get("name") ?? ""), 80);
+    // Name is edited in account settings (rate-limited), not here.
     const bio = clamp(String(formData.get("bio") ?? ""), 600);
     const location = clamp(String(formData.get("location") ?? ""), 120);
     let website = clamp(String(formData.get("website") ?? ""), 200);
@@ -64,7 +64,6 @@ export async function updateProfile(formData: FormData) {
     await prisma.user.update({
         where: { id: me.id },
         data: {
-            name: name || null,
             bio: bio || null,
             location: location || null,
             website: website || null,
@@ -79,6 +78,38 @@ export async function updateProfile(formData: FormData) {
         select: { username: true },
     });
     if (updated) revalidatePath(`/u/${updated.username}`);
+}
+
+/* ------------------------------------------------------------------ *
+ * Display name — free to change (no email re-verification), but limited
+ * to once every 6 months.
+ * ------------------------------------------------------------------ */
+export type NameResult = { ok: boolean; error?: string };
+
+const NAME_COOLDOWN_MS = 182 * 24 * 60 * 60 * 1000; // ~6 months
+
+export async function updateName(_prev: NameResult, formData: FormData): Promise<NameResult> {
+    const me = await requireUser();
+    const first = clamp(String(formData.get("firstName") ?? ""), 40).trim();
+    const last = clamp(String(formData.get("lastName") ?? ""), 40).trim();
+    const name = `${first} ${last}`.trim();
+    if (!name) return { ok: false, error: "Enter your first name (last name optional)." };
+
+    const current = await prisma.user.findUnique({
+        where: { id: me.id },
+        select: { name: true, nameChangedAt: true },
+    });
+    if (name === (current?.name ?? "")) return { ok: true }; // no change
+
+    if (current?.nameChangedAt && Date.now() - current.nameChangedAt.getTime() < NAME_COOLDOWN_MS) {
+        const days = Math.ceil((NAME_COOLDOWN_MS - (Date.now() - current.nameChangedAt.getTime())) / 86_400_000);
+        return { ok: false, error: `You can change your name once every 6 months — try again in about ${days} day${days === 1 ? "" : "s"}.` };
+    }
+
+    await prisma.user.update({ where: { id: me.id }, data: { name, nameChangedAt: new Date() } });
+    revalidatePath("/settings");
+    revalidatePath("/profile");
+    return { ok: true };
 }
 
 /* ------------------------------------------------------------------ *

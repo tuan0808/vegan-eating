@@ -27,11 +27,10 @@ export default async function ProfileEditorPage() {
             </p>
 
             <form action={updateProfile} className="cm-form">
-                <div className="cm-field">
-                    <label htmlFor="name">Display name</label>
-                    <input id="name" name="name" className="cm-input" defaultValue={me.name ?? ""} maxLength={80} />
-                    <span className="hint">Shown instead of your @{me.username} handle.</span>
-                </div>
+                <p className="hint" style={{ margin: "0 0 4px" }}>
+                    Your name is set in{" "}
+                    <a href="/settings" style={{ color: "var(--accent,#5b6b3f)", fontWeight: 600 }}>account settings</a>.
+                </p>
 
                 <div className="cm-field">
                     <label htmlFor="avatarUrl">Avatar URL</label>

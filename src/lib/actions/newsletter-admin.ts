@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import {
     getWelcomeConfig,
     saveWelcomeConfig,
+    saveWelcomeEmail,
     saveNewsletter,
     getNewsletter,
     getSuppressed,
@@ -26,21 +27,29 @@ async function adminEmail(): Promise<{ email: string; name: string | null } | nu
     return me.email ? { email: me.email, name: me.name ?? null } : null;
 }
 
-// --- welcome email config ---------------------------------------------------
-export async function saveWelcomeConfigAction(_prev: State, formData: FormData): Promise<State> {
+// --- welcome email: settings + content --------------------------------------
+export async function saveWelcomeAction(_prev: State, formData: FormData): Promise<State> {
     try { await requireRole(["ADMIN"]); } catch { return { ok: false, message: "Not allowed.", key: Date.now() }; }
     await saveWelcomeConfig({
         enabled: formData.get("enabled") === "on",
         testMode: formData.get("testMode") === "on",
     });
-    return { ok: true, message: "Welcome-email settings saved.", key: Date.now() };
+    const subject = String(formData.get("subject") ?? "").trim();
+    const html = String(formData.get("html") ?? "");
+    if (subject) await saveWelcomeEmail(subject, html);
+    return { ok: true, message: "Welcome email saved.", key: Date.now() };
 }
 
-export async function sendTestWelcomeAction(): Promise<State> {
+// Sends the CURRENT editor content (may be unsaved) to the admin.
+export async function sendTestWelcomeAction(_prev: State, formData: FormData): Promise<State> {
     const admin = await adminEmail();
     if (!admin) return { ok: false, message: "No admin email found.", key: Date.now() };
+    const override = {
+        subject: String(formData.get("subject") ?? ""),
+        html: String(formData.get("html") ?? ""),
+    };
     try {
-        await sendWelcomeEmail(admin.email, admin.name);
+        await sendWelcomeEmail(admin.email, admin.name, override);
         return { ok: true, message: `Test welcome sent to ${admin.email}.`, key: Date.now() };
     } catch (e) {
         return { ok: false, message: `Send failed: ${(e as Error).message}`, key: Date.now() };

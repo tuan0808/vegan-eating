@@ -1,5 +1,6 @@
 // src/lib/email.ts
 import { Resend } from 'resend'
+import { getWelcomeEmail } from './newsletter-settings'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -17,45 +18,22 @@ export const BASE = (
 ).replace(/\/+$/, '')
 
 // --- Welcome email (fires once, on email verification) ----------------------
-export async function sendWelcomeEmail(to: string, name?: string | null) {
+// Content is admin-editable (Setting), with {{name}} replaced per recipient.
+export async function sendWelcomeEmail(
+    to: string,
+    name?: string | null,
+    override?: { subject?: string; html?: string },
+) {
     if (!process.env.RESEND_API_KEY) {
         throw new Error('RESEND_API_KEY is not set at runtime — cannot send welcome email.')
     }
-    const hi = name ? `Hi ${name},` : 'Hi there,'
-    const card = (title: string, body: string, href: string, cta: string) => `
-      <tr><td style="padding:0 0 14px">
-        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e2d6;border-radius:14px">
-          <tr><td style="padding:16px 18px">
-            <div style="font-weight:700;font-size:15px;color:#20271c;margin-bottom:4px">${title}</div>
-            <div style="font-size:14px;line-height:1.5;color:#5f6a57;margin-bottom:10px">${body}</div>
-            <a href="${href}" style="font-size:13.5px;font-weight:600;color:#2f7d38;text-decoration:none">${cta} &rarr;</a>
-          </td></tr>
-        </table>
-      </td></tr>`
+    const stored = await getWelcomeEmail()
+    const subject = (override?.subject ?? '').trim() || stored.subject
+    const rawHtml = (override?.html ?? '') || stored.html
+    const safeName = (name ?? '').trim() || 'there'
+    const finalHtml = rawHtml.replace(/\{\{\s*name\s*\}\}/g, safeName)
 
-    const { data, error } = await resend.emails.send({
-        from: FROM,
-        to,
-        subject: 'Welcome to vegan eating 🌱',
-        html: `
-      <div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#2a2a24;padding:8px">
-        <h1 style="font-size:24px;margin:0 0 6px;color:#225f27">You're in — welcome to vegan eating! 🌱</h1>
-        <p style="line-height:1.6;font-size:15.5px">${hi}</p>
-        <p style="line-height:1.6;font-size:15.5px">Thanks for verifying your email and joining <strong>veganeating.com</strong>. You now have a home for tested plant-based recipes, a friendly community, and a few clever kitchen tools. Here's where to start:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 6px">
-          ${card('Browse the recipes', 'Hundreds of tested vegan recipes — and Cook Mode keeps the steps hands-free while you cook.', `${BASE}/recipes`, 'Explore recipes')}
-          ${card('Veganize any recipe', 'Paste any recipe into our AI generator and get a plant-based version in seconds.', `${BASE}/tools/veganize`, 'Try the Veganizer')}
-          ${card('Substitution glossary', 'Out of an ingredient? Search our swap glossary for what to use instead.', `${BASE}/substitutions`, 'Find a swap')}
-        </table>
-        <div style="background:#f1efe6;border-radius:14px;padding:16px 18px;margin:14px 0">
-          <div style="font-weight:700;font-size:15px;color:#20271c;margin-bottom:4px">One quick step to post in the forums</div>
-          <div style="font-size:14px;line-height:1.55;color:#5f6a57">To keep the community kind and useful, posting is unlocked after you read the house rules once. Pop over to
-            <a href="${BASE}/forum/general/news" style="color:#2f7d38;font-weight:600;text-decoration:none">the rules thread</a> and give it a read — that's it, you'll be able to post.</div>
-        </div>
-        <p style="line-height:1.6;font-size:15px;color:#5f6a57;margin-top:18px">Happy cooking,<br>The vegan eating kitchen</p>
-      </div>
-    `,
-    })
+    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html: finalHtml })
     if (error) {
         throw new Error(`Resend rejected the welcome email: ${error.name ?? 'error'} — ${error.message ?? JSON.stringify(error)}`)
     }

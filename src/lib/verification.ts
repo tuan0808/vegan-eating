@@ -16,16 +16,23 @@ export async function createVerificationToken(userId: string): Promise<string> {
 }
 
 export type VerifyResult = 'ok' | 'invalid' | 'expired'
+export type VerifyOutcome = { status: VerifyResult; name?: string | null }
 
-/** Validate a token, mark the user verified, and burn the token. */
-export async function consumeVerificationToken(token: string): Promise<VerifyResult> {
+/** Validate a token, mark the user verified, and burn the token. Returns the
+ *  member's display name on success (for the welcome screen). */
+export async function consumeVerificationToken(token: string): Promise<VerifyOutcome> {
     const row = await prisma.emailVerificationToken.findUnique({ where: { token } })
-    if (!row) return 'invalid'
+    if (!row) return { status: 'invalid' }
 
     if (row.expiresAt < new Date()) {
         await prisma.emailVerificationToken.delete({ where: { token } })
-        return 'expired'
+        return { status: 'expired' }
     }
+
+    const user = await prisma.user.findUnique({
+        where: { id: row.userId },
+        select: { name: true, username: true },
+    })
 
     await prisma.$transaction([
         prisma.user.update({ where: { id: row.userId }, data: { emailVerified: new Date() } }),
@@ -33,5 +40,5 @@ export async function consumeVerificationToken(token: string): Promise<VerifyRes
     ])
     // Warm welcome email (honours admin enable/test-mode settings; never throws).
     await sendWelcomeOnVerify(row.userId)
-    return 'ok'
+    return { status: 'ok', name: user?.name ?? user?.username ?? null }
 }

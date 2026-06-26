@@ -1,12 +1,13 @@
 "use client";
 // src/components/admin/NewsletterSection.tsx
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
     saveNewsletterAction,
     sendTestNewsletterAction,
     sendNewsletterToAllAction,
     type State,
 } from "@/lib/actions/newsletter-admin";
+import ImageEmbedBar from "./ImageEmbedBar";
 
 const initial: State = { ok: false, message: null };
 
@@ -25,6 +26,7 @@ export default function NewsletterSection({
     const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
     const [mode, setMode] = useState<"" | "save" | "test" | "all">("");
     const [pending, start] = useTransition();
+    const taRef = useRef<HTMLTextAreaElement>(null);
 
     const fd = () => {
         const f = new FormData();
@@ -57,8 +59,10 @@ export default function NewsletterSection({
             />
 
             <label className="ns-label">Email HTML — paste raw code, embed images, style inline</label>
+            <ImageEmbedBar taRef={taRef} value={html} onChange={setHtml} />
             <div className="ns-editor">
                 <textarea
+                    ref={taRef}
                     className="ns-html"
                     value={html}
                     onChange={(e) => setHtml(e.target.value)}

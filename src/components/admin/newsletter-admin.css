@@ -8,6 +8,16 @@
 .ns-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted, #7c7666); margin-top: 6px; }
 .ns-input { padding: 10px 12px; border: 1px solid var(--line, #e6e3d8); border-radius: 10px; font-size: 14.5px; background: #fff; width: 100%; max-width: 640px; font-family: inherit; }
 
+.ns-images { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 2px 0 4px; }
+.ns-images-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted, #7c7666); }
+.ns-img-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px 5px 6px;
+    border: 1px solid var(--line, #e6e3d8); border-radius: 10px; background: #fff; cursor: pointer;
+    font-size: 12.5px; color: var(--ink, #2a2620);
+}
+.ns-img-btn:hover { border-color: var(--terra, #2f7d38); }
+.ns-img-btn img { height: 26px; width: auto; max-width: 64px; object-fit: contain; background: #f1efe6; border-radius: 5px; }
+
 .ns-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 320px; }
 .ns-html {
     width: 100%; min-height: 320px; resize: vertical; padding: 14px; border: 1px solid var(--line, #e6e3d8);

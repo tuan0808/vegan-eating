@@ -9,6 +9,7 @@ import {
 } from "@/lib/actions/newsletter-admin";
 import ImageEmbedBar from "./ImageEmbedBar";
 import MergeTagBar from "./MergeTagBar";
+import BlockInserter from "./BlockInserter";
 
 const initial: State = { ok: false, message: null };
 
@@ -60,6 +61,7 @@ export default function NewsletterSection({
             />
 
             <label className="ns-label">Email HTML — paste raw code, embed images, style inline</label>
+            <BlockInserter taRef={taRef} value={html} onChange={setHtml} />
             <MergeTagBar taRef={taRef} value={html} onChange={setHtml} />
             <ImageEmbedBar taRef={taRef} value={html} onChange={setHtml} />
             <div className="ns-editor">

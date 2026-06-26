@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth-helpers";
 import { myProfileRecord } from "@/lib/community";
+import { maskEmail } from "@/lib/email-mask";
 import AccountForm from "./account-form";
 import PasswordSection from "./PasswordSection";
 import "@/styles/community.css";
@@ -27,7 +28,7 @@ export default async function SettingsPage() {
                 .
             </p>
 
-            <AccountForm defaultEmail={me.email} />
+            <AccountForm maskedEmail={maskEmail(me.email)} />
 
             <div className="cm-sec">
                 <h2>Password</h2>

@@ -17,7 +17,7 @@ export type PwResult = { ok: boolean; error?: string };
 // directly; we email them a single-use link to re-prove email ownership first.
 export async function requestPasswordReset(
     _prev: PwResult,
-    _formData: FormData,
+    formData: FormData,
 ): Promise<PwResult> {
     const me = await requireUser();
 
@@ -28,6 +28,13 @@ export async function requestPasswordReset(
         select: { email: true },
     });
     if (!user?.email) return { ok: false, error: "No email is on file for this account." };
+
+    // Identity gate: the typed email must match the address on file — defends a
+    // hijacked session where the attacker can't see the obfuscated address.
+    const typed = String(formData.get("email") ?? "").trim().toLowerCase();
+    if (typed !== user.email.toLowerCase()) {
+        return { ok: false, error: "That doesn't match the email on file for your account." };
+    }
 
     const token = await createPasswordResetToken(me.id);
     try {

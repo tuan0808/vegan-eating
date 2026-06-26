@@ -95,6 +95,7 @@ model User {
   signupIp      String?
   lastLoginAt   DateTime?
   lastLoginIp   String?
+  emailChangedAt DateTime?
   role          String    @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
   banned        Boolean   @default(false)
   createdAt     DateTime  @default(now())

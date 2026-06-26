@@ -2,8 +2,9 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-helpers";
 import MaintenanceSection from "@/components/admin/MaintenanceSection";
+import EmailSettingsSection from "@/components/admin/EmailSettingsSection";
 
-export const metadata: Metadata = { title: "Maintenance — vegan eating" };
+export const metadata: Metadata = { title: "Site settings — vegan eating" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminMaintenancePage() {
@@ -20,9 +21,10 @@ export default async function AdminMaintenancePage() {
                     color: "var(--terra, #c2603a)",
                 }}
             >
-                Admin · Site
+                Admin · Site settings
             </p>
             <MaintenanceSection />
+            <EmailSettingsSection />
         </div>
     );
 }

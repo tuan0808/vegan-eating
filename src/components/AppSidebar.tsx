@@ -56,7 +56,7 @@ const ADMIN: Item[] = [
     { href: "/admin/comments", label: "Moderation", icon: icoModeration },
     { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize },
     { href: "/admin/security", label: "Security", icon: icoSecurity },
-    { href: "/admin/maintenance", label: "Maintenance", icon: icoMaintenance },
+    { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
 ];
 
 export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {

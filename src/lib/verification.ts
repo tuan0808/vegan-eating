@@ -1,6 +1,7 @@
 // src/lib/verification.ts
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { sendWelcomeOnVerify } from '@/lib/welcome'
 
 const TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
@@ -30,5 +31,7 @@ export async function consumeVerificationToken(token: string): Promise<VerifyRes
         prisma.user.update({ where: { id: row.userId }, data: { emailVerified: new Date() } }),
         prisma.emailVerificationToken.delete({ where: { token } }),
     ])
+    // Warm welcome email (honours admin enable/test-mode settings; never throws).
+    await sendWelcomeOnVerify(row.userId)
     return 'ok'
 }

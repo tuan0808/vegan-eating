@@ -1,0 +1,42 @@
+/* src/components/admin/newsletter-admin.css */
+
+.ns-block { display: flex; flex-direction: column; gap: 12px; }
+
+.ns-check { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; color: var(--ink, #2a2620); cursor: pointer; max-width: 720px; }
+.ns-check input { margin-top: 3px; flex: none; }
+
+.ns-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted, #7c7666); margin-top: 6px; }
+.ns-input { padding: 10px 12px; border: 1px solid var(--line, #e6e3d8); border-radius: 10px; font-size: 14.5px; background: #fff; width: 100%; max-width: 640px; font-family: inherit; }
+
+.ns-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 320px; }
+.ns-html {
+    width: 100%; min-height: 320px; resize: vertical; padding: 14px; border: 1px solid var(--line, #e6e3d8);
+    border-radius: 12px; background: #1f2420; color: #e7e4d5; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.6; tab-size: 2;
+}
+.ns-preview { width: 100%; min-height: 320px; border: 1px solid var(--line, #e6e3d8); border-radius: 12px; background: #fff; }
+
+.ns-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.ns-btn {
+    background: var(--green, #5b6b3f); color: #fff; border: none; border-radius: 999px; padding: 9px 20px;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s ease;
+}
+.ns-btn:hover { opacity: 0.9; }
+.ns-btn:disabled { opacity: 0.5; cursor: default; }
+.ns-btn-ghost { background: transparent; color: var(--terra, #2f7d38); border: 1px solid var(--terra, #2f7d38); }
+.ns-btn-danger { background: #b4452a; }
+
+.ns-flash { font-size: 13px; font-weight: 600; }
+.ns-flash.ok { color: var(--terra, #2f7d38); }
+.ns-flash.err { color: #b4452a; }
+
+.ns-danger { margin-top: 18px; border: 1px solid #e6c9bf; background: #fdf6f3; border-radius: 14px; padding: 16px 18px; max-width: 720px; }
+.ns-danger-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.ns-danger-head b { font-size: 15px; color: #20271c; }
+.ns-danger-head span { font-size: 13px; color: var(--muted, #7c7666); line-height: 1.5; }
+.ns-danger-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.ns-confirm { max-width: 220px; }
+
+@media (max-width: 720px) {
+    .ns-editor { grid-template-columns: 1fr; }
+}

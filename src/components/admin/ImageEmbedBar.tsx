@@ -6,10 +6,11 @@ import type { RefObject } from "react";
 const CDN = "https://veganeating-media.nyc3.cdn.digitaloceanspaces.com";
 
 // The brand assets that live in Spaces (emails need absolute URLs + PNG, not SVG).
+// `bg` is just the thumbnail backdrop so the white logo is visible in the picker.
 const EMBED_IMAGES = [
-    { label: "Logo", url: `${CDN}/2024/08/logo.png` },
-    { label: "Logo (small)", url: `${CDN}/2024/08/logo-150x85.png` },
-    { label: "Vegor", url: `${CDN}/2024/02/vegor.png` },
+    { label: "Logo (dark)", url: `${CDN}/brand/logo-dark.png`, bg: "#f1efe6" },
+    { label: "Logo (white)", url: `${CDN}/brand/logo-white.png`, bg: "#225f27" },
+    { label: "Vegor", url: `${CDN}/2024/02/vegor.png`, bg: "#f1efe6" },
 ];
 
 function imgTag(url: string, alt: string): string {
@@ -53,7 +54,7 @@ export default function ImageEmbedBar({
                     onClick={() => insert(imgTag(img.url, img.label))}
                 >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.url} alt={img.label} />
+                    <img src={img.url} alt={img.label} style={{ background: img.bg }} />
                     <span>{img.label}</span>
                 </button>
             ))}

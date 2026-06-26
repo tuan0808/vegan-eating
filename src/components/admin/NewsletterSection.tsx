@@ -8,6 +8,7 @@ import {
     type State,
 } from "@/lib/actions/newsletter-admin";
 import ImageEmbedBar from "./ImageEmbedBar";
+import MergeTagBar from "./MergeTagBar";
 
 const initial: State = { ok: false, message: null };
 
@@ -59,6 +60,7 @@ export default function NewsletterSection({
             />
 
             <label className="ns-label">Email HTML — paste raw code, embed images, style inline</label>
+            <MergeTagBar taRef={taRef} value={html} onChange={setHtml} />
             <ImageEmbedBar taRef={taRef} value={html} onChange={setHtml} />
             <div className="ns-editor">
                 <textarea

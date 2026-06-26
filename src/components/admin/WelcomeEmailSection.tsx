@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { saveWelcomeAction, sendTestWelcomeAction, type State } from "@/lib/actions/newsletter-admin";
 import ImageEmbedBar from "./ImageEmbedBar";
+import MergeTagBar from "./MergeTagBar";
 
 const initial: State = { ok: false, message: null };
 
@@ -59,7 +60,8 @@ export default function WelcomeEmailSection({
             <label className="ns-label">Subject</label>
             <input className="ns-input" value={subject} onChange={(e) => setSubject(e.target.value)} />
 
-            <label className="ns-label">Email HTML — use {"{{name}}"} where the member&rsquo;s name should appear</label>
+            <label className="ns-label">Email HTML</label>
+            <MergeTagBar taRef={taRef} value={html} onChange={setHtml} />
             <ImageEmbedBar taRef={taRef} value={html} onChange={setHtml} />
             <div className="ns-editor">
                 <textarea

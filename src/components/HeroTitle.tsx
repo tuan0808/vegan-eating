@@ -74,7 +74,11 @@ export default function HeroTitle({
         <h1 ref={containerRef} className={className} style={style}>
             {parts.map((p, i) => {
                 if (!p.trim()) return p; // whitespace, kept verbatim
-                const emphasize = i === ampIdx || lineEmph.has(i);
+                // Never style the "&" itself — the line-emphasis can land on a "&"
+                // that wraps to the start of a line, and Fraunces' italic ampersand
+                // is a fancy "Et" ligature that reads as a garbled glyph. Keep the
+                // span, just drop the italic/carrot on ampersands.
+                const emphasize = (i === ampIdx || lineEmph.has(i)) && p !== "&";
                 return (
                     <span key={i} ref={(el) => { wordRefs.current[i] = el; }} style={emphasize ? EM_STYLE : undefined}>
             {p}

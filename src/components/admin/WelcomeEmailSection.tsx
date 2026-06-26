@@ -12,11 +12,15 @@ export default function WelcomeEmailSection({
     testMode: t0,
     subject: s0,
     html: h0,
+    defaultSubject,
+    defaultHtml,
 }: {
     enabled: boolean;
     testMode: boolean;
     subject: string;
     html: string;
+    defaultSubject: string;
+    defaultHtml: string;
 }) {
     const [enabled, setEnabled] = useState(e0);
     const [testMode, setTestMode] = useState(t0);
@@ -72,7 +76,16 @@ export default function WelcomeEmailSection({
                     spellCheck={false}
                     aria-label="Welcome email HTML"
                 />
-                <iframe className="ns-preview" title="Welcome email preview" srcDoc={html.replace(/\{\{\s*name\s*\}\}/g, "there")} sandbox="" />
+                <iframe
+                    className="ns-preview"
+                    title="Welcome email preview"
+                    srcDoc={html
+                        .replace(/\{\{\s*name\s*\}\}/gi, "there")
+                        .replace(/\{\{\s*email\s*\}\}/gi, "you@example.com")
+                        .replace(/\{\{\s*category_cards\s*\}\}/gi, '<div style="padding:16px;background:#eee;border-radius:10px;color:#777;font:13px sans-serif;text-align:center">[ 2 random category cards — inserted when the email sends ]</div>')
+                        .replace(/\{\{\s*latest_thread\s*\}\}/gi, '<div style="padding:16px;background:#eee;border-radius:10px;color:#777;font:13px sans-serif;text-align:center">[ latest forum thread — inserted when the email sends ]</div>')}
+                    sandbox=""
+                />
             </div>
 
             <div className="ns-actions">
@@ -81,6 +94,9 @@ export default function WelcomeEmailSection({
                 </button>
                 <button type="button" className="ns-btn ns-btn-ghost" disabled={pending} onClick={() => exec("test", () => sendTestWelcomeAction(initial, fd()))}>
                     {pending && mode === "test" ? "Sending…" : "Send test welcome to me"}
+                </button>
+                <button type="button" className="ns-btn ns-btn-ghost" disabled={pending} onClick={() => { setSubject(defaultSubject); setHtml(defaultHtml); }}>
+                    Load default template
                 </button>
                 {msg ? <span className={`ns-flash ${msg.ok ? "ok" : "err"}`}>{msg.text}</span> : null}
             </div>

@@ -37,34 +37,102 @@ export async function saveNewsletter(subject: string, html: string): Promise<voi
 
 // --- welcome email content (editable; {{name}} is replaced per recipient) ----
 export const DEFAULT_WELCOME_SUBJECT = "Welcome to vegan eating 🌱";
-export const DEFAULT_WELCOME_HTML = `<div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#2a2a24;padding:8px">
-  <h1 style="font-size:24px;margin:0 0 6px;color:#225f27">You're in — welcome to vegan eating! 🌱</h1>
-  <p style="line-height:1.6;font-size:15.5px">Hi {{name}},</p>
-  <p style="line-height:1.6;font-size:15.5px">Thanks for verifying your email and joining <strong>veganeating.com</strong>. You now have a home for tested plant-based recipes, a friendly community, and a few clever kitchen tools. Here's where to start:</p>
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0 6px">
-    <tr><td style="padding:0 0 14px"><table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e2d6;border-radius:14px"><tr><td style="padding:16px 18px">
-      <div style="font-weight:700;font-size:15px;color:#20271c;margin-bottom:4px">Browse the recipes</div>
-      <div style="font-size:14px;line-height:1.5;color:#5f6a57;margin-bottom:10px">Hundreds of tested vegan recipes — and Cook Mode keeps the steps hands-free while you cook.</div>
-      <a href="https://veganeating.com/recipes" style="font-size:13.5px;font-weight:600;color:#2f7d38;text-decoration:none">Explore recipes &rarr;</a>
-    </td></tr></table></td></tr>
-    <tr><td style="padding:0 0 14px"><table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e2d6;border-radius:14px"><tr><td style="padding:16px 18px">
-      <div style="font-weight:700;font-size:15px;color:#20271c;margin-bottom:4px">Veganize any recipe</div>
-      <div style="font-size:14px;line-height:1.5;color:#5f6a57;margin-bottom:10px">Paste any recipe into our AI generator and get a plant-based version in seconds.</div>
-      <a href="https://veganeating.com/tools/veganize" style="font-size:13.5px;font-weight:600;color:#2f7d38;text-decoration:none">Try the Veganizer &rarr;</a>
-    </td></tr></table></td></tr>
-    <tr><td style="padding:0 0 14px"><table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e2d6;border-radius:14px"><tr><td style="padding:16px 18px">
-      <div style="font-weight:700;font-size:15px;color:#20271c;margin-bottom:4px">Substitution glossary</div>
-      <div style="font-size:14px;line-height:1.5;color:#5f6a57;margin-bottom:10px">Out of an ingredient? Search our swap glossary for what to use instead.</div>
-      <a href="https://veganeating.com/substitutions" style="font-size:13.5px;font-weight:600;color:#2f7d38;text-decoration:none">Find a swap &rarr;</a>
-    </td></tr></table></td></tr>
+export const DEFAULT_WELCOME_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Welcome to vegan eating</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    img { -ms-interpolation-mode: bicubic; border: 0; }
+    body { margin: 0; padding: 0; width: 100% !important; }
+    @media only screen and (max-width: 600px) {
+      .wrap { width: 100% !important; }
+      .px { padding-left: 24px !important; padding-right: 24px !important; }
+      .h1 { font-size: 36px !important; line-height: 40px !important; }
+      .stack { display: block !important; width: 100% !important; padding: 0 0 12px 0 !important; }
+      .gap { display: none !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#F4F3EA;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F3EA" style="background-color:#F4F3EA;">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background-color:#fffdf7; border-radius:18px; overflow:hidden;">
+
+        <tr><td height="6" bgcolor="#2F7D38" style="height:6px; line-height:6px; font-size:6px; background-color:#2F7D38;">&nbsp;</td></tr>
+
+        <tr><td class="px" align="center" style="padding:28px 48px 4px 48px;">
+          <img src="https://veganeating-media.nyc3.cdn.digitaloceanspaces.com/brand/logo-dark.png" alt="vegan eating" width="190" style="display:block; width:190px; max-width:60%; height:auto;">
+        </td></tr>
+
+        <tr><td class="px" align="center" style="padding:22px 48px 0 48px;">
+          <div style="font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#E15A22;">Welcome to the table</div>
+          <h1 class="h1" style="margin:14px 0 0 0; font-family:'Fraunces',Georgia,serif; font-size:42px; line-height:46px; font-weight:600; color:#1c2317; letter-spacing:-0.5px;">You're in,<br>{{name}}.</h1>
+        </td></tr>
+
+        <tr><td class="px" align="center" style="padding:16px 56px 0 56px;">
+          <p style="margin:0; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:17px; line-height:27px; color:#454b3e;">No ads, no twelve-paragraph life story before the recipe. Just tested plant-based cooking and a community that actually cooks.</p>
+        </td></tr>
+
+        <!-- Browse tested recipes -->
+        <tr><td class="px" style="padding:34px 48px 0 48px;">
+          <div style="font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#2F7D38;">Browse tested recipes</div>
+          <p style="margin:8px 0 16px 0; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:15px; line-height:23px; color:#6b6f63;">Over a thousand of them. Every one cooked before it earned a spot — start with a couple of our collections:</p>
+          {{category_cards}}
+        </td></tr>
+
+        <!-- Fresh from the forum (latest thread) -->
+        <tr><td class="px" style="padding:30px 48px 0 48px;">
+          {{latest_thread}}
+        </td></tr>
+
+        <!-- Veganizer -->
+        <tr><td class="px" style="padding:24px 48px 0 48px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#C24817" style="background-color:#C24817; background-image:linear-gradient(135deg,#F0883E,#B23E26); border-radius:16px;"><tr>
+            <td style="padding:28px 28px;">
+              <div style="font-size:34px; line-height:1;">🪄</div>
+              <div style="font-family:'Fraunces',Georgia,serif; font-size:26px; font-weight:600; color:#ffffff; padding-top:10px; line-height:1.1;">Veganize anything</div>
+              <p style="margin:8px 0 0 0; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:15px; line-height:23px; color:#ffe9dd;">Paste any recipe — or just tell it what's in your fridge — and watch it turn plant-based in seconds. It's a little bit magic.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;"><tr>
+                <td bgcolor="#ffffff" style="border-radius:999px;">
+                  <a href="https://veganeating.com/tools/veganize" target="_blank" style="display:inline-block; padding:13px 28px; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:15px; font-weight:700; color:#C24817; text-decoration:none; border-radius:999px;">Open the Veganizer →</a>
+                </td>
+              </tr></table>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- Posting note -->
+        <tr><td class="px" style="padding:26px 48px 0 48px;">
+          <p style="margin:0; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:14px; line-height:22px; color:#6b6f63;">Want to post in the forums? Read the house rules once at <a href="https://veganeating.com/forum/general/news" style="color:#2F7D38; font-weight:600; text-decoration:none;">the rules thread</a> and posting unlocks. That's it.</p>
+        </td></tr>
+
+        <tr><td class="px" style="padding:30px 48px 0 48px;">
+          <p style="margin:0; font-family:'Fraunces',Georgia,serif; font-style:italic; font-size:19px; line-height:28px; color:#225F27;">Glad you're here. Now go get something on the stove.</p>
+          <p style="margin:8px 0 0 0; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:15px; color:#6b6f63;">— The vegan eating crew</p>
+        </td></tr>
+
+        <tr><td height="30" style="height:30px; line-height:30px; font-size:30px;">&nbsp;</td></tr>
+
+        <tr><td bgcolor="#225F27" style="background-color:#225F27; padding:26px 48px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center" style="font-family:'Fraunces',Georgia,serif; font-style:italic; font-size:18px; color:#f0efe4;">Eat green, feel green. 🌱</td></tr>
+            <tr><td align="center" style="padding-top:14px; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:12px; line-height:20px; color:#b9c9b3;">
+              veganeating.com<br>You're getting this because you created an account.
+              <a href="{{unsubscribe_url}}" style="color:#e7e5d8; text-decoration:underline;">Unsubscribe</a>
+            </td></tr>
+          </table>
+        </td></tr>
+
+      </table>
+    </td></tr>
   </table>
-  <div style="background:#f1efe6;border-radius:14px;padding:16px 18px;margin:14px 0">
-    <div style="font-weight:700;font-size:15px;color:#20271c;margin-bottom:4px">One quick step to post in the forums</div>
-    <div style="font-size:14px;line-height:1.55;color:#5f6a57">To keep the community kind and useful, posting is unlocked after you read the house rules once. Pop over to
-      <a href="https://veganeating.com/forum/general/news" style="color:#2f7d38;font-weight:600;text-decoration:none">the rules thread</a> and give it a read — that's it, you'll be able to post.</div>
-  </div>
-  <p style="line-height:1.6;font-size:15px;color:#5f6a57;margin-top:18px">Happy cooking,<br>The vegan eating kitchen</p>
-</div>`;
+</body>
+</html>`;
 
 export async function getWelcomeEmail(): Promise<{ subject: string; html: string }> {
     const rows = await prisma.setting.findMany({ where: { key: { in: [K_WELCOME_SUBJECT, K_WELCOME_HTML] } } });

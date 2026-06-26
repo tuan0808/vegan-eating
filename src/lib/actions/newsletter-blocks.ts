@@ -85,6 +85,50 @@ export async function recipeBlock(url: string): Promise<BlockResult> {
     return { ok: true, html };
 }
 
+// ---------- Daily Dispatch (news) ----------
+export async function dispatchBlock(url: string): Promise<BlockResult> {
+    await requireRole(["ADMIN"]);
+    const slug = slugAfter(parts(url), "news");
+    if (!slug) return { ok: false, error: "Couldn't read that news URL." };
+    const n = await getNewsArticleBySlug(slug);
+    if (!n) return { ok: false, error: `No news article found for “${slug}”.` };
+
+    const href = `${SITE}/news/${n.slug}`;
+    const img = absImg(n.image);
+    const sentence = firstSentence(n.description);
+
+    const html = `
+        <!-- ===== DAILY DISPATCH ===== -->
+        <tr>
+          <td class="px" style="padding:26px 48px 0 48px;">
+            <div style="font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#2F7D38;">Daily Dispatch</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="px" style="padding:14px 48px 0 48px;">
+            <a href="${href}" target="_blank" style="text-decoration:none;">
+              <img src="${img}" width="504" alt="${esc(n.title)}" style="display:block; width:100%; max-width:504px; height:auto; border-radius:12px; background-color:#eae8de;">
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td class="px" style="padding:18px 48px 0 48px;">
+            <h2 class="h1" style="margin:0; font-family:'Fraunces',Georgia,'Times New Roman',serif; font-size:30px; line-height:34px; font-weight:600; color:#1c2317; letter-spacing:-0.3px;">${esc(n.title)}</h2>
+            <p style="margin:10px 0 0 0; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:16px; line-height:25px; color:#6b6f63;">${esc(sentence)}</p>
+          </td>
+        </tr>
+        <tr>
+          <td class="px" style="padding:18px 48px 0 48px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td align="center" bgcolor="#2F7D38" style="border-radius:999px;">
+                <a href="${href}" target="_blank" style="display:inline-block; padding:13px 30px; font-family:'Hanken Grotesk',Helvetica,Arial,sans-serif; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:999px;">Read News →</a>
+              </td>
+            </tr></table>
+          </td>
+        </tr>`;
+    return { ok: true, html };
+}
+
 // ---------- Worth a read (article or news) ----------
 type ReadItem = { title: string; href: string; img: string; hook: string };
 

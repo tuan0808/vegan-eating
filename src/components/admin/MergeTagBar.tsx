@@ -5,6 +5,7 @@ import type { RefObject } from "react";
 
 const MERGE_TAGS = [
     { tag: "{{name}}", desc: "Member's first name — falls back to “there”" },
+    { tag: "{{email}}", desc: "Recipient's email address" },
     { tag: "{{unsubscribe_url}}", desc: "Recipient's one-click unsubscribe link" },
 ];
 

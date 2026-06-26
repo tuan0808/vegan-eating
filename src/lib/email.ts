@@ -1,6 +1,7 @@
 // src/lib/email.ts
 import { Resend } from 'resend'
 import { getWelcomeEmail } from './newsletter-settings'
+import { resolveWelcomeDynamics } from './welcome-blocks'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -19,10 +20,13 @@ export const BASE = (
 
 // --- Merge tokens (what the HTML templates can call) ------------------------
 //   {{name}}            -> the member's first name (falls back to "there")
+//   {{email}}           -> the recipient's email address
 //   {{unsubscribe_url}} -> the recipient's one-click unsubscribe link
-function applyTokens(html: string, name: string, unsubscribeUrl: string): string {
+// (the welcome email additionally resolves {{category_cards}} + {{latest_thread}})
+function applyTokens(html: string, name: string, email: string, unsubscribeUrl: string): string {
     return html
         .replace(/\{\{\s*name\s*\}\}/gi, name)
+        .replace(/\{\{\s*email\s*\}\}/gi, email)
         .replace(/\{\{\s*unsubscribe_url\s*\}\}/gi, unsubscribeUrl)
 }
 
@@ -41,7 +45,9 @@ export async function sendWelcomeEmail(
     const subject = (override?.subject ?? '').trim() || stored.subject
     const rawHtml = (override?.html ?? '') || stored.html
     const safeName = (name ?? '').trim() || 'there'
-    const finalHtml = applyTokens(rawHtml, safeName, unsubscribeUrl ?? `${BASE}/api/unsubscribe`)
+    let finalHtml = applyTokens(rawHtml, safeName, to, unsubscribeUrl ?? `${BASE}/api/unsubscribe`)
+    // Welcome-only dynamic sections: 2 random category cards + the latest thread.
+    finalHtml = await resolveWelcomeDynamics(finalHtml)
 
     const { data, error } = await resend.emails.send({ from: FROM, to, subject, html: finalHtml })
     if (error) {
@@ -63,7 +69,7 @@ function newsletterFooter(unsubscribeUrl: string): string {
 
 function newsletterPayload(to: string, name: string, subject: string, html: string, unsubscribeUrl: string) {
     const carriesUnsub = /\{\{\s*unsubscribe_url\s*\}\}/i.test(html)
-    const body = applyTokens(html, name, unsubscribeUrl)
+    const body = applyTokens(html, name, to, unsubscribeUrl)
     return {
         from: FROM,
         to,

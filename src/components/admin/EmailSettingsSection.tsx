@@ -1,7 +1,7 @@
 // src/components/admin/EmailSettingsSection.tsx
 import WelcomeEmailSection from "./WelcomeEmailSection";
 import NewsletterSection from "./NewsletterSection";
-import { getWelcomeConfig, getWelcomeEmail, getNewsletter } from "@/lib/newsletter-settings";
+import { getWelcomeConfig, getWelcomeEmail, getNewsletter, DEFAULT_WELCOME_SUBJECT, DEFAULT_WELCOME_HTML } from "@/lib/newsletter-settings";
 import { recipientCount } from "@/lib/actions/newsletter-admin";
 import "./settings.css";
 import "./newsletter-admin.css";
@@ -21,7 +21,14 @@ export default async function EmailSettingsSection() {
                     <h2>Welcome email</h2>
                     <p>A warm hello sent automatically the moment a member verifies their email.</p>
                 </div>
-                <WelcomeEmailSection enabled={welcome.enabled} testMode={welcome.testMode} subject={welcomeEmail.subject} html={welcomeEmail.html} />
+                <WelcomeEmailSection
+                    enabled={welcome.enabled}
+                    testMode={welcome.testMode}
+                    subject={welcomeEmail.subject}
+                    html={welcomeEmail.html}
+                    defaultSubject={DEFAULT_WELCOME_SUBJECT}
+                    defaultHtml={DEFAULT_WELCOME_HTML}
+                />
             </section>
 
             <section className="settings-section">

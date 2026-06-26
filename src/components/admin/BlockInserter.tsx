@@ -4,7 +4,7 @@
 // the newsletter HTML at the cursor.
 import type { RefObject } from "react";
 import { useState, useTransition } from "react";
-import { recipeBlock, worthReadBlock, forumBlock, type BlockResult } from "@/lib/actions/newsletter-blocks";
+import { recipeBlock, dispatchBlock, worthReadBlock, forumBlock, type BlockResult } from "@/lib/actions/newsletter-blocks";
 
 export default function BlockInserter({
     taRef,
@@ -15,6 +15,7 @@ export default function BlockInserter({
     value: string;
     onChange: (v: string) => void;
 }) {
+    const [dispatchUrl, setDispatchUrl] = useState("");
     const [recipeUrl, setRecipeUrl] = useState("");
     const [readA, setReadA] = useState("");
     const [readB, setReadB] = useState("");
@@ -57,6 +58,14 @@ export default function BlockInserter({
     return (
         <div className="ns-blocks">
             <div className="ns-blocks-title">Smart blocks — paste a URL, click Insert to drop the formatted section at your cursor</div>
+
+            <div className="ns-block-row">
+                <span className="ns-block-label">Daily Dispatch</span>
+                <input className="ns-input ns-block-input" value={dispatchUrl} onChange={(e) => setDispatchUrl(e.target.value)} placeholder="https://veganeating.com/news/…" />
+                <button type="button" className="ns-btn" disabled={pending || !dispatchUrl.trim()} onClick={() => run("dispatch", () => dispatchBlock(dispatchUrl))}>
+                    {busy === "dispatch" ? "…" : "Insert"}
+                </button>
+            </div>
 
             <div className="ns-block-row">
                 <span className="ns-block-label">Recipe of the week</span>

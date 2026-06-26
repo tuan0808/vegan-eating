@@ -16,12 +16,14 @@ export type State = { ok: boolean; message: string | null; key?: number };
 
 async function adminEmail(): Promise<{ email: string; name: string | null } | null> {
     const me = await requireRole(["ADMIN"]);
-    if (me.email) return { email: me.email, name: me.name ?? null };
-    // Fallback if the session lacks email for some reason.
-    const row = me.id
-        ? await prisma.user.findUnique({ where: { id: me.id }, select: { email: true, name: true } })
-        : null;
-    return row?.email ? { email: row.email, name: row.name } : null;
+    // Read fresh from the DB — the session token caches the OLD email after a
+    // profile change until the user logs in again, so trusting me.email would
+    // keep sending tests to the previous address.
+    if (me.id) {
+        const row = await prisma.user.findUnique({ where: { id: me.id }, select: { email: true, name: true } });
+        if (row?.email) return { email: row.email, name: row.name };
+    }
+    return me.email ? { email: me.email, name: me.name ?? null } : null;
 }
 
 // --- welcome email config ---------------------------------------------------

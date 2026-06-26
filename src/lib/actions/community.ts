@@ -4,6 +4,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { createVerificationToken } from "@/lib/verification";
+import { sendVerificationEmail } from "@/lib/email";
 
 const clamp = (s: string, max: number) => s.slice(0, max).trim();
 
@@ -95,17 +97,37 @@ export async function updateAccount(
         return { ok: false, error: "Enter a valid email address." };
     }
 
-    const taken = await prisma.user.findFirst({
-        where: { email, NOT: { id: me.id } },
-        select: { id: true },
-    });
-    if (taken) return { ok: false, error: "That email is already in use." };
-
-    await prisma.user.update({
+    const current = await prisma.user.findUnique({
         where: { id: me.id },
-        // Changing email clears verification — re-verify on your existing flow.
-        data: { email, emailVerified: null },
+        select: { email: true, emailVerified: true },
     });
+    const emailChanged = current?.email !== email;
+
+    // Nothing to do only if the email is unchanged AND already verified.
+    if (!emailChanged && current?.emailVerified) return { ok: true };
+
+    if (emailChanged) {
+        const taken = await prisma.user.findFirst({
+            where: { email, NOT: { id: me.id } },
+            select: { id: true },
+        });
+        if (taken) return { ok: false, error: "That email is already in use." };
+
+        await prisma.user.update({
+            where: { id: me.id },
+            // Changing email clears verification; we send a fresh confirmation below.
+            data: { email, emailVerified: null },
+        });
+    }
+
+    // Send a verification email — to the new address on a change, or as a resend
+    // when the current address is still unverified (re-saving the form).
+    try {
+        const token = await createVerificationToken(me.id);
+        await sendVerificationEmail(email, token);
+    } catch (e) {
+        console.error("verification email failed:", e);
+    }
 
     revalidatePath("/settings");
     return { ok: true };

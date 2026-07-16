@@ -2,12 +2,14 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { createVerificationToken } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
+import { sendRedditEvent, redditMatchFromRequest } from "@/lib/reddit-capi";
 
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,6 +45,20 @@ export async function registerAction(formData: FormData) {
         data: { name, username, email, password: hash, role: "MEMBER" },
     });
 
+    // Reddit SignUp conversion (server side / CAPI). Shares conversionId with the
+    // pixel twin that fires on the login page (see redirect below) so Reddit
+    // de-dupes the pair. Awaited so it flushes before the redirect ends the
+    // request on serverless; the call self-guards and never throws.
+    const conversionId = randomUUID();
+    const match = await redditMatchFromRequest();
+    await sendRedditEvent({
+        eventName: "SignUp",
+        conversionId,
+        email,
+        externalId: user.id,
+        ...match,
+    });
+
     // Issue + send the verification link. We do NOT log the new user in anymore —
     // login now requires a verified email, so auto-login would immediately reject
     // them. Instead we send them to the login page with a "check your inbox" notice;
@@ -55,5 +71,7 @@ export async function registerAction(formData: FormData) {
         console.error("Verification email failed to send:", e);
     }
 
-    redirect("/login?registered=1");
+    // `sc` carries the conversion id to the login page, where the browser pixel
+    // fires SignUp with the same id → deduped against the CAPI event above.
+    redirect(`/login?registered=1&sc=${conversionId}`);
 }

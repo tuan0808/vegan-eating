@@ -1,9 +1,10 @@
 // src/components/BandNewsletter.tsx
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useMemo, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { subscribeNewsletter, type NewsletterState } from "@/app/actions/newsletter";
+import { rdtTrack, newConversionId } from "@/components/analytics/reddit-pixel";
 
 const initial: NewsletterState = { ok: false, error: null };
 
@@ -18,6 +19,18 @@ function SignUpButton() {
 
 export default function BandNewsletter() {
     const [state, formAction] = useActionState(subscribeNewsletter, initial);
+    // One id per mount, shared between this pixel Lead and the CAPI Lead the
+    // server action fires (via the hidden field) so Reddit dedupes them.
+    const conversionId = useMemo(() => newConversionId(), []);
+    const fired = useRef(false);
+
+    // Fire the pixel Lead once, when the server action reports success.
+    useEffect(() => {
+        if (state.ok && !fired.current) {
+            fired.current = true;
+            rdtTrack("Lead", { conversionId });
+        }
+    }, [state.ok, conversionId]);
 
     if (state.ok) {
         return (
@@ -30,6 +43,7 @@ export default function BandNewsletter() {
     return (
         <>
             <form className="news-form" action={formAction}>
+                <input type="hidden" name="conversionId" value={conversionId} />
                 <input
                     type="email"
                     name="email"

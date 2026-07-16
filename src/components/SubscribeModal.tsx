@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { subscribeEmail } from "@/app/actions/newsletter";
+import { rdtTrack, newConversionId } from "@/components/analytics/reddit-pixel";
 
 // The one and only Subscribe ("The Dispatch") modal. Controlled via open/onClose
 // so any trigger can use it — the header and the footer both render this. Owns
@@ -48,10 +49,14 @@ export default function SubscribeModal({
         if (!/.+@.+\..+/.test(value)) { setErr("Enter a valid email address."); return; }
         setErr(null);
         setBusy(true);
-        const res = await subscribeEmail(value);
+        // Same id for the pixel Lead and the CAPI Lead so Reddit dedupes them.
+        const conversionId = newConversionId();
+        const res = await subscribeEmail(value, conversionId);
         setBusy(false);
-        if (res.ok) setDone(true);
-        else setErr(res.error);
+        if (res.ok) {
+            rdtTrack("Lead", { conversionId });
+            setDone(true);
+        } else setErr(res.error);
     };
 
     if (!mounted || !open) return null;

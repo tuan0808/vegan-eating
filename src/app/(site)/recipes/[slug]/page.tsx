@@ -19,6 +19,7 @@ import "@/app/(site)/articles/[slug]/article-content.css";
 import "@/styles/kitchen.css";
 import { recipeJsonLdScript } from "@/lib/recipe-jsonld";
 import { pageMetadata, toISO, breadcrumbJsonLdScript } from "@/lib/seo";
+import RedditEvent from "@/components/analytics/RedditEvent";
 
 
 // ISR: the page renders statically and revalidates hourly. Anything
@@ -94,6 +95,7 @@ export default async function RecipePage({ params: paramsP }: { params: Promise<
 
   return (
       <>
+        <RedditEvent event="ViewContent" products={[{ id: r.slug, name: r.title, category: r.recipeType || "Recipe" }]} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: recipeJsonLd }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
         <section className="recipe-hero">

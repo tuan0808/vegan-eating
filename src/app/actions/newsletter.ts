@@ -1,11 +1,27 @@
 // src/app/actions/newsletter.ts
 'use server'
 
+import { randomUUID } from 'crypto'
+import { sendRedditEvent, redditMatchFromRequest } from '@/lib/reddit-capi'
+
 export type NewsletterState = { ok: boolean; error: string | null }
+
+// Fire the Reddit Lead conversion (server side / CAPI). conversionId is the same
+// one the browser pixel uses, so Reddit de-dupes the pair. Best-effort: awaited
+// so it flushes on serverless, self-guarded so it never affects the opt-in.
+async function trackNewsletterLead(email: string, conversionId?: string): Promise<void> {
+    const match = await redditMatchFromRequest()
+    await sendRedditEvent({
+        eventName: 'Lead',
+        conversionId: conversionId || randomUUID(),
+        email,
+        ...match,
+    })
+}
 
 // Adds an email to the configured Resend audience. Uses the REST API directly
 // (no SDK dependency). Duplicates are treated as success — re-subscribing is fine.
-async function addContact(rawEmail: string): Promise<NewsletterState> {
+async function addContact(rawEmail: string, conversionId?: string): Promise<NewsletterState> {
     const email = rawEmail.trim().toLowerCase()
     if (!/.+@.+\..+/.test(email)) return { ok: false, error: 'Enter a valid email address.' }
 
@@ -36,21 +52,24 @@ async function addContact(rawEmail: string): Promise<NewsletterState> {
             return { ok: false, error: 'Could not subscribe right now. Please try again.' }
         }
 
+        await trackNewsletterLead(email, conversionId)
         return { ok: true, error: null }
     } catch {
         return { ok: false, error: 'Could not subscribe right now. Please try again.' }
     }
 }
 
-// For the band form (useFormState).
+// For the band form (useFormState). The client seeds a hidden `conversionId`
+// field so its pixel Lead and this CAPI Lead share an id and get deduped.
 export async function subscribeNewsletter(
     _prev: NewsletterState,
     formData: FormData,
 ): Promise<NewsletterState> {
-    return addContact(String(formData.get('email') ?? ''))
+    const conversionId = String(formData.get('conversionId') ?? '') || undefined
+    return addContact(String(formData.get('email') ?? ''), conversionId)
 }
 
 // For a direct call from a client handler (the header modal).
-export async function subscribeEmail(email: string): Promise<NewsletterState> {
-    return addContact(email)
+export async function subscribeEmail(email: string, conversionId?: string): Promise<NewsletterState> {
+    return addContact(email, conversionId)
 }

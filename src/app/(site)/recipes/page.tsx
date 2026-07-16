@@ -7,6 +7,7 @@ import { buildWhere } from "@/lib/recipe-filters";
 import { pillCategories } from "@/lib/category-config";
 import PageHero from "@/components/PageHero";
 import { pageMetadata } from "@/lib/seo";
+import RedditEvent from "@/components/analytics/RedditEvent";
 
 export const dynamic = "force-dynamic";
 export const metadata = pageMetadata({
@@ -25,6 +26,9 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
 
     return (
         <>
+            {/* Reddit Search conversion — keyed by query so each distinct search
+                re-fires as the user refines it (client nav reuses the page). */}
+            {q && <RedditEvent key={q} event="Search" />}
             <PageHero
                 image="/header/recipes.jpg"
                 kicker="The Kitchen"

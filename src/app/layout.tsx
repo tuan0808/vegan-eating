@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { isMaintenanceBlocked, getMaintenance } from "@/lib/maintenance";
 import MaintenanceScreen from "@/components/maintenance/MaintenanceScreen";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_DEFAULT_TITLE, siteJsonLdScript } from "@/lib/seo";
+import RedditPixel from "@/components/analytics/RedditPixel";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -55,7 +56,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {/* Site-wide Organization + WebSite schema (brand identity + sitelinks search box). */}
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: siteJsonLdScript() }} />
         </head>
-        <body>{blocked ? <MaintenanceScreen /> : children}</body>
+        <body>
+        {/* Reddit Ads browser pixel — loads site-wide (incl. auth routes) so the
+            SignUp conversion can fire after the register→login redirect. Dormant
+            until NEXT_PUBLIC_REDDIT_PIXEL_ID is set. */}
+        <RedditPixel />
+        {blocked ? <MaintenanceScreen /> : children}
+        </body>
         </html>
     );
 }

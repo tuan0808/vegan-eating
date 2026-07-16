@@ -15,6 +15,7 @@ import ArticleBody from "./ArticleBody";
 import { tiptapText, firstParagraphText } from "@/lib/article-body";
 import { articleJsonLdScript } from "@/lib/article-jsonld";
 import { pageMetadata, toISO, breadcrumbJsonLdScript } from "@/lib/seo";
+import RedditEvent from "@/components/analytics/RedditEvent";
 import "./article-content.css";
 
 // ISR: renders statically and revalidates hourly. Per-request work (view
@@ -111,6 +112,7 @@ export default async function ArticlePage({ params: paramsP }: { params: Promise
 
     return (
         <>
+            <RedditEvent event="ViewContent" products={[{ id: a.slug, name: a.title, category: a.category || "Article" }]} />
             <ReadingProgress />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleJsonLd }} />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />

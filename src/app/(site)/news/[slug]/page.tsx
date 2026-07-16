@@ -14,6 +14,7 @@ import { getNewsArticleBySlug, listRelatedNews, listLatestNews, type NewsCard } 
 import { textToTiptap } from "@/lib/news-body";
 import { pageMetadata, toISO, breadcrumbJsonLdScript } from "@/lib/seo";
 import { newsJsonLdScript } from "@/lib/news-jsonld";
+import RedditEvent from "@/components/analytics/RedditEvent";
 
 // ISR: curated stories are stored in the DB and served statically, revalidated
 // hourly. No cookies/searchParams here, so the route stays cacheable.
@@ -101,6 +102,7 @@ export default async function NewsArticlePage({ params: paramsP }: { params: Pro
 
     return (
         <>
+            <RedditEvent event="ViewContent" products={[{ id: a.slug, name: a.title, category: "News" }]} />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: newsJsonLd }} />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
             {/* Hero — plain <img> so any publisher image host works without config. */}

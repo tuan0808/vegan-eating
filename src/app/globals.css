@@ -160,7 +160,11 @@ section{padding:74px 0}
 .card .meta span{display:flex;align-items:center;gap:6px}
 .bookmark{position:absolute;top:12px;right:12px;z-index:3;width:36px;height:36px;border-radius:50%;background:rgba(255,253,248,.92);display:grid;place-items:center;opacity:0;transform:translateY(-6px);transition:.25s}
 .card:hover .bookmark{opacity:1;transform:translateY(0)}
-.diet-chip{position:absolute;top:12px;left:12px;z-index:3;background:rgba(28,42,26,.78);color:#fff;backdrop-filter:blur(4px);padding:5px 12px;border-radius:30px;font-size:11px;font-weight:600;letter-spacing:.03em}
+/* No backdrop-filter: with a full grid of recipe cards, each blurred chip forces
+   the browser to recompute its backdrop against the moving page on every scroll
+   frame — the visible flashing on the (card-dense) recipes page. The 82%-opaque
+   background reads fine on its own. */
+.diet-chip{position:absolute;top:12px;left:12px;z-index:3;background:rgba(28,42,26,.82);color:#fff;padding:5px 12px;border-radius:30px;font-size:11px;font-weight:600;letter-spacing:.03em}
 .card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
 .byline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .byline .avatar{width:26px;height:26px;font-size:11px}

@@ -18,6 +18,8 @@ const MESSAGES: Record<string, string> = {
     invalid: "That email and password didn't match. Try again.",
     taken: "An account with that email or username already exists.",
     captcha: "Please complete the verification check and try again.",
+    blocked: "We couldn't create an account from this connection. If you believe this is a mistake, please contact us.",
+    iplimit: "An account has already been created from this network. If you need another, please contact us.",
     unverified:
         "Almost there — please verify your email before logging in. We emailed you a link when you signed up; check your inbox and spam. Need a fresh one? Resend it below.",
 };
@@ -53,25 +55,22 @@ export default function AuthForm({ mode, action, error, notice, resendAction }: 
 
                 <form action={action} className="form">
                     {isRegister ? (
-                        <>
-                            <label>
-                                <span>Display name</span>
-                                <input name="name" type="text" autoComplete="name" required maxLength={60} />
-                            </label>
-                            <label>
-                                <span>Username</span>
-                                <input
-                                    name="username"
-                                    type="text"
-                                    autoComplete="username"
-                                    required
-                                    minLength={3}
-                                    maxLength={24}
-                                    pattern="[A-Za-z0-9_]+"
-                                    title="Letters, numbers, and underscores only"
-                                />
-                            </label>
-                        </>
+                        <label>
+                            <span>Username</span>
+                            <input
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                required
+                                minLength={3}
+                                maxLength={24}
+                                pattern="[A-Za-z0-9_]+"
+                                title="Letters, numbers, and underscores only"
+                            />
+                            <small className="hint">
+                                Your unique @handle and profile link. You can add a separate display name later in Settings.
+                            </small>
+                        </label>
                     ) : null}
 
                     <label>
@@ -182,6 +181,12 @@ export default function AuthForm({ mode, action, error, notice, resendAction }: 
                     font-size: 13px;
                     font-weight: 600;
                     color: var(--ink, #1c2317);
+                }
+                .hint {
+                    font-size: 12.5px;
+                    font-weight: 400;
+                    line-height: 1.45;
+                    color: var(--muted, #6b7264);
                 }
                 input {
                     border: 1px solid var(--line, #d9d5c8);

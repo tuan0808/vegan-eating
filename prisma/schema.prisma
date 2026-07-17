@@ -82,6 +82,11 @@ model Article {
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
+  // Canonical inbox for `email` (Gmail dots + "+tags" stripped). Blocks one mailbox
+  // from minting many "unique" accounts. Nullable for legacy rows until backfilled;
+  // uniqueness is enforced in the signup action, not by a DB constraint, so existing
+  // dot-variant collisions don't break `db push`. See src/lib/email-normalize.ts.
+  normalizedEmail String?
   username      String    @unique
   password      String?
   name          String?
@@ -122,6 +127,7 @@ model User {
 
   @@index([signupIp])
   @@index([lastLoginIp])
+  @@index([normalizedEmail])
 }
 
 // Top level: General, Vegan, Vegetarians, Around the World, Help

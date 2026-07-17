@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth-helpers";
 import AntiSpamPanel from "@/components/admin/AntiSpamPanel";
+import SuspiciousAccounts from "@/components/admin/SuspiciousAccounts";
 import DuplicateSignups from "@/components/admin/DuplicateSignups";
 import IpActivityList from "@/components/admin/IpActivityList";
 import VeganizeLimits from "@/components/admin/VeganizeLimits";
@@ -17,6 +18,7 @@ export default async function SecurityPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <AntiSpamPanel />
             <VeganizeLimits />
+            <SuspiciousAccounts />
             <DuplicateSignups />
             <IpActivityList />
         </div>

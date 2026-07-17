@@ -66,15 +66,12 @@
 .mnt-leafshape { stroke: #f4f1e9; stroke-width: 1.8; fill: rgba(244, 241, 233, 0.14); stroke-linejoin: round; }
 .mnt-seed { fill: var(--terra); }
 
-.mnt-mark {
-    font-family: var(--display);
-    font-size: 1.02rem;
-    letter-spacing: 0.02em;
-    color: #f4f1e9;
-    opacity: 0.95;
-    margin: 0 0 2rem;
+.mnt-logo {
+    display: block;
+    width: min(200px, 62%);
+    height: auto;
+    margin: 0 auto 2rem;
 }
-.mnt-mark span { margin-right: 4px; }
 
 /* countdown — the hero */
 .mnt-clock { display: inline-flex; margin: 0 0 1.1rem; }

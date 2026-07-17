@@ -23,7 +23,8 @@ export default async function MaintenanceScreen() {
                     <circle className="mnt-seed" cx="32" cy="67" r="3" />
                 </svg>
 
-                <p className="mnt-mark"><span aria-hidden="true">🥕</span> vegan eating</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="mnt-logo" src="/logo/logo.svg" alt="vegan eating" width={444} height={118} />
 
                 <Countdown target={endsAt} />
 

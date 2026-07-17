@@ -54,7 +54,7 @@ function normTitle(s: string) {
 // The first occurrence of a title stays visible; the rest are flagged for staff
 // review in the admin board. We only ever set hidden/dupeOf on CREATE, never on
 // update, so a manual un-hide or "not a duplicate" decision is never reverted.
-export async function syncNews(): Promise<{ fetched: number; saved: number; duplicates: number }> {
+export async function syncNews(): Promise<{ fetched: number; saved: number; duplicates: number; created: number }> {
     const apiKey = process.env.NEWSDATA_API_KEY;
     if (!apiKey) throw new Error("NEWSDATA_API_KEY is not set");
 
@@ -86,8 +86,15 @@ export async function syncNews(): Promise<{ fetched: number; saved: number; dupl
         if (k && !seen.has(k)) seen.set(k, o.slug);
     }
 
+    // Pre-load the externalIds already stored so we can tell a fresh insert from
+    // a re-sync of an existing story — the count of new inserts is what lands in
+    // the editor's pending-review queue.
+    const existing = await prisma.newsArticle.findMany({ select: { externalId: true } });
+    const knownIds = new Set(existing.map((e) => e.externalId));
+
     let saved = 0;
     let duplicates = 0;
+    let created = 0;
 
     for (const a of data.results) {
         if (!a.article_id || !a.title || !a.link) continue;
@@ -115,6 +122,10 @@ export async function syncNews(): Promise<{ fetched: number; saved: number; dupl
                 content: a.content ?? "",
                 // exact-title duplicate of an existing visible story → hide + flag for review
                 hidden: dupeOf ? true : false,
+                // Every freshly fetched story is held for editorial review — it does
+                // not reach the public feed until an editor publishes it. (Dupes are
+                // already hidden; this keeps them out of the public feed regardless.)
+                published: false,
                 dupeOf,
             },
             update: {
@@ -132,8 +143,9 @@ export async function syncNews(): Promise<{ fetched: number; saved: number; dupl
         // ones in this same batch will match against it and get flagged.
         if (key && !dupeOf && !seen.has(key)) seen.set(key, slug);
         if (dupeOf) duplicates++;
+        if (!knownIds.has(a.article_id)) created++;
         saved++;
     }
 
-    return { fetched: data.results.length, saved, duplicates };
+    return { fetched: data.results.length, saved, duplicates, created };
 }

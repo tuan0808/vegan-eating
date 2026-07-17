@@ -26,12 +26,44 @@ function normTitle(s: string) {
  * Manual "Fetch latest news" trigger. Admin-gated wrapper around the same
  * syncNews() the cron uses, so the dedup pass runs here too.
  */
-export async function runNewsSyncNow(): Promise<{ fetched: number; saved: number; duplicates: number }> {
+export async function runNewsSyncNow(): Promise<{ fetched: number; saved: number; duplicates: number; created: number }> {
     await requireAdmin();
     const res = await syncNews();
+    // Only the admin board changes here — freshly fetched stories are unpublished
+    // (pending review), so there is nothing new to reveal on the public /news page
+    // yet. It gets revalidated when the editor actually publishes.
+    revalidatePath("/admin/news");
+    return res;
+}
+
+/**
+ * Editorial publish / unpublish — the review gate. A freshly fetched story lands
+ * unpublished and stays off the public feed until an editor publishes it here.
+ * Unpublishing pulls a live story back into the pending queue. Durable across
+ * syncs: the upsert only sets `published` on CREATE, so an editor decision holds.
+ */
+export async function setNewsPublished(slug: string, published: boolean): Promise<void> {
+    await requireAdmin();
+    if (!slug) return;
+    await prisma.newsArticle.update({ where: { slug }, data: { published } });
     revalidatePath("/admin/news");
     revalidatePath("/news");
-    return res;
+    revalidatePath(`/news/${slug}`);
+}
+
+/**
+ * Bulk publish / unpublish by slug — lets an editor clear the whole pending queue
+ * in one pass after deleting the meat/off-brand results. "Select all + Publish"
+ * pushes the reviewed set live together.
+ */
+export async function setNewsPublishedMany(slugs: string[], published: boolean): Promise<{ updated: number }> {
+    await requireAdmin();
+    const clean = Array.from(new Set(slugs.filter(Boolean)));
+    if (!clean.length) return { updated: 0 };
+    const res = await prisma.newsArticle.updateMany({ where: { slug: { in: clean } }, data: { published } });
+    revalidatePath("/admin/news");
+    revalidatePath("/news");
+    return { updated: res.count };
 }
 
 /**

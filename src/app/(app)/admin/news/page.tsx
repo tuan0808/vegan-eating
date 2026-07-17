@@ -46,34 +46,40 @@ export default async function AdminNewsPage({
     const q = (sp?.q ?? "").trim();
     const sort = sp?.sort || "newest";
     const activeCat = sp?.cat || "all";
-    const view = sp?.view === "dupes" ? "dupes" : "all";
+    const view = sp?.view === "dupes" ? "dupes" : sp?.view === "pending" ? "pending" : "all";
     const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
 
     const orderBy: Prisma.NewsArticleOrderByWithRelationInput =
         sort === "oldest" ? { pubDate: "asc" } : { pubDate: "desc" };
 
-    // The duplicates review queue ignores the category pills and shows every
-    // flagged story so staff can clear them out; the default view keeps the
-    // normal title/category filtering.
+    // Two review queues ignore the category pills and show every flagged/pending
+    // story so staff can clear them in one pass; the default view keeps the normal
+    // title/category filtering.
+    //   • dupes   — auto-flagged exact-title duplicates
+    //   • pending — freshly fetched stories awaiting editorial approval (published:false,
+    //               not a dupe, since dupes have their own queue)
     const where: Prisma.NewsArticleWhereInput =
         view === "dupes"
             ? { dupeOf: { not: null }, ...(q ? { title: { contains: q } } : {}) }
-            : {
-                ...(q ? { title: { contains: q } } : {}),
-                // categories is a JSON string like ["food","health"] — substring match on the quoted value.
-                ...(activeCat !== "all" ? { categories: { contains: `"${activeCat}"` } } : {}),
-            };
+            : view === "pending"
+                ? { published: false, dupeOf: null, ...(q ? { title: { contains: q } } : {}) }
+                : {
+                    ...(q ? { title: { contains: q } } : {}),
+                    // categories is a JSON string like ["food","health"] — substring match on the quoted value.
+                    ...(activeCat !== "all" ? { categories: { contains: `"${activeCat}"` } } : {}),
+                };
 
-    // The duplicates review queue shows everything on one page so "select all"
-    // really selects all of them; the normal view stays paginated.
-    const isDupes = view === "dupes";
-    const take = isDupes ? 1000 : PER_PAGE;
-    const skip = isDupes ? 0 : (page - 1) * PER_PAGE;
+    // The review queues show everything on one page so "select all" really selects
+    // all of them; the normal view stays paginated.
+    const isQueue = view === "dupes" || view === "pending";
+    const take = isQueue ? 1000 : PER_PAGE;
+    const skip = isQueue ? 0 : (page - 1) * PER_PAGE;
 
-    const [rows, total, dupeCount, newsQuery] = await Promise.all([
+    const [rows, total, dupeCount, pendingCount, newsQuery] = await Promise.all([
         prisma.newsArticle.findMany({ where, orderBy, skip, take }),
         prisma.newsArticle.count({ where }),
         prisma.newsArticle.count({ where: { dupeOf: { not: null } } }),
+        prisma.newsArticle.count({ where: { published: false, dupeOf: null } }),
         getNewsQueryString(),
     ]);
 
@@ -89,6 +95,7 @@ export default async function AdminNewsPage({
         date: r.pubDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
         image: r.image,
         hidden: r.hidden,
+        published: r.published,
         categories: parseCategories(r.categories),
         dupeOf: r.dupeOf,
     }));
@@ -102,8 +109,8 @@ export default async function AdminNewsPage({
         const sp = new URLSearchParams();
         if (qq) sp.set("q", qq);
         if (ss && ss !== "newest") sp.set("sort", ss);
-        if (vv === "dupes") sp.set("view", "dupes");
-        else if (cc && cc !== "all") sp.set("cat", cc); // cat is irrelevant in the dupes view
+        if (vv === "dupes" || vv === "pending") sp.set("view", vv);
+        else if (cc && cc !== "all") sp.set("cat", cc); // cat is irrelevant in the review queues
         if (pp > 1) sp.set("page", String(pp));
         const qs = sp.toString();
         return qs ? `/admin/news?${qs}` : "/admin/news";
@@ -116,8 +123,13 @@ export default async function AdminNewsPage({
                 <h1 style={h1}>News</h1>
                 <p className="ar-dek">
                     {total} stor{total === 1 ? "y" : "ies"}
-                    {view === "dupes" ? " flagged as duplicates." : " in the backlog."}
-                    {view !== "dupes" && dupeCount > 0 ? ` ${dupeCount} flagged for review.` : ""}
+                    {view === "dupes"
+                        ? " flagged as duplicates."
+                        : view === "pending"
+                            ? " awaiting review — delete what you don't want, then publish the rest."
+                            : " in the backlog."}
+                    {view === "all" && pendingCount > 0 ? ` ${pendingCount} awaiting review.` : ""}
+                    {view === "all" && dupeCount > 0 ? ` ${dupeCount} flagged as duplicates.` : ""}
                 </p>
             </div>
 
@@ -133,21 +145,28 @@ export default async function AdminNewsPage({
             <form className="ar-search" method="get" action="/admin/news">
                 <input type="search" name="q" defaultValue={q} placeholder="Search by title…" aria-label="Search news by title" />
                 {sort !== "newest" && <input type="hidden" name="sort" value={sort} />}
-                {view === "dupes" && <input type="hidden" name="view" value="dupes" />}
+                {(view === "dupes" || view === "pending") && <input type="hidden" name="view" value={view} />}
                 <button type="submit">Search</button>
-                {(q || activeCat !== "all" || view === "dupes") && <Link href={hrefWith({ q: "", cat: "all", view: "all", page: 1 })} className="ar-clear">Clear</Link>}
+                {(q || activeCat !== "all" || view !== "all") && <Link href={hrefWith({ q: "", cat: "all", view: "all", page: 1 })} className="ar-clear">Clear</Link>}
             </form>
 
             <div className="ar-filterbar">
                 <div className="ar-pills">
                     <span className="ar-pills-label">Filter</span>
-                    <Link href={hrefWith({ cat: "all", view: "all", q: "", page: 1 })} className={`ar-pill${view !== "dupes" && activeCat === "all" ? " active" : ""}`}>All</Link>
+                    <Link href={hrefWith({ cat: "all", view: "all", q: "", page: 1 })} className={`ar-pill${view === "all" && activeCat === "all" ? " active" : ""}`}>All</Link>
                     {NEWS_CATEGORIES.map((c) => {
-                        const isActive = view !== "dupes" && !q && c.value === activeCat;
+                        const isActive = view === "all" && !q && c.value === activeCat;
                         return (
                             <Link key={c.value} href={hrefWith({ cat: c.value, view: "all", q: "", page: 1 })} className={`ar-pill${isActive ? " active" : ""}`}>{c.label}</Link>
                         );
                     })}
+                    <Link
+                        href={hrefWith({ view: "pending", q: "", page: 1 })}
+                        className={`ar-pill${view === "pending" ? " active" : ""}`}
+                        style={pendingCount > 0 ? { color: "#1f6f43" } : undefined}
+                    >
+                        ⏳ Pending review{pendingCount > 0 ? ` (${pendingCount})` : ""}
+                    </Link>
                     <Link
                         href={hrefWith({ view: "dupes", q: "", page: 1 })}
                         className={`ar-pill${view === "dupes" ? " active" : ""}`}
@@ -164,7 +183,11 @@ export default async function AdminNewsPage({
             </div>
 
             <p className="ar-count">
-                {total === 0 ? "No matches." : isDupes ? `${total} flagged` : `Showing ${from}–${to} of ${total}`}
+                {total === 0
+                    ? view === "pending" ? "Nothing awaiting review." : "No matches."
+                    : isQueue
+                        ? `${total} ${view === "pending" ? "awaiting review" : "flagged"}`
+                        : `Showing ${from}–${to} of ${total}`}
             </p>
 
             {/* Both views now share the same selectable NewsRow list. The bulk bar
@@ -179,7 +202,7 @@ export default async function AdminNewsPage({
                 </div>
             </SelectionProvider>
 
-            {!isDupes && totalPages > 1 && (
+            {!isQueue && totalPages > 1 && (
                 <nav className="ar-pager" aria-label="Pagination">
                     {page > 1 ? <Link href={hrefWith({ page: page - 1 })} className="ar-pagebtn">← Prev</Link> : <span className="ar-pagebtn is-disabled">← Prev</span>}
                     <span className="ar-pageinfo">Page {page} of {totalPages}</span>

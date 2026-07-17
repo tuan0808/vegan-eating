@@ -14,8 +14,21 @@ type Row = {
     date: string;
     image: string | null;
     hidden: boolean;
+    published: boolean;
     categories: string[];
     dupeOf: string | null;
+};
+
+const pendingBadge: React.CSSProperties = {
+    marginLeft: 8,
+    padding: "1px 8px",
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.02em",
+    background: "#e4f2e8",
+    color: "#1f6f43",
+    border: "1px solid #a8d6ba",
 };
 
 const dupeBadge: React.CSSProperties = {
@@ -47,11 +60,20 @@ export default function NewsRow({ item }: { item: Row }) {
     };
 
     const isDupe = !!item.dupeOf;
+    // A pending story (fetched, not yet approved) that isn't a duplicate — it's
+    // waiting in the review queue and stays off the public feed until published.
+    const isPendingReview = !item.published && !isDupe;
 
     return (
         <div
             className={`ar-item${item.hidden ? " is-hidden" : ""}${expanded ? " is-editing" : ""}`}
-            style={isDupe ? { borderLeft: "3px solid #c98a1e", background: "#fffaf0" } : undefined}
+            style={
+                isDupe
+                    ? { borderLeft: "3px solid #c98a1e", background: "#fffaf0" }
+                    : isPendingReview
+                        ? { borderLeft: "3px solid #2f9e63", background: "#f6fbf7" }
+                        : undefined
+            }
         >
             <div className="ar-itemtop">
                 <SelectCheckbox id={item.slug} label={`Select ${item.title}`} style={{ marginLeft: 12 }} />
@@ -73,7 +95,12 @@ export default function NewsRow({ item }: { item: Row }) {
                       ⚑ Duplicate
                   </span>
               )}
-              {item.hidden && !isDupe && <span className="ar-badge">Hidden</span>}
+              {isPendingReview && (
+                  <span style={pendingBadge} title="Awaiting editorial approval — not on the public site yet">
+                      ⏳ Pending
+                  </span>
+              )}
+              {item.hidden && !isDupe && item.published && <span className="ar-badge">Hidden</span>}
           </span>
                     <span className="ar-item-sub">
             {item.date || "—"}
@@ -88,7 +115,7 @@ export default function NewsRow({ item }: { item: Row }) {
                         {expanded ? "Close" : "Rename"}
                     </button>
                     <Link href={`/news/${item.slug}`} target="_blank" className="ar-view">View ↗</Link>
-                    <NewsRowActions slug={item.slug} hidden={item.hidden} />
+                    <NewsRowActions slug={item.slug} hidden={item.hidden} published={item.published} isDupe={isDupe} />
                 </div>
             </div>
 

@@ -416,6 +416,11 @@ model NewsArticle {
   content     String   @default("")   // ← the missing field (full article body)
   comments    Comment[]
   hidden      Boolean  @default(false)
+  // Editorial gate: a fetched story stays unpublished (pending review) until an
+  // editor approves it, so meat/off-brand results never reach the public feed.
+  // Defaults true so existing rows and manual imports stay live; only syncNews()
+  // creates new rows as false. Public reads require published:true AND hidden:false.
+  published   Boolean  @default(true)
   sort        Int      @default(0)
   createdAt   DateTime @default(now())
   dupeOf      String?   // slug of the kept original when sync auto-hides this as an exact-title duplicate
@@ -423,6 +428,7 @@ model NewsArticle {
   @@index([dupeOf])
   @@index([pubDate])
   @@index([hidden])
+  @@index([published])
 }
 
 model ContactMessage {

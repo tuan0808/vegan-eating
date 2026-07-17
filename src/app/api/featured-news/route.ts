@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // Header expects: { title, slug, image }.
 export async function GET() {
     const withImage = await prisma.newsArticle.findMany({
-        where: { hidden: false, image: { not: null } },
+        where: { hidden: false, published: true, image: { not: null } },
         orderBy: { pubDate: "desc" },
         take: 24,
         select: { slug: true, title: true, image: true },
@@ -19,7 +19,7 @@ export async function GET() {
     const list = withImage.length
         ? withImage
         : await prisma.newsArticle.findMany({
-            where: { hidden: false },
+            where: { hidden: false, published: true },
             orderBy: { pubDate: "desc" },
             take: 24,
             select: { slug: true, title: true, image: true },

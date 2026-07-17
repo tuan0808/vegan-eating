@@ -40,6 +40,7 @@ export default async function AllNewsPage({
 
     const where: Prisma.NewsArticleWhereInput = {
         hidden: false,
+        published: true,
         // categories is a JSON array string like ["food","health"] — substring match on the quoted value.
         ...(activeCat ? { categories: { contains: `"${activeCat}"` } } : {}),
         ...(q ? { title: { contains: q } } : {}),

@@ -121,11 +121,16 @@ function fmtDate(d: Date): string {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+// The public-visibility filter for every reader-facing news query: a story shows
+// only when it isn't hidden AND has cleared editorial review (published). Kept in
+// one place so no public surface drifts and leaks a pending/hidden story.
+export const PUBLIC_NEWS_WHERE = { hidden: false, published: true } as const;
+
 // Guard the slug — a `findUnique` called with undefined panics the query engine.
 export async function getNewsArticleBySlug(slug?: string | null): Promise<StoredNews | null> {
     if (!slug) return null;
     const row = await prisma.newsArticle.findUnique({ where: { slug } });
-    if (!row || row.hidden) return null;
+    if (!row || row.hidden || !row.published) return null;
     return {
         id: row.id,
         slug: row.slug,
@@ -143,7 +148,7 @@ export async function getNewsArticleBySlug(slug?: string | null): Promise<Stored
 // Slugs (+ pubDate) of every visible news story, for the sitemap.
 export async function allNewsSlugs(): Promise<{ slug: string; pubDate: Date }[]> {
     return prisma.newsArticle.findMany({
-        where: { hidden: false },
+        where: PUBLIC_NEWS_WHERE,
         select: { slug: true, pubDate: true },
         orderBy: { pubDate: "desc" },
     });
@@ -156,7 +161,7 @@ export async function listRelatedNews(
 ): Promise<NewsCard[]> {
     const rows = await prisma.newsArticle.findMany({
         where: {
-            hidden: false,
+            ...PUBLIC_NEWS_WHERE,
             slug: { not: excludeSlug },
             ...(categories.length
                 ? { OR: categories.map((c) => ({ categories: { contains: `"${c}"` } })) }
@@ -170,7 +175,7 @@ export async function listRelatedNews(
 
 export async function listLatestNews(excludeSlug = "", n = 5): Promise<NewsCard[]> {
     const rows = await prisma.newsArticle.findMany({
-        where: { hidden: false, ...(excludeSlug ? { slug: { not: excludeSlug } } : {}) },
+        where: { ...PUBLIC_NEWS_WHERE, ...(excludeSlug ? { slug: { not: excludeSlug } } : {}) },
         orderBy: { pubDate: "desc" },
         take: n,
     });
@@ -191,7 +196,7 @@ export type NewsFeedItem = {
 
 export async function getNewsFeed(n = 10): Promise<NewsFeedItem[]> {
     const rows = await prisma.newsArticle.findMany({
-        where: { hidden: false },
+        where: PUBLIC_NEWS_WHERE,
         orderBy: { pubDate: "desc" },
         take: n,
     });

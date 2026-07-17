@@ -5,13 +5,25 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useSelection } from "@/components/admin/selection/SelectionProvider";
 import BulkBar from "@/components/admin/selection/BulkBar";
-import { deleteNewsMany, setNewsHiddenMany } from "./actions";
+import { deleteNewsMany, setNewsHiddenMany, setNewsPublishedMany } from "./actions";
 
 const ghost = (disabled: boolean): React.CSSProperties => ({
     background: "transparent",
     color: "var(--ink,#1c2317)",
     border: "1px solid var(--line,#d9d5c8)",
     padding: "8px 14px",
+    borderRadius: 999,
+    fontWeight: 600,
+    fontSize: 14,
+    cursor: disabled ? "default" : "pointer",
+    opacity: disabled ? 0.5 : 1,
+});
+
+const publish = (disabled: boolean): React.CSSProperties => ({
+    background: "#2f9e63",
+    color: "#fff",
+    border: "none",
+    padding: "9px 16px",
     borderRadius: 999,
     fontWeight: 600,
     fontSize: 14,
@@ -45,6 +57,14 @@ export default function NewsBulkBar() {
             router.refresh();
         });
 
+    const runPublish = (published: boolean) =>
+        start(async () => {
+            if (!count) return;
+            await setNewsPublishedMany(Array.from(selected), published);
+            clear();
+            router.refresh();
+        });
+
     const runDelete = () =>
         start(async () => {
             if (!count) return;
@@ -56,6 +76,12 @@ export default function NewsBulkBar() {
 
     return (
         <BulkBar>
+            <button type="button" onClick={() => runPublish(true)} disabled={disabled} style={publish(disabled)}>
+                {pending ? "Working…" : `Publish (${count})`}
+            </button>
+            <button type="button" onClick={() => runPublish(false)} disabled={disabled} style={ghost(disabled)}>
+                Unpublish
+            </button>
             <button type="button" onClick={() => runHide(true)} disabled={disabled} style={ghost(disabled)}>
                 Hide
             </button>

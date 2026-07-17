@@ -17,6 +17,9 @@ async function requireAdmin() {
 export async function setMaintenanceEnabled(enabled: boolean) {
     await requireAdmin();
     await setSetting("maintenance_enabled", enabled ? "true" : "false");
+    // The maintenance gate lives in the ROOT layout, so revalidate the whole tree —
+    // not just /settings — or visitors keep seeing the stale holding page/state.
+    revalidatePath("/", "layout");
     revalidatePath("/settings");
 }
 
@@ -24,6 +27,8 @@ export async function saveMaintenanceSchedule(endsAt: string, message: string) {
     await requireAdmin();
     await setSetting("maintenance_ends_at", endsAt ?? "");
     await setSetting("maintenance_message", message ?? "");
+    // Same reason as above — the new schedule/message must reach the live holding page.
+    revalidatePath("/", "layout");
     revalidatePath("/settings");
 }
 

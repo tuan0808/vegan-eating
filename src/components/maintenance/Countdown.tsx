@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Parts = { days: number; hours: number; minutes: number; seconds: number };
 
@@ -17,6 +18,7 @@ function diff(target: number): Parts {
 }
 
 export default function Countdown({ target }: { target: string | null }) {
+    const router = useRouter();
     const targetMs = target ? new Date(target).getTime() : NaN;
     const [parts, setParts] = useState<Parts | null>(null);
 
@@ -27,13 +29,24 @@ export default function Countdown({ target }: { target: string | null }) {
         return () => clearInterval(id);
     }, [targetMs]);
 
+    const done =
+        !!parts && parts.days === 0 && parts.hours === 0 && parts.minutes === 0 && parts.seconds === 0;
+
+    // Once the timer elapses, re-fetch the maintenance state instead of dead-ending on
+    // "refresh the page": if the admin extended the window the countdown resumes with
+    // the new target, and if maintenance was turned off the real site loads — no manual
+    // refresh, and no getting stuck on a stale "back online" when a future date is set.
+    useEffect(() => {
+        if (!done) return;
+        router.refresh();
+        const id = setInterval(() => router.refresh(), 15000);
+        return () => clearInterval(id);
+    }, [done, router]);
+
     // Render nothing until mounted — avoids a server/client hydration mismatch on the seconds.
     if (Number.isNaN(targetMs) || !parts) return null;
 
-    const done =
-        parts.days === 0 && parts.hours === 0 && parts.minutes === 0 && parts.seconds === 0;
-
-    if (done) return <p className="mnt-back">We’re back online — refresh the page.</p>;
+    if (done) return <p className="mnt-back">Almost done — this page will refresh itself.</p>;
 
     const cells: [number, string][] = [
         [parts.days, "Days"],

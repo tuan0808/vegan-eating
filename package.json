@@ -11,6 +11,7 @@
     "import:recipes": "node scripts/import-recipes.mjs",
     "fetch:images": "node scripts/fetch-images.mjs",
     "scrape": "node scripts/scrape-site.mjs",
+    "ingest:places": "tsx scripts/ingest-places.ts",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.mjs",
     "db:reset": "prisma db push --force-reset && node prisma/seed.mjs",

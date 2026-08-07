@@ -125,6 +125,9 @@ model User {
   shoppingItems ShoppingItem[]
   contactMessages ContactMessage[]
 
+  // --- place interactions ---
+  placeReviews PlaceReview[]
+
   @@index([signupIp])
   @@index([lastLoginIp])
   @@index([normalizedEmail])
@@ -488,4 +491,122 @@ model IngredientSub {
   updatedAt DateTime @updatedAt
 
   @@index([name])
+}
+
+// ---------------------------------------------------------------------------
+// Places — the "Vegan Food Near Me" dataset.
+//
+// Seeded from OpenStreetMap via Overpass, then owned by us. Nothing user-facing
+// ever calls Overpass on the request path: reads always hit this table, and
+// coverage grows in the background through GeoCell (see src/lib/places.ts).
+// ---------------------------------------------------------------------------
+model Place {
+  id   String @id @default(cuid())
+  slug String @unique // "pedros-brooklyn-us"
+  name String
+
+  // HappyCow-equivalent taxonomy, derived from OSM diet:* tags.
+  category String // VEGAN | VEGETARIAN | VEG_FRIENDLY
+  // RESTAURANT | CAFE | FAST_FOOD | BAKERY | ICE_CREAM | JUICE_BAR
+  // | FOOD_TRUCK | BAR | STORE | MARKET | OTHER
+  type     String
+
+  lat      Float
+  lng      Float
+  address  String @default("")
+  city     String @default("")
+  citySlug String @default("") // denormalised for /vegan-restaurants/[country]/[city]
+  region   String @default("")
+  country  String @default("") // ISO-3166-1 alpha-2, lowercased
+  postcode String @default("")
+
+  phone          String?
+  website        String?
+  openingHours   String? // raw OSM opening_hours string, parsed at render time
+  cuisines       String  @default("[]") // JSON array, matches Recipe.cuisines
+  wheelchair     String? // yes | limited | no
+  takeaway       Boolean @default(false)
+  delivery       Boolean @default(false)
+  outdoorSeating Boolean @default(false)
+  priceRange     Int? // 1..4, user-supplied only — OSM has no reliable source
+
+  description String? // editorial / member-written
+  images      String  @default("[]") // JSON array of Spaces keys
+
+  // --- provenance ---
+  source       String    @default("OSM") // OSM | USER | ADMIN
+  osmType      String? // node | way | relation
+  osmId        BigInt?
+  lastSyncedAt DateTime?
+  // Fields a human has edited. The OSM re-sync skips these keys, so a refresh
+  // can never silently clobber a member correction.
+  lockedFields String    @default("[]")
+
+  status        String    @default("PUBLISHED") // PUBLISHED | PENDING | REJECTED | CLOSED
+  submittedById String?
+  reviewedAt    DateTime?
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+  views       Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reviews PlaceReview[]
+
+  @@unique([osmType, osmId])
+  @@index([lat, lng])
+  @@index([citySlug, country])
+  @@index([category])
+  @@index([status])
+}
+
+model PlaceReview {
+  id      String  @id @default(cuid())
+  placeId String
+  userId  String
+  score   Int // 1..5
+  body    String?
+  images  String  @default("[]")
+  status  String  @default("APPROVED") // APPROVED | HIDDEN | SPAM
+
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId]) // one review per member per place, mirrors Rating
+  @@index([placeId])
+  @@index([status])
+}
+
+// Which ~11km map cells we've already pulled from Overpass. A search in an
+// unfetched area returns what we have immediately and queues the cell; the
+// CRON-guarded sync route drains the queue out of band.
+model GeoCell {
+  key       String    @id // "40.7,-74.0" — 0.1deg cell
+  lat       Float
+  lng       Float
+  fetchedAt DateTime?
+  status    String    @default("PENDING") // PENDING | OK | EMPTY | ERROR
+  count     Int       @default(0)
+  attempts  Int       @default(0)
+  error     String?
+
+  @@index([status, fetchedAt])
+}
+
+// Nominatim is 1 req/sec and must not be hit twice for the same query.
+model GeocodeCache {
+  query     String   @id // lowercased, trimmed
+  lat       Float
+  lng       Float
+  label     String // "London, England, United Kingdom"
+  city      String   @default("")
+  country   String   @default("")
+  createdAt DateTime @default(now())
 }

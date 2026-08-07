@@ -12,6 +12,8 @@
     "fetch:images": "node scripts/fetch-images.mjs",
     "scrape": "node scripts/scrape-site.mjs",
     "ingest:places": "tsx scripts/ingest-places.ts",
+    "places:dump": "tsx scripts/dump-places.ts",
+    "places:restore": "tsx scripts/restore-places.ts",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.mjs",
     "db:reset": "prisma db push --force-reset && node prisma/seed.mjs",

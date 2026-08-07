@@ -533,6 +533,14 @@ model Place {
   description String? // editorial / member-written
   images      String  @default("[]") // JSON array of Spaces keys
 
+  // Google Places photo cache. Storing the place_id + photo *reference* is
+  // permitted; the image bytes are NOT stored — they're proxied on demand per
+  // Google's terms. photoCheckedAt gates re-lookups, including misses, so we
+  // don't re-hit (and re-bill) Google for a place Google doesn't know.
+  googlePlaceId  String?
+  googlePhotoRef String? // Places API (New) photo resource name
+  photoCheckedAt DateTime?
+
   // --- provenance ---
   source       String    @default("OSM") // OSM | USER | ADMIN
   osmType      String? // node | way | relation

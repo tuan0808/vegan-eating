@@ -4,7 +4,10 @@ import { Collections, ForumSection, JoinBand } from "@/components/HomeSections";
 import Meditation from "@/components/Meditation";
 import HomeSearch from "@/components/HomeSearch";
 import RecipeCard from "@/components/RecipeCard";
+import PlaceHomeCard from "@/components/PlaceHomeCard";
 import { latestRecipes, randomRecipes } from "@/lib/recipes";
+import { nearbyForHome } from "@/lib/actions/places";
+import { photosEnabled } from "@/lib/place-photos";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/seo";
 
@@ -19,10 +22,11 @@ const Arrow = () => (
 );
 
 export default async function Home() {
-    const [hero, latest, picks] = await Promise.all([
+    const [hero, latest, picks, nearby] = await Promise.all([
         randomRecipes(1),
         latestRecipes(6),
         randomRecipes(4),
+        nearbyForHome(3),
     ]);
     return (
         <>
@@ -42,6 +46,21 @@ export default async function Home() {
                     <div className="grid">{latest.map((r) => <RecipeCard key={r.slug} r={r} />)}</div>
                 </section>
             </div>
+
+            {nearby.places.length > 0 && (
+                <div className="wrap">
+                    <section style={{ paddingTop: 0 }}>
+                        <div className="sec-head">
+                            <div>
+                                <span className="kicker" style={{ color: "var(--carrot)" }}>New · find a spot</span>
+                                <h2 style={{ marginTop: 10 }}>Vegan food near {nearby.label}</h2>
+                            </div>
+                            <Link href="/tools/vegan-food-near-me">Find spots near you <Arrow /></Link>
+                        </div>
+                        <div className="grid">{nearby.places.map((p) => <PlaceHomeCard key={p.id} p={p} photos={photosEnabled()} />)}</div>
+                    </section>
+                </div>
+            )}
 
             <Collections />
 

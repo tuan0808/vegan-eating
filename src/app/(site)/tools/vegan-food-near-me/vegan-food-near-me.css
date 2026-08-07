@@ -1,0 +1,280 @@
+/* Vegan Food Near Me — tool styling. Tokens from globals.css. */
+
+.nm-wrap {
+    padding-top: 34px;
+    padding-bottom: 72px;
+}
+
+.nm {
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+/* ---- Location control ---- */
+.nm-control {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+
+.nm-locate {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--terra);
+    color: #fff;
+    border: none;
+    border-radius: 40px;
+    padding: 13px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, transform .05s;
+}
+.nm-locate:hover { background: var(--terra-deep); }
+.nm-locate:active { transform: translateY(1px); }
+.nm-locate:disabled { opacity: .7; cursor: default; }
+
+.nm-origin { font-size: 14px; color: var(--muted); }
+.nm-origin strong { color: var(--ink); }
+
+.nm-note {
+    margin: 14px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+/* ---- City fallback ---- */
+.nm-cities { margin-top: 22px; }
+.nm-cities-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+.nm-city-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.nm-city {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 40px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+}
+.nm-city:hover { border-color: var(--terra); background: #fff; }
+.nm-city-count {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--paper);
+    border-radius: 20px;
+    padding: 1px 8px;
+}
+
+/* ---- Filters ---- */
+.nm-filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0 8px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+}
+.nm-chipset { display: flex; flex-wrap: wrap; gap: 8px; }
+.nm-chip {
+    background: transparent;
+    border: 1.5px solid var(--line);
+    border-radius: 40px;
+    padding: 8px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: .18s;
+}
+.nm-chip:hover { border-color: var(--muted); color: var(--ink); }
+.nm-chip.is-on { color: #fff; border-color: transparent; }
+.nm-chip.cat-vegan.is-on { background: var(--terra); }
+.nm-chip.cat-vegetarian.is-on { background: #5a9e4e; }
+.nm-chip.cat-veg_friendly.is-on { background: var(--carrot); }
+
+.nm-selects { display: flex; gap: 14px; }
+.nm-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+}
+.nm-select select {
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 7px 10px;
+    cursor: pointer;
+}
+
+/* ---- Results ---- */
+.nm-list {
+    list-style: none;
+    margin: 22px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+}
+
+.nm-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow .2s, transform .05s;
+}
+.nm-card:hover { box-shadow: 0 12px 30px -10px rgba(31, 42, 29, .22); }
+
+/* Photo placeholder band — gradient tinted by diet category + a venue glyph. */
+.nm-photo {
+    position: relative;
+    height: 132px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.nm-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: .5;
+    mix-blend-mode: soft-light;
+    background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .55), transparent 45%),
+        radial-gradient(circle at 75% 85%, rgba(0, 0, 0, .35), transparent 50%);
+}
+.nm-photo-glyph { color: rgba(255, 255, 255, .9); position: relative; z-index: 1; }
+.nm-photo-chip {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    background: rgba(28, 42, 26, .82);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 11px;
+    border-radius: 30px;
+}
+.nm-photo-dist {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    background: rgba(255, 255, 255, .92);
+    color: var(--terra-deep);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 30px;
+}
+
+.nm-body { padding: 16px 18px 18px; }
+.nm-card-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.nm-name { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+
+.nm-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; font-size: 12.5px; }
+.nm-badge {
+    font-weight: 600;
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11.5px;
+}
+.nm-badge.cat-vegan { background: var(--terra); }
+.nm-badge.cat-vegetarian { background: #5a9e4e; }
+.nm-badge.cat-veg_friendly { background: var(--carrot); }
+.nm-type { color: var(--muted); }
+.nm-rating { color: var(--ink); font-weight: 600; }
+.nm-rating-n { color: var(--muted); font-weight: 400; }
+
+.nm-dist {
+    flex: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--terra-deep);
+    white-space: nowrap;
+}
+
+.nm-addr { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+
+.nm-cuisines { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.nm-cuisine {
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 2px 10px;
+    text-transform: capitalize;
+}
+
+.nm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.nm-act {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--terra-deep);
+    border: 1px solid var(--line);
+    border-radius: 40px;
+    padding: 6px 14px;
+    transition: .18s;
+}
+.nm-act:hover { border-color: var(--terra); background: #fff; }
+
+/* ---- States ---- */
+.nm-loading, .nm-empty, .nm-error { margin-top: 22px; font-size: 15px; color: var(--muted); }
+.nm-error { color: var(--carrot-deep); }
+
+.nm-more {
+    display: block;
+    margin: 26px auto 0;
+    background: transparent;
+    border: 1.5px solid var(--terra);
+    color: var(--terra-deep);
+    border-radius: 40px;
+    padding: 11px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s;
+}
+.nm-more:hover { background: var(--terra); color: #fff; }
+
+.nm-source {
+    max-width: 860px;
+    margin: 40px auto 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .nm-list { grid-template-columns: 1fr; }
+    .nm-filters { flex-direction: column; align-items: stretch; }
+    .nm-selects { justify-content: space-between; }
+}

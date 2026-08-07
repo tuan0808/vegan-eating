@@ -238,7 +238,7 @@ export async function placesNear(q: NearQuery): Promise<{ places: NearbyPlace[];
               ${filters.length ? Prisma.join(filters, " ") : Prisma.empty}
         ) t
         WHERE t."distanceKm" <= ${radiusKm}
-        ORDER BY t."distanceKm" ASC, t."ratingCount" DESC
+        ORDER BY t."distanceKm" ASC, t."ratingCount" DESC, t."id" ASC
         LIMIT ${limit + 1} OFFSET ${offset}
     `;
 

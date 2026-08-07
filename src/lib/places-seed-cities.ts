@@ -57,6 +57,7 @@ export const SEED_CITIES: SeedCity[] = [
     { slug: "boston", name: "Boston", region: "Massachusetts", country: "us", lat: 42.3601, lng: -71.0589, radiusKm: 12 },
     { slug: "washington-dc", name: "Washington DC", region: "District of Columbia", country: "us", lat: 38.9072, lng: -77.0369, radiusKm: 12, aliases: ["Washington", "Washington, D.C."] },
     { slug: "miami", name: "Miami", region: "Florida", country: "us", lat: 25.7617, lng: -80.1918, radiusKm: 12 },
+    { slug: "fort-lauderdale", name: "Fort Lauderdale", region: "Florida", country: "us", lat: 26.1224, lng: -80.1373, radiusKm: 18 },
     { slug: "atlanta", name: "Atlanta", region: "Georgia", country: "us", lat: 33.749, lng: -84.388, radiusKm: 12 },
     { slug: "las-vegas", name: "Las Vegas", region: "Nevada", country: "us", lat: 36.1699, lng: -115.1398, radiusKm: 12 },
     { slug: "phoenix", name: "Phoenix", region: "Arizona", country: "us", lat: 33.4484, lng: -112.074, radiusKm: 12 },

@@ -10,6 +10,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/recipe-filters";
 import type { MappedPlace, PlaceCategory, PlaceType } from "@/lib/places-osm";
+import { SEED_CITIES } from "@/lib/places-seed-cities";
 
 // ---------------------------------------------------------------------------
 // Tunables. Live in the Setting table so they change without a redeploy —
@@ -313,6 +314,45 @@ export function placeSlugify(s: string): string {
     return slugify(folded);
 }
 
+/**
+ * Fold a POI's `addr:city` onto the canonical English seed-city name.
+ *
+ * OSM tags `addr:city` in the local language, so Munich arrives as both
+ * "München" (tagged) and "Munich" (our fallback hint when the tag is missing).
+ * Left alone that splits one city across /munchen and /munich — two half-empty
+ * pages competing for the same query, and the wrong URL for the way people
+ * actually search in English.
+ *
+ * Only folds when the POI is genuinely inside that seed city's radius AND its
+ * name matches the seed name or a known alias. Neighbouring towns swept up by a
+ * cell — Hove and Worthing near Brighton, say — keep their own identity rather
+ * than being absorbed.
+ */
+export function canonicalCity(
+    city: string,
+    lat: number,
+    lng: number
+): { slug: string; name: string; region: string; country: string } | null {
+    if (!city) return null;
+    const target = placeSlugify(city);
+    if (!target) return null;
+
+    for (const c of SEED_CITIES) {
+        // Cheap equirectangular check; a few km of error doesn't matter here.
+        const dLat = (c.lat - lat) * 111.32;
+        const dLng = (c.lng - lng) * 111.32 * Math.cos((lat * Math.PI) / 180);
+        if (Math.sqrt(dLat * dLat + dLng * dLng) > c.radiusKm + 5) continue;
+
+        const names = [c.name, ...(c.aliases ?? [])];
+        if (names.some((n) => placeSlugify(n) === target)) {
+            // The seed `slug` is authoritative, not a slugify of the name — they
+            // can legitimately differ (name "Washington DC", slug "washington-dc").
+            return { slug: c.slug, name: c.name, region: c.region, country: c.country };
+        }
+    }
+    return null;
+}
+
 /** "Pedro's" + Brooklyn + us -> "pedros-brooklyn-us", with a numeric suffix on collision. */
 export async function uniquePlaceSlug(name: string, city: string, country: string): Promise<string> {
     const base = [placeSlugify(name), placeSlugify(city), placeSlugify(country)].filter(Boolean).join("-") || "place";
@@ -346,6 +386,12 @@ export async function upsertOsmPlace(m: MappedPlace): Promise<"created" | "updat
         select: { id: true, lockedFields: true },
     });
 
+    // Fold local-language city names onto the canonical English one before
+    // anything is stored, so citySlug is stable regardless of how completely
+    // a given POI happens to be tagged.
+    const canon = canonicalCity(m.city, m.lat, m.lng);
+    const city = canon?.name ?? m.city;
+
     const full = {
         name: m.name,
         category: m.category,
@@ -353,10 +399,10 @@ export async function upsertOsmPlace(m: MappedPlace): Promise<"created" | "updat
         lat: m.lat,
         lng: m.lng,
         address: m.address,
-        city: m.city,
-        citySlug: placeSlugify(m.city),
-        region: m.region,
-        country: m.country,
+        city,
+        citySlug: canon?.slug ?? placeSlugify(city),
+        region: canon?.region ?? m.region,
+        country: canon?.country ?? m.country,
         postcode: m.postcode,
         phone: m.phone,
         website: m.website,
@@ -372,7 +418,7 @@ export async function upsertOsmPlace(m: MappedPlace): Promise<"created" | "updat
         await prisma.place.create({
             data: {
                 ...full,
-                slug: await uniquePlaceSlug(m.name, m.city, m.country),
+                slug: await uniquePlaceSlug(m.name, full.city, full.country),
                 source: "OSM",
                 osmType: m.osmType,
                 osmId: m.osmId,

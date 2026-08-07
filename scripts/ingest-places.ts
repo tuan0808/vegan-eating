@@ -8,6 +8,8 @@
 //   npx tsx scripts/ingest-places.ts --limit=50            # drain 50 pending cells
 //   npx tsx scripts/ingest-places.ts                       # queue all seed cities, drain the lot
 //   npx tsx scripts/ingest-places.ts --stats               # just print the queue
+//   npx tsx scripts/ingest-places.ts --recanonicalise --dry  # preview city folding
+//   npx tsx scripts/ingest-places.ts --recanonicalise        # apply it (no Overpass calls)
 //
 // Pacing: the Overpass client serialises to one request/second, so a full seed
 // of every city takes a while (roughly one second per 0.1deg cell). That's
@@ -23,7 +25,7 @@ config({ path: ".env.local" }); // loaded first => takes precedence
 config({ path: ".env" });
 
 import { prisma } from "../src/lib/prisma";
-import { cellsCovering } from "../src/lib/places";
+import { canonicalCity, cellsCovering } from "../src/lib/places";
 import { SEED_CITIES, seedCityBySlug } from "../src/lib/places-seed-cities";
 import { cellQueueStats, drainCells, queueCity } from "../src/lib/places-sync";
 
@@ -35,6 +37,7 @@ const value = (name: string): string | undefined =>
 const DRY = has("--dry");
 const QUEUE_ONLY = has("--queue-only");
 const STATS_ONLY = has("--stats");
+const RECANON = has("--recanonicalise");
 const CITY = value("city");
 const LIMIT = value("limit") ? Number(value("limit")) : undefined;
 
@@ -51,9 +54,55 @@ async function printStats(label: string) {
     );
 }
 
+/**
+ * Re-apply canonicalCity() to rows already in the database.
+ *
+ * Pure local transform — no Overpass calls. Needed after adding a seed-city
+ * alias, which otherwise only affects places ingested from that point on and
+ * leaves the already-split ones stranded on the wrong citySlug.
+ */
+async function recanonicalise(dry: boolean) {
+    const places = await prisma.place.findMany({
+        select: { id: true, city: true, citySlug: true, region: true, country: true, lat: true, lng: true },
+    });
+
+    const changes: Array<{ id: string; from: string; to: string; data: Record<string, string> }> = [];
+    for (const p of places) {
+        const canon = canonicalCity(p.city, p.lat, p.lng);
+        if (!canon) continue;
+        const cityChanged = canon.name !== p.city || canon.slug !== p.citySlug;
+        const regionChanged = canon.region !== p.region || canon.country !== p.country;
+        if (!cityChanged && !regionChanged) continue;
+        // Label region-only changes explicitly, or they read as pointless no-ops
+        // in the summary ("seattle -> seattle").
+        changes.push({
+            id: p.id,
+            from: cityChanged ? `${p.citySlug}("${p.city}")` : `${p.citySlug} region "${p.region}"`,
+            to: cityChanged ? `${canon.slug}("${canon.name}")` : `"${canon.region}"`,
+            data: { city: canon.name, citySlug: canon.slug, region: canon.region, country: canon.country },
+        });
+    }
+
+    const summary = new Map<string, number>();
+    for (const c of changes) summary.set(`${c.from} -> ${c.to}`, (summary.get(`${c.from} -> ${c.to}`) ?? 0) + 1);
+    for (const [k, n] of [...summary].sort((a, b) => b[1] - a[1])) log(`  ${String(n).padStart(5)}  ${k}`);
+
+    if (dry) {
+        log(`\n${changes.length} rows would change. Drop --dry to apply.`);
+        return;
+    }
+    for (const c of changes) await prisma.place.update({ where: { id: c.id }, data: c.data });
+    log(`\nupdated ${changes.length} rows.`);
+}
+
 async function main() {
     if (STATS_ONLY) {
         await printStats("queue");
+        return;
+    }
+
+    if (RECANON) {
+        await recanonicalise(DRY);
         return;
     }
 

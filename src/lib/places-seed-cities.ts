@@ -17,6 +17,16 @@ export type SeedCity = {
     lat: number;
     lng: number;
     radiusKm: number;
+    /**
+     * Local-language and long-form names OSM uses in `addr:city`. Without these
+     * a city splits in two: POIs tagged "München" land on /munchen while ones
+     * with no addr:city fall back to the seed name and land on /munich — two
+     * half-empty pages competing for the same query. See canonicalCity().
+     *
+     * Only needed where the local name differs after accent folding: "Kraków"
+     * and "Zürich" already fold to krakow/zurich on their own.
+     */
+    aliases?: string[];
 };
 
 export const SEED_CITIES: SeedCity[] = [
@@ -31,10 +41,10 @@ export const SEED_CITIES: SeedCity[] = [
     { slug: "glasgow", name: "Glasgow", region: "Scotland", country: "gb", lat: 55.8642, lng: -4.2518, radiusKm: 10 },
     { slug: "edinburgh", name: "Edinburgh", region: "Scotland", country: "gb", lat: 55.9533, lng: -3.1883, radiusKm: 10 },
     { slug: "cardiff", name: "Cardiff", region: "Wales", country: "gb", lat: 51.4816, lng: -3.1791, radiusKm: 8 },
-    { slug: "dublin", name: "Dublin", region: "Leinster", country: "ie", lat: 53.3498, lng: -6.2603, radiusKm: 10 },
+    { slug: "dublin", name: "Dublin", region: "Leinster", country: "ie", lat: 53.3498, lng: -6.2603, radiusKm: 10, aliases: ["Baile Átha Cliath"] },
 
     // --- United States ---
-    { slug: "new-york", name: "New York", region: "New York", country: "us", lat: 40.7128, lng: -74.006, radiusKm: 20 },
+    { slug: "new-york", name: "New York", region: "New York", country: "us", lat: 40.7128, lng: -74.006, radiusKm: 20, aliases: ["New York City", "NYC", "Manhattan", "Brooklyn"] },
     { slug: "los-angeles", name: "Los Angeles", region: "California", country: "us", lat: 34.0522, lng: -118.2437, radiusKm: 25 },
     { slug: "san-francisco", name: "San Francisco", region: "California", country: "us", lat: 37.7749, lng: -122.4194, radiusKm: 12 },
     { slug: "san-diego", name: "San Diego", region: "California", country: "us", lat: 32.7157, lng: -117.1611, radiusKm: 12 },
@@ -45,7 +55,7 @@ export const SEED_CITIES: SeedCity[] = [
     { slug: "denver", name: "Denver", region: "Colorado", country: "us", lat: 39.7392, lng: -104.9903, radiusKm: 12 },
     { slug: "philadelphia", name: "Philadelphia", region: "Pennsylvania", country: "us", lat: 39.9526, lng: -75.1652, radiusKm: 12 },
     { slug: "boston", name: "Boston", region: "Massachusetts", country: "us", lat: 42.3601, lng: -71.0589, radiusKm: 12 },
-    { slug: "washington-dc", name: "Washington", region: "District of Columbia", country: "us", lat: 38.9072, lng: -77.0369, radiusKm: 12 },
+    { slug: "washington-dc", name: "Washington DC", region: "District of Columbia", country: "us", lat: 38.9072, lng: -77.0369, radiusKm: 12, aliases: ["Washington", "Washington, D.C."] },
     { slug: "miami", name: "Miami", region: "Florida", country: "us", lat: 25.7617, lng: -80.1918, radiusKm: 12 },
     { slug: "atlanta", name: "Atlanta", region: "Georgia", country: "us", lat: 33.749, lng: -84.388, radiusKm: 12 },
     { slug: "las-vegas", name: "Las Vegas", region: "Nevada", country: "us", lat: 36.1699, lng: -115.1398, radiusKm: 12 },
@@ -56,34 +66,34 @@ export const SEED_CITIES: SeedCity[] = [
     // --- Europe ---
     { slug: "berlin", name: "Berlin", region: "Berlin", country: "de", lat: 52.52, lng: 13.405, radiusKm: 15 },
     { slug: "hamburg", name: "Hamburg", region: "Hamburg", country: "de", lat: 53.5511, lng: 9.9937, radiusKm: 12 },
-    { slug: "munich", name: "Munich", region: "Bavaria", country: "de", lat: 48.1351, lng: 11.582, radiusKm: 12 },
-    { slug: "cologne", name: "Cologne", region: "North Rhine-Westphalia", country: "de", lat: 50.9375, lng: 6.9603, radiusKm: 10 },
-    { slug: "frankfurt", name: "Frankfurt", region: "Hesse", country: "de", lat: 50.1109, lng: 8.6821, radiusKm: 10 },
+    { slug: "munich", name: "Munich", region: "Bavaria", country: "de", lat: 48.1351, lng: 11.582, radiusKm: 12, aliases: ["München", "Muenchen"] },
+    { slug: "cologne", name: "Cologne", region: "North Rhine-Westphalia", country: "de", lat: 50.9375, lng: 6.9603, radiusKm: 10, aliases: ["Köln", "Koeln"] },
+    { slug: "frankfurt", name: "Frankfurt", region: "Hesse", country: "de", lat: 50.1109, lng: 8.6821, radiusKm: 10, aliases: ["Frankfurt am Main"] },
     { slug: "leipzig", name: "Leipzig", region: "Saxony", country: "de", lat: 51.3397, lng: 12.3731, radiusKm: 10 },
     { slug: "paris", name: "Paris", region: "Ile-de-France", country: "fr", lat: 48.8566, lng: 2.3522, radiusKm: 15 },
     { slug: "lyon", name: "Lyon", region: "Auvergne-Rhone-Alpes", country: "fr", lat: 45.764, lng: 4.8357, radiusKm: 10 },
     { slug: "marseille", name: "Marseille", region: "Provence-Alpes-Cote d'Azur", country: "fr", lat: 43.2965, lng: 5.3698, radiusKm: 10 },
     { slug: "amsterdam", name: "Amsterdam", region: "North Holland", country: "nl", lat: 52.3676, lng: 4.9041, radiusKm: 12 },
     { slug: "rotterdam", name: "Rotterdam", region: "South Holland", country: "nl", lat: 51.9244, lng: 4.4777, radiusKm: 10 },
-    { slug: "brussels", name: "Brussels", region: "Brussels-Capital", country: "be", lat: 50.8503, lng: 4.3517, radiusKm: 10 },
+    { slug: "brussels", name: "Brussels", region: "Brussels-Capital", country: "be", lat: 50.8503, lng: 4.3517, radiusKm: 10, aliases: ["Bruxelles", "Brussel", "Bruxelles-Capitale"] },
     { slug: "barcelona", name: "Barcelona", region: "Catalonia", country: "es", lat: 41.3851, lng: 2.1734, radiusKm: 12 },
     { slug: "madrid", name: "Madrid", region: "Community of Madrid", country: "es", lat: 40.4168, lng: -3.7038, radiusKm: 12 },
-    { slug: "valencia", name: "Valencia", region: "Valencian Community", country: "es", lat: 39.4699, lng: -0.3763, radiusKm: 10 },
-    { slug: "lisbon", name: "Lisbon", region: "Lisbon", country: "pt", lat: 38.7223, lng: -9.1393, radiusKm: 10 },
+    { slug: "valencia", name: "Valencia", region: "Valencian Community", country: "es", lat: 39.4699, lng: -0.3763, radiusKm: 10, aliases: ["València"] },
+    { slug: "lisbon", name: "Lisbon", region: "Lisbon", country: "pt", lat: 38.7223, lng: -9.1393, radiusKm: 10, aliases: ["Lisboa"] },
     { slug: "porto", name: "Porto", region: "Porto", country: "pt", lat: 41.1579, lng: -8.6291, radiusKm: 10 },
-    { slug: "rome", name: "Rome", region: "Lazio", country: "it", lat: 41.9028, lng: 12.4964, radiusKm: 12 },
-    { slug: "milan", name: "Milan", region: "Lombardy", country: "it", lat: 45.4642, lng: 9.19, radiusKm: 12 },
-    { slug: "vienna", name: "Vienna", region: "Vienna", country: "at", lat: 48.2082, lng: 16.3738, radiusKm: 12 },
-    { slug: "prague", name: "Prague", region: "Prague", country: "cz", lat: 50.0755, lng: 14.4378, radiusKm: 10 },
-    { slug: "warsaw", name: "Warsaw", region: "Masovia", country: "pl", lat: 52.2297, lng: 21.0122, radiusKm: 12 },
-    { slug: "krakow", name: "Krakow", region: "Lesser Poland", country: "pl", lat: 50.0647, lng: 19.945, radiusKm: 10 },
+    { slug: "rome", name: "Rome", region: "Lazio", country: "it", lat: 41.9028, lng: 12.4964, radiusKm: 12, aliases: ["Roma"] },
+    { slug: "milan", name: "Milan", region: "Lombardy", country: "it", lat: 45.4642, lng: 9.19, radiusKm: 12, aliases: ["Milano"] },
+    { slug: "vienna", name: "Vienna", region: "Vienna", country: "at", lat: 48.2082, lng: 16.3738, radiusKm: 12, aliases: ["Wien"] },
+    { slug: "prague", name: "Prague", region: "Prague", country: "cz", lat: 50.0755, lng: 14.4378, radiusKm: 10, aliases: ["Praha"] },
+    { slug: "warsaw", name: "Warsaw", region: "Masovia", country: "pl", lat: 52.2297, lng: 21.0122, radiusKm: 12, aliases: ["Warszawa"] },
+    { slug: "krakow", name: "Krakow", region: "Lesser Poland", country: "pl", lat: 50.0647, lng: 19.945, radiusKm: 10, aliases: ["Kraków"] },
     { slug: "budapest", name: "Budapest", region: "Budapest", country: "hu", lat: 47.4979, lng: 19.0402, radiusKm: 12 },
-    { slug: "copenhagen", name: "Copenhagen", region: "Capital Region", country: "dk", lat: 55.6761, lng: 12.5683, radiusKm: 10 },
+    { slug: "copenhagen", name: "Copenhagen", region: "Capital Region", country: "dk", lat: 55.6761, lng: 12.5683, radiusKm: 10, aliases: ["København", "Koebenhavn"] },
     { slug: "stockholm", name: "Stockholm", region: "Stockholm", country: "se", lat: 59.3293, lng: 18.0686, radiusKm: 12 },
     { slug: "oslo", name: "Oslo", region: "Oslo", country: "no", lat: 59.9139, lng: 10.7522, radiusKm: 10 },
-    { slug: "helsinki", name: "Helsinki", region: "Uusimaa", country: "fi", lat: 60.1699, lng: 24.9384, radiusKm: 10 },
-    { slug: "zurich", name: "Zurich", region: "Zurich", country: "ch", lat: 47.3769, lng: 8.5417, radiusKm: 10 },
-    { slug: "athens", name: "Athens", region: "Attica", country: "gr", lat: 37.9838, lng: 23.7275, radiusKm: 10 },
+    { slug: "helsinki", name: "Helsinki", region: "Uusimaa", country: "fi", lat: 60.1699, lng: 24.9384, radiusKm: 10, aliases: ["Helsingfors"] },
+    { slug: "zurich", name: "Zurich", region: "Zurich", country: "ch", lat: 47.3769, lng: 8.5417, radiusKm: 10, aliases: ["Zürich"] },
+    { slug: "athens", name: "Athens", region: "Attica", country: "gr", lat: 37.9838, lng: 23.7275, radiusKm: 10, aliases: ["Αθήνα", "Athina"] },
 ];
 
 export function seedCityBySlug(slug: string): SeedCity | undefined {

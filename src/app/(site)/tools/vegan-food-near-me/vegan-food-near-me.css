@@ -210,8 +210,20 @@
 .nm-badge.cat-vegetarian { background: #5a9e4e; }
 .nm-badge.cat-veg_friendly { background: var(--carrot); }
 .nm-type { color: var(--muted); }
-.nm-rating { color: var(--ink); font-weight: 600; }
+.nm-rating { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); font-weight: 600; }
+.nm-rating-num { color: var(--ink); }
 .nm-rating-n { color: var(--muted); font-weight: 400; }
+
+/* Two stacked star rows; the gold layer is clipped to the score fraction. */
+.nm-stars { position: relative; display: inline-block; font-size: 12px; line-height: 1; letter-spacing: 1px; }
+.nm-stars-off { color: var(--line); }
+.nm-stars-on {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #f5a623;
+}
 
 .nm-dist {
     flex: none;
@@ -249,6 +261,26 @@
 /* ---- States ---- */
 .nm-loading, .nm-empty, .nm-error { margin-top: 22px; font-size: 15px; color: var(--muted); }
 .nm-error { color: var(--carrot-deep); }
+
+/* ---- Loading skeletons ---- */
+.nm-skel { pointer-events: none; }
+.nm-skel-photo { height: 132px; }
+.nm-skel-photo, .nm-skel-line {
+    background: linear-gradient(100deg, var(--paper) 30%, var(--line) 50%, var(--paper) 70%);
+    background-size: 200% 100%;
+    animation: nm-shimmer 1.3s ease-in-out infinite;
+}
+.nm-skel-line { height: 12px; border-radius: 6px; margin-top: 12px; }
+.nm-skel-line.w70 { width: 70%; }
+.nm-skel-line.w40 { width: 40%; }
+.nm-skel-line.w90 { width: 90%; }
+@keyframes nm-shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nm-skel-photo, .nm-skel-line { animation: none; }
+}
 
 .nm-more {
     display: block;

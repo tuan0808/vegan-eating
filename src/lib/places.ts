@@ -180,8 +180,12 @@ export type NearbyPlace = {
     images: string;
     ratingAvg: number;
     ratingCount: number;
+    googleRating: number | null;
+    googleRatingCount: number | null;
     distanceKm: number;
 };
+
+export type PlaceSort = "distance" | "rating";
 
 export type NearQuery = {
     lat: number;
@@ -189,6 +193,7 @@ export type NearQuery = {
     radiusKm?: number;
     category?: PlaceCategory[];
     type?: PlaceType[];
+    sort?: PlaceSort;
     limit?: number;
     offset?: number;
 };
@@ -218,6 +223,17 @@ export async function placesNear(q: NearQuery): Promise<{ places: NearbyPlace[];
     if (q.category?.length) filters.push(Prisma.sql`AND "category" = ANY(${q.category})`);
     if (q.type?.length) filters.push(Prisma.sql`AND "type" = ANY(${q.type})`);
 
+    // "Top rated" prefers the Google rating we captured (falling back to our own
+    // member rating), breaking ties by review volume then distance. Unrated
+    // places (COALESCE -> 0) naturally fall to the bottom. Default stays
+    // nearest-first, which is what a "near me" tool should open on.
+    const orderBy =
+        q.sort === "rating"
+            ? Prisma.sql`ORDER BY COALESCE(t."googleRating", t."ratingAvg") DESC,
+                                  COALESCE(t."googleRatingCount", t."ratingCount") DESC,
+                                  t."distanceKm" ASC, t."id" ASC`
+            : Prisma.sql`ORDER BY t."distanceKm" ASC, t."ratingCount" DESC, t."id" ASC`;
+
     // limit + 1 so we know whether another page exists without a second count query.
     const rows = await prisma.$queryRaw<NearbyPlace[]>`
         SELECT * FROM (
@@ -225,7 +241,7 @@ export async function placesNear(q: NearQuery): Promise<{ places: NearbyPlace[];
                 "id", "slug", "name", "category", "type", "lat", "lng", "address",
                 "city", "citySlug", "region", "country", "phone", "website",
                 "openingHours", "cuisines", "wheelchair", "images",
-                "ratingAvg", "ratingCount",
+                "ratingAvg", "ratingCount", "googleRating", "googleRatingCount",
                 6371 * 2 * asin(LEAST(1, sqrt(
                     power(sin(radians("lat" - ${q.lat}) / 2), 2) +
                     cos(radians(${q.lat})) * cos(radians("lat")) *
@@ -238,7 +254,7 @@ export async function placesNear(q: NearQuery): Promise<{ places: NearbyPlace[];
               ${filters.length ? Prisma.join(filters, " ") : Prisma.empty}
         ) t
         WHERE t."distanceKm" <= ${radiusKm}
-        ORDER BY t."distanceKm" ASC, t."ratingCount" DESC, t."id" ASC
+        ${orderBy}
         LIMIT ${limit + 1} OFFSET ${offset}
     `;
 

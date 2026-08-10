@@ -34,6 +34,7 @@ export async function searchNearby(input: {
     radiusKm?: number;
     category?: string[];
     type?: string[];
+    sort?: string;
     offset?: number;
 }): Promise<NearbyResponse> {
     const lat = Number(input.lat);
@@ -52,6 +53,7 @@ export async function searchNearby(input: {
             radiusKm,
             category: cleanEnum<PlaceCategory>(input.category, CAT_SET),
             type: cleanEnum<PlaceType>(input.type, TYPE_SET),
+            sort: input.sort === "rating" ? "rating" : "distance",
             limit: 24,
             offset: Math.max(0, Math.floor(Number(input.offset) || 0)),
         });

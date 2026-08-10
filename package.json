@@ -14,6 +14,7 @@
     "ingest:places": "tsx scripts/ingest-places.ts",
     "places:dump": "tsx scripts/dump-places.ts",
     "places:restore": "tsx scripts/restore-places.ts",
+    "places:prewarm": "tsx scripts/prewarm-photos.ts",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.mjs",
     "db:reset": "prisma db push --force-reset && node prisma/seed.mjs",

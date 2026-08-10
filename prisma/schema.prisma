@@ -540,6 +540,11 @@ model Place {
   googlePlaceId  String?
   googlePhotoRef String? // Places API (New) photo resource name
   photoCheckedAt DateTime?
+  // Google-sourced rating, captured in the same lookup as the photo ref. Kept
+  // separate from ratingAvg/ratingCount (which are our own member reviews) so
+  // the two sources never overwrite each other.
+  googleRating      Float?
+  googleRatingCount Int?
 
   // --- provenance ---
   source       String    @default("OSM") // OSM | USER | ADMIN

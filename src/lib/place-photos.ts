@@ -32,13 +32,21 @@ export type PhotoLookup = {
     photoCheckedAt: Date | null;
 };
 
-/** Cached photo reference for a place, resolving + persisting it on first need. */
-export async function resolvePhotoRef(place: PhotoLookup): Promise<string | null> {
+type GoogleMeta = { placeId: string; photoName: string | null; rating: number | null; ratingCount: number | null };
+
+/**
+ * Resolve + persist a place's Google metadata (photo reference AND rating) in a
+ * single billed lookup, caching the outcome so we don't re-hit Google. Returns
+ * the full meta; callers that only need the photo use `resolvePhotoRef`.
+ *
+ * The rating is captured in the same searchText call as the photo, so surfacing
+ * a real "4.5 ★ (1,246)" costs nothing beyond the photo lookup we already make.
+ */
+export async function resolveGoogleMeta(place: PhotoLookup): Promise<GoogleMeta | null> {
     if (!KEY) return null;
-    if (place.googlePhotoRef) return place.googlePhotoRef;
     if (place.photoCheckedAt && Date.now() - place.photoCheckedAt.getTime() < RECHECK_MS) return null;
 
-    const found = await searchPhoto(place);
+    const found = await searchGoogle(place);
 
     // Persist the outcome (hit or miss) so we don't re-bill Google next time.
     await prisma.place
@@ -47,6 +55,8 @@ export async function resolvePhotoRef(place: PhotoLookup): Promise<string | null
             data: {
                 googlePlaceId: found?.placeId ?? place.googlePlaceId,
                 googlePhotoRef: found?.photoName ?? null,
+                googleRating: found?.rating ?? null,
+                googleRatingCount: found?.ratingCount ?? null,
                 photoCheckedAt: new Date(),
             },
         })
@@ -54,10 +64,18 @@ export async function resolvePhotoRef(place: PhotoLookup): Promise<string | null
             /* cache write is best-effort */
         });
 
-    return found?.photoName ?? null;
+    return found;
 }
 
-async function searchPhoto(place: PhotoLookup): Promise<{ placeId: string; photoName: string } | null> {
+/** Cached photo reference for a place, resolving + persisting it on first need. */
+export async function resolvePhotoRef(place: PhotoLookup): Promise<string | null> {
+    if (!KEY) return null;
+    if (place.googlePhotoRef) return place.googlePhotoRef;
+    const meta = await resolveGoogleMeta(place);
+    return meta?.photoName ?? null;
+}
+
+async function searchGoogle(place: PhotoLookup): Promise<GoogleMeta | null> {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), SEARCH_TIMEOUT_MS);
     try {
@@ -68,7 +86,7 @@ async function searchPhoto(place: PhotoLookup): Promise<{ placeId: string; photo
                 "Content-Type": "application/json",
                 "X-Goog-Api-Key": KEY as string,
                 // Ask for only what we need — keeps the call in the cheaper SKU tier.
-                "X-Goog-FieldMask": "places.id,places.photos",
+                "X-Goog-FieldMask": "places.id,places.photos,places.rating,places.userRatingCount",
             },
             body: JSON.stringify({
                 textQuery: [place.name, place.city].filter(Boolean).join(", "),
@@ -79,11 +97,17 @@ async function searchPhoto(place: PhotoLookup): Promise<{ placeId: string; photo
             }),
         });
         if (!res.ok) return null;
-        const data = (await res.json()) as { places?: Array<{ id: string; photos?: Array<{ name: string }> }> };
+        const data = (await res.json()) as {
+            places?: Array<{ id: string; photos?: Array<{ name: string }>; rating?: number; userRatingCount?: number }>;
+        };
         const hit = data.places?.[0];
-        const photoName = hit?.photos?.[0]?.name;
-        if (!hit || !photoName) return null;
-        return { placeId: hit.id, photoName };
+        if (!hit) return null;
+        return {
+            placeId: hit.id,
+            photoName: hit.photos?.[0]?.name ?? null,
+            rating: typeof hit.rating === "number" ? hit.rating : null,
+            ratingCount: typeof hit.userRatingCount === "number" ? hit.userRatingCount : null,
+        };
     } catch {
         return null; // timeout / network / parse — caller falls back to placeholder
     } finally {

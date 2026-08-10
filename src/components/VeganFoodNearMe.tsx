@@ -57,6 +57,29 @@ function fmtDistance(km: number): string {
     return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(km < 10 ? 1 : 0)} km`;
 }
 
+function fmtCount(n: number): string {
+    return n >= 1000 ? `${(n / 1000).toFixed(n < 10000 ? 1 : 0)}k` : String(n);
+}
+
+// Prefer our own member reviews when we have them; otherwise show the Google
+// rating captured alongside the photo. `source` drives the small credit line.
+function resolveRating(p: NearbyPlace): { avg: number; count: number; source: "own" | "google" } | null {
+    if (p.ratingCount > 0) return { avg: p.ratingAvg, count: p.ratingCount, source: "own" };
+    if (p.googleRatingCount && p.googleRating) return { avg: p.googleRating, count: p.googleRatingCount, source: "google" };
+    return null;
+}
+
+// Five-glyph star row with a fractional final star, mirroring the numeric score.
+function Stars({ avg }: { avg: number }) {
+    const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+    return (
+        <span className="nm-stars" aria-hidden="true">
+            <span className="nm-stars-off">★★★★★</span>
+            <span className="nm-stars-on" style={{ width: `${pct}%` }}>★★★★★</span>
+        </span>
+    );
+}
+
 function parseCuisines(json: string): string[] {
     try {
         const arr: unknown = JSON.parse(json);
@@ -88,6 +111,7 @@ export default function VeganFoodNearMe({
     const [category, setCategory] = useState<PlaceCategory[]>([]);
     const [type, setType] = useState<PlaceType | "">("");
     const [radiusKm, setRadiusKm] = useState(10);
+    const [sort, setSort] = useState<"distance" | "rating">("distance");
 
     const [places, setPlaces] = useState<NearbyPlace[]>([]);
     const [hasMore, setHasMore] = useState(false);
@@ -109,6 +133,7 @@ export default function VeganFoodNearMe({
                 radiusKm,
                 category,
                 type: type ? [type] : undefined,
+                sort,
                 offset,
             });
             if (id !== reqId.current) return; // a newer search superseded this one
@@ -131,14 +156,14 @@ export default function VeganFoodNearMe({
         // so it is deliberately not a dependency — including it would rebuild the
         // callback on every append and retrigger the page-0 effect.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [radiusKm, category, type],
+        [radiusKm, category, type, sort],
     );
 
     // Re-run page 0 whenever the origin or any filter changes.
     useEffect(() => {
         if (origin) run(origin, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [origin, radiusKm, category, type]);
+    }, [origin, radiusKm, category, type, sort]);
 
     function locate() {
         setGeoMsg(null);
@@ -259,6 +284,13 @@ export default function VeganFoodNearMe({
                                 ))}
                             </select>
                         </label>
+                        <label className="nm-select">
+                            <span>Sort</span>
+                            <select value={sort} onChange={(e) => setSort(e.target.value as "distance" | "rating")}>
+                                <option value="distance">Nearest</option>
+                                <option value="rating">Top rated</option>
+                            </select>
+                        </label>
                     </div>
                 </div>
             )}
@@ -281,7 +313,25 @@ export default function VeganFoodNearMe({
                 </ul>
             )}
 
-            {loading && <p className="nm-loading">Searching…</p>}
+            {/* First-load skeletons so the grid has shape while results resolve,
+                rather than a bare "Searching…" line. Appends keep the list and
+                show the quieter loading note below instead. */}
+            {loading && places.length === 0 && (
+                <ul className="nm-list" aria-hidden="true">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <li key={i} className="nm-card nm-skel">
+                            <div className="nm-photo nm-skel-photo" />
+                            <div className="nm-body">
+                                <div className="nm-skel-line w70" />
+                                <div className="nm-skel-line w40" />
+                                <div className="nm-skel-line w90" />
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {loading && places.length > 0 && <p className="nm-loading">Searching…</p>}
 
             {hasMore && !loading && origin && (
                 <button className="nm-more" onClick={() => run(origin, false)}>
@@ -296,6 +346,7 @@ function PlaceCard({ place: p, photos = false }: { place: NearbyPlace; photos?: 
     const cuisines = parseCuisines(p.cuisines);
     const cat = p.category as PlaceCategory;
     const address = [p.address, p.city].filter(Boolean).join(", ");
+    const rating = resolveRating(p);
     return (
         <li className={`nm-card cat-${cat.toLowerCase()}`}>
             <div className="nm-photo" style={{ background: CAT_GRAD[cat] ?? CAT_GRAD.VEG_FRIENDLY }}>
@@ -312,9 +363,11 @@ function PlaceCard({ place: p, photos = false }: { place: NearbyPlace; photos?: 
                         <h3 className="nm-name">{p.name}</h3>
                         <p className="nm-meta">
                             <span className="nm-type">{TYPE_LABELS[p.type as PlaceType] ?? p.type}</span>
-                            {p.ratingCount > 0 && (
-                                <span className="nm-rating">
-                                    ★ {p.ratingAvg.toFixed(1)} <span className="nm-rating-n">({p.ratingCount})</span>
+                            {rating && (
+                                <span className="nm-rating" title={rating.source === "google" ? "Rating from Google" : "Community rating"}>
+                                    <span className="nm-rating-num">{rating.avg.toFixed(1)}</span>
+                                    <Stars avg={rating.avg} />
+                                    <span className="nm-rating-n">({fmtCount(rating.count)})</span>
                                 </span>
                             )}
                         </p>

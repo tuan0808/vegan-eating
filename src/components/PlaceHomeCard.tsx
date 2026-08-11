@@ -47,6 +47,7 @@ export default function PlaceHomeCard({ p, photos = false }: { p: NearbyPlace; p
     const type = p.type as PlaceType;
     const href = `/tools/vegan-food-near-me?lat=${p.lat}&lng=${p.lng}&label=${encodeURIComponent(p.city || "here")}`;
     const where = [p.city, p.region].filter(Boolean)[0] || "See on map";
+    const rating = placeRating(p);
     return (
         <Link href={href} className="card place-card" style={{ position: "relative", display: "block" }}>
             <div className="photo">
@@ -61,7 +62,25 @@ export default function PlaceHomeCard({ p, photos = false }: { p: NearbyPlace; p
             <h3>{p.name}</h3>
             <div className="meta">
                 <span>📍 {where}</span>
+                {rating && (
+                    <span title={rating.source === "google" ? "Rating from Google" : "Community rating"}>
+                        ★ {rating.avg.toFixed(1)}
+                        <span className="place-rating-n">({fmtCount(rating.count)})</span>
+                    </span>
+                )}
             </div>
         </Link>
     );
+}
+
+// Prefer our own member reviews; otherwise the Google rating captured with the
+// photo. Mirrors resolveRating() in VeganFoodNearMe so the two stay consistent.
+function placeRating(p: NearbyPlace): { avg: number; count: number; source: "own" | "google" } | null {
+    if (p.ratingCount > 0) return { avg: p.ratingAvg, count: p.ratingCount, source: "own" };
+    if (p.googleRatingCount && p.googleRating) return { avg: p.googleRating, count: p.googleRatingCount, source: "google" };
+    return null;
+}
+
+function fmtCount(n: number): string {
+    return n >= 1000 ? `${(n / 1000).toFixed(n < 10000 ? 1 : 0)}k` : String(n);
 }

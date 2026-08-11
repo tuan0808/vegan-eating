@@ -101,12 +101,32 @@ export async function drainCells(
     return result;
 }
 
+// - cached:      every covering cell is warm & fresh; no Overpass call made.
+// - fetched:     we ran the Overpass request and settled the cells from it.
+// - in_progress: another request/poll is already fetching this area; we didn't
+//                start a second call. The caller should tell the client to
+//                retry shortly rather than accept an empty result as final.
+// - error:       the fetch failed; cells stay pending so a later call retries.
+export type AreaFetchStatus = "cached" | "fetched" | "in_progress" | "error";
+
 export type AreaFetchResult = {
-    fetched: boolean; // false => fully cached, no Overpass call was made
+    status: AreaFetchStatus;
     created: number;
     updated: number;
     places: number; // created + updated
 };
+
+// In-process dedup of concurrent/retried fills for the same area. The client's
+// "finding places…" poll re-hits searchNearby every couple of seconds; without
+// this, each poll (and each overlapping visitor) would fire its own Overpass
+// request for an area that's already being fetched. The beta app runs a single
+// instance, so a module-level Map is enough; a multi-instance deploy would need
+// a DB-level lock (e.g. a GeoCell "FETCHING" status with a timestamp).
+const inFlightAreas = new Map<string, Promise<AreaFetchResult>>();
+
+function areaKey(lat: number, lng: number, radiusKm: number): string {
+    return `${lat.toFixed(2)},${lng.toFixed(2)}:${Math.round(radiusKm)}`;
+}
 
 /**
  * On-demand fill for a live search. Ensures the area around (lat,lng) within
@@ -120,13 +140,19 @@ export type AreaFetchResult = {
  * "have we fetched here" + when — so a repeat search of a warm area returns
  * immediately without touching the network.
  *
- * Safe to call on every search. Throws only if the Overpass fetch itself fails;
- * callers time-box it and fall back to whatever is already in the DB.
+ * Safe to call on every search. Never throws — a fetch failure resolves to
+ * status "error" and leaves the cells pending for a later retry; callers
+ * time-box it and fall back to whatever is already in the DB.
  */
 export async function ensureAreaFetched(lat: number, lng: number, radiusKm: number): Promise<AreaFetchResult> {
-    const empty: AreaFetchResult = { fetched: false, created: 0, updated: 0, places: 0 };
+    const none = (status: AreaFetchStatus): AreaFetchResult => ({ status, created: 0, updated: 0, places: 0 });
     const keys = cellsCovering(lat, lng, radiusKm);
-    if (!keys.length) return empty;
+    if (!keys.length) return none("cached");
+
+    const key = areaKey(lat, lng, radiusKm);
+    // Fast path for a client poll: this area is already being fetched, so don't
+    // start a second Overpass call — just report it's still in progress.
+    if (inFlightAreas.has(key)) return none("in_progress");
 
     const ttlDays = await placeSetting("places.cellTtlDays");
     const staleBefore = new Date(Date.now() - ttlDays * 864e5);
@@ -147,11 +173,28 @@ export async function ensureAreaFetched(lat: number, lng: number, radiusKm: numb
         if (c.status === "ERROR") return c.attempts < MAX_ATTEMPTS;
         return !c.fetchedAt || c.fetchedAt < staleBefore; // OK | EMPTY
     });
-    if (!needsFetch) return empty;
+    if (!needsFetch) return none("cached");
 
+    // Re-check under the just-awaited reads (a poll may have raced in), then
+    // register the promise synchronously so the next poll dedups against it.
+    if (inFlightAreas.has(key)) return none("in_progress");
+    const missing = keys.filter((k) => !known.has(k));
+    const p = doAreaFetch(lat, lng, radiusKm, keys, missing).finally(() => inFlightAreas.delete(key));
+    inFlightAreas.set(key, p);
+    return p;
+}
+
+/** The actual Overpass fetch + upsert + cell-settle. Assumes it's the sole
+ *  in-flight fetch for the area (ensureAreaFetched guarantees that). */
+async function doAreaFetch(
+    lat: number,
+    lng: number,
+    radiusKm: number,
+    keys: string[],
+    missing: string[],
+): Promise<AreaFetchResult> {
     // Make sure every covering cell has a row so the settle-updateMany below hits
     // them all (createMany skips the ones that already exist).
-    const missing = keys.filter((k) => !known.has(k));
     if (missing.length) {
         await prisma.geoCell.createMany({
             data: missing.map((key) => {
@@ -183,16 +226,18 @@ export async function ensureAreaFetched(lat: number, lng: number, radiusKm: numb
             data: { status: mapped.length ? "OK" : "EMPTY", fetchedAt: new Date(), attempts: 0, error: null },
         });
 
-        return { fetched: true, created, updated, places: created + updated };
+        return { status: "fetched", created, updated, places: created + updated };
     } catch (e) {
         // Bump attempts across the covering cells so a persistent Overpass
         // failure eventually backs off to ERROR instead of retrying forever.
+        // Resolve (don't throw) so the caller can surface "still trying".
         const message = e instanceof Error ? e.message : String(e);
         await prisma.geoCell.updateMany({
             where: { key: { in: keys }, status: { not: "OK" } },
             data: { attempts: { increment: 1 }, error: message.slice(0, 500) },
         });
-        throw e;
+        console.error(`doAreaFetch failed for ${lat},${lng} r=${radiusKm}: ${message}`);
+        return { status: "error", created: 0, updated: 0, places: 0 };
     }
 }
 

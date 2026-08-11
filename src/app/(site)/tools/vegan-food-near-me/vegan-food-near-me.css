@@ -262,6 +262,34 @@
 .nm-loading, .nm-empty, .nm-error { margin-top: 22px; font-size: 15px; color: var(--muted); }
 .nm-error { color: var(--carrot-deep); }
 
+/* ---- "Finding places…" (on-demand OSM fill in progress) ---- */
+.nm-finding { margin-top: 22px; }
+.nm-finding-msg,
+.nm-loading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--leaf, #1F5E27);
+}
+.nm-finding-msg { margin: 0 0 16px; }
+.nm-spinner {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    border-top-color: var(--leaf, #1F5E27);
+    animation: nm-spin 0.7s linear infinite;
+}
+@keyframes nm-spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nm-spinner { animation-duration: 2.4s; }
+}
+
 /* ---- Loading skeletons ---- */
 .nm-skel { pointer-events: none; }
 .nm-skel-photo { height: 132px; }

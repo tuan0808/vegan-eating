@@ -51,6 +51,12 @@ const TYPE_LABELS: Record<PlaceType, string> = {
 
 const RADII = [2, 5, 10, 25, 50];
 
+// While a brand-new area is still being pulled from OpenStreetMap, the search
+// comes back `filling: true`. We keep a "finding places…" state and re-poll on
+// this cadence until results land or we hit the cap (~20s of polling).
+const RETRY_MS = 2500;
+const MAX_RETRIES = 8;
+
 type Origin = { lat: number; lng: number; label: string };
 
 function fmtDistance(km: number): string {
@@ -116,13 +122,26 @@ export default function VeganFoodNearMe({
     const [places, setPlaces] = useState<NearbyPlace[]>([]);
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [filling, setFilling] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Guards against out-of-order responses when filters change quickly.
     const reqId = useRef(0);
+    // Background-fill poll bookkeeping: how many retries we've fired for the
+    // current search, and the pending timer so a new search can cancel it.
+    const retries = useRef(0);
+    const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const run = useCallback(
-        async (o: Origin, reset: boolean) => {
+        async (o: Origin, reset: boolean, isRetry = false) => {
+            // A fresh search (not a background-fill poll) cancels any pending
+            // retry and resets the poll budget.
+            if (retryTimer.current) {
+                clearTimeout(retryTimer.current);
+                retryTimer.current = null;
+            }
+            if (!isRetry) retries.current = 0;
+
             const id = ++reqId.current;
             setLoading(true);
             setError(null);
@@ -140,6 +159,7 @@ export default function VeganFoodNearMe({
             if (!res.ok) {
                 setError(res.error ?? "Search failed.");
                 setLoading(false);
+                setFilling(false);
                 return;
             }
             setPlaces((prev) => {
@@ -151,6 +171,16 @@ export default function VeganFoodNearMe({
             });
             setHasMore(Boolean(res.hasMore));
             setLoading(false);
+
+            // The area is still being pulled from OSM in the background — keep
+            // the "finding places…" state and poll again shortly, up to the cap,
+            // so results appear as soon as the fetch lands. Only page 0 fills.
+            const keepPolling = Boolean(res.filling) && reset && retries.current < MAX_RETRIES;
+            setFilling(keepPolling);
+            if (keepPolling) {
+                retries.current += 1;
+                retryTimer.current = setTimeout(() => run(o, true, true), RETRY_MS);
+            }
         },
         // `places.length` is read fresh via the ref-guarded closure on each call,
         // so it is deliberately not a dependency — including it would rebuild the
@@ -158,6 +188,11 @@ export default function VeganFoodNearMe({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [radiusKm, category, type, sort],
     );
+
+    // Cancel any pending fill-poll when the component unmounts.
+    useEffect(() => () => {
+        if (retryTimer.current) clearTimeout(retryTimer.current);
+    }, []);
 
     // Re-run page 0 whenever the origin or any filter changes.
     useEffect(() => {
@@ -298,7 +333,9 @@ export default function VeganFoodNearMe({
             {/* ---- Results ---- */}
             {error && <p className="nm-error">{error}</p>}
 
-            {origin && !loading && !error && places.length === 0 && (
+            {/* Genuinely nothing here — only once we're neither loading a page nor
+                still filling this area from OpenStreetMap in the background. */}
+            {origin && !loading && !filling && !error && places.length === 0 && (
                 <p className="nm-empty">
                     No spots within {radiusKm} km{category.length || type ? " matching those filters" : ""}. Try a wider
                     radius or clearing filters.
@@ -313,27 +350,39 @@ export default function VeganFoodNearMe({
                 </ul>
             )}
 
-            {/* First-load skeletons so the grid has shape while results resolve,
-                rather than a bare "Searching…" line. Appends keep the list and
-                show the quieter loading note below instead. */}
-            {loading && places.length === 0 && (
-                <ul className="nm-list" aria-hidden="true">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <li key={i} className="nm-card nm-skel">
-                            <div className="nm-photo nm-skel-photo" />
-                            <div className="nm-body">
-                                <div className="nm-skel-line w70" />
-                                <div className="nm-skel-line w40" />
-                                <div className="nm-skel-line w90" />
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+            {/* First visit to a new area: the search is (or was just) pulling it
+                from OpenStreetMap. Say so and show skeletons while we poll, rather
+                than flashing "no spots" before the data lands. */}
+            {(loading || filling) && places.length === 0 && (
+                <div className="nm-finding">
+                    <p className="nm-finding-msg">
+                        <span className="nm-spinner" aria-hidden="true" />
+                        Finding vegan places near {origin?.label ?? "you"}…
+                    </p>
+                    <ul className="nm-list" aria-hidden="true">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <li key={i} className="nm-card nm-skel">
+                                <div className="nm-photo nm-skel-photo" />
+                                <div className="nm-body">
+                                    <div className="nm-skel-line w70" />
+                                    <div className="nm-skel-line w40" />
+                                    <div className="nm-skel-line w90" />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             )}
 
-            {loading && places.length > 0 && <p className="nm-loading">Searching…</p>}
+            {/* Results already showing, but more may still be arriving. */}
+            {(loading || filling) && places.length > 0 && (
+                <p className="nm-loading">
+                    <span className="nm-spinner" aria-hidden="true" />
+                    {filling ? "Finding more places nearby…" : "Searching…"}
+                </p>
+            )}
 
-            {hasMore && !loading && origin && (
+            {hasMore && !loading && !filling && origin && (
                 <button className="nm-more" onClick={() => run(origin, false)}>
                     Load more
                 </button>

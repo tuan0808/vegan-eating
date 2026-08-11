@@ -7,18 +7,24 @@ import { CATEGORIES, TYPES, type PlaceCategory, type PlaceType } from "@/lib/pla
 import { clientIp, ipLocation } from "@/lib/geo-ip";
 import { ensureAreaFetched } from "@/lib/places-sync";
 
-// How long a first-time search will wait for the on-demand Overpass fill before
-// giving up and returning whatever's already in the DB. The fill keeps running
-// in the background past this, so the *next* load of that area is instant.
-const FILL_BUDGET_MS = 15_000;
+// How long a search waits for the on-demand Overpass fill before returning what
+// it has so far. Kept short now that the client polls: a fast fill still lands
+// inline, while a slow one returns `filling: true` quickly so the user sees
+// "finding places…" rather than a multi-second hang. The fill runs on in the
+// background and the client's retry picks up the result.
+const FILL_BUDGET_MS = 5_000;
 
-/** Resolve `p`, but never wait longer than `ms`; the promise runs on regardless. */
+/**
+ * Resolve `p`, but never wait longer than `ms` — returns null on timeout (or if
+ * `p` rejects). The underlying promise keeps running, so a slow on-demand fill
+ * finishes in the background and the client's next poll picks up the result.
+ */
 function withBudget<T>(p: Promise<T>, ms: number): Promise<T | null> {
     let timer: ReturnType<typeof setTimeout>;
     const cap = new Promise<null>((res) => {
         timer = setTimeout(() => res(null), ms);
     });
-    return Promise.race([p.finally(() => clearTimeout(timer)), cap]);
+    return Promise.race([p.then((v) => v, () => null).finally(() => clearTimeout(timer)), cap]);
 }
 
 // The read side the "Vegan Food Near Me" tool talks to. The heavy geo query
@@ -31,6 +37,10 @@ export type NearbyResponse = {
     places?: NearbyPlace[];
     hasMore?: boolean;
     radiusKm?: number; // the radius we actually used after clamping
+    // True when this area is still being pulled from Overpass in the background,
+    // so the results may be incomplete (or empty). The client shows a "finding
+    // places…" state and polls again shortly instead of treating it as final.
+    filling?: boolean;
 };
 
 const CAT_SET = new Set<string>(CATEGORIES);
@@ -66,11 +76,14 @@ export async function searchNearby(input: {
         // On-demand OSM fill: on the first page, make sure this area has been
         // pulled from Overpass so results appear *anywhere*, not just preseeded
         // cities. Time-boxed — a warm area returns in ms; a cold one keeps
-        // filling in the background so the next load is instant. Never fatal.
+        // filling in the background. `filling` tells the client the results may
+        // be partial so it shows "finding places…" and polls again shortly.
+        let filling = false;
         if (offset === 0) {
-            const fill = ensureAreaFetched(lat, lng, radiusKm);
-            fill.catch((e) => console.error("ensureAreaFetched failed", e));
-            await withBudget(fill, FILL_BUDGET_MS);
+            const r = await withBudget(ensureAreaFetched(lat, lng, radiusKm), FILL_BUDGET_MS);
+            // null => still running past the budget; in_progress/error => a fetch
+            // is (or was) underway and a retry may yet turn up results.
+            filling = r === null || r.status === "in_progress" || r.status === "error";
         }
 
         const { places, hasMore } = await placesNear({
@@ -83,7 +96,7 @@ export async function searchNearby(input: {
             limit: 24,
             offset,
         });
-        return { ok: true, places, hasMore, radiusKm };
+        return { ok: true, places, hasMore, radiusKm, filling };
     } catch (err) {
         console.error("searchNearby failed", err);
         return { ok: false, error: "Something went wrong searching nearby. Please try again." };

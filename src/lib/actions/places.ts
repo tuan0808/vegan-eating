@@ -5,6 +5,21 @@ import { prisma } from "@/lib/prisma";
 import { placesNear, placeSetting, type NearbyPlace } from "@/lib/places";
 import { CATEGORIES, TYPES, type PlaceCategory, type PlaceType } from "@/lib/places-osm";
 import { clientIp, ipLocation } from "@/lib/geo-ip";
+import { ensureAreaFetched } from "@/lib/places-sync";
+
+// How long a first-time search will wait for the on-demand Overpass fill before
+// giving up and returning whatever's already in the DB. The fill keeps running
+// in the background past this, so the *next* load of that area is instant.
+const FILL_BUDGET_MS = 15_000;
+
+/** Resolve `p`, but never wait longer than `ms`; the promise runs on regardless. */
+function withBudget<T>(p: Promise<T>, ms: number): Promise<T | null> {
+    let timer: ReturnType<typeof setTimeout>;
+    const cap = new Promise<null>((res) => {
+        timer = setTimeout(() => res(null), ms);
+    });
+    return Promise.race([p.finally(() => clearTimeout(timer)), cap]);
+}
 
 // The read side the "Vegan Food Near Me" tool talks to. The heavy geo query
 // lives in src/lib/places.ts — this just validates untrusted client input,
@@ -45,8 +60,19 @@ export async function searchNearby(input: {
 
     const maxRadius = await placeSetting("places.searchRadiusMaxKm");
     const radiusKm = Math.min(Math.max(Number(input.radiusKm) || (await placeSetting("places.searchRadiusDefaultKm")), 1), maxRadius);
+    const offset = Math.max(0, Math.floor(Number(input.offset) || 0));
 
     try {
+        // On-demand OSM fill: on the first page, make sure this area has been
+        // pulled from Overpass so results appear *anywhere*, not just preseeded
+        // cities. Time-boxed — a warm area returns in ms; a cold one keeps
+        // filling in the background so the next load is instant. Never fatal.
+        if (offset === 0) {
+            const fill = ensureAreaFetched(lat, lng, radiusKm);
+            fill.catch((e) => console.error("ensureAreaFetched failed", e));
+            await withBudget(fill, FILL_BUDGET_MS);
+        }
+
         const { places, hasMore } = await placesNear({
             lat,
             lng,
@@ -55,7 +81,7 @@ export async function searchNearby(input: {
             type: cleanEnum<PlaceType>(input.type, TYPE_SET),
             sort: input.sort === "rating" ? "rating" : "distance",
             limit: 24,
-            offset: Math.max(0, Math.floor(Number(input.offset) || 0)),
+            offset,
         });
         return { ok: true, places, hasMore, radiusKm };
     } catch (err) {
@@ -71,10 +97,9 @@ export async function searchNearby(input: {
  * has no data yet, so the section is never empty.
  */
 export async function nearbyForHome(limit = 3): Promise<{ label: string; places: NearbyPlace[] }> {
-    // Featured city shown when we can't resolve the visitor's IP (localhost/LAN)
-    // or their local area has no data yet. Env-overridable; defaults to Fort
-    // Lauderdale. In production real visitor IPs override this with their own
-    // city, so this only surfaces on localhost and in truly-uncovered areas.
+    // Featured city used ONLY when we can't resolve the visitor's IP at all
+    // (localhost/LAN or a provider failure). Env-overridable; defaults to Fort
+    // Lauderdale. A real visitor's IP always overrides this with their own city.
     const FALLBACK = {
         lat: Number(process.env.HOME_NEAR_LAT ?? 26.1224),
         lng: Number(process.env.HOME_NEAR_LNG ?? -80.1373),
@@ -84,17 +109,24 @@ export async function nearbyForHome(limit = 3): Promise<{ label: string; places:
     const loc = await ipLocation(await clientIp());
     const center = loc ? { lat: loc.lat, lng: loc.lng, label: loc.city || loc.label } : FALLBACK;
 
-    let { places } = await placesNear({ lat: center.lat, lng: center.lng, radiusKm: 25, limit });
-    let label = center.label;
-
-    // IP resolved but the local area has no places yet — show the featured city
-    // rather than an empty strip.
-    if (!places.length && loc) {
-        const r = await placesNear({ lat: FALLBACK.lat, lng: FALLBACK.lng, radiusKm: 25, limit });
-        places = r.places;
-        label = FALLBACK.label;
+    // Warm the visitor's real area from Overpass in the BACKGROUND — the landing
+    // page render must never block on a network fetch. First-ever visitor from a
+    // new city may see the strip hidden (empty) for one paint; by their next
+    // visit it's cached and populated. Skip warming the featured fallback: it's
+    // preseeded, and warming it would spend an Overpass call on every localhost
+    // render.
+    if (loc) {
+        const fill = ensureAreaFetched(center.lat, center.lng, 25);
+        fill.catch((e) => console.error("nearbyForHome warm failed", e));
     }
-    return { label, places };
+
+    const { places } = await placesNear({ lat: center.lat, lng: center.lng, radiusKm: 25, limit });
+
+    // Deliberately NO geographic fallback for a real visitor: showing another
+    // city's spots under "near <your city>" is misleading. The section only
+    // renders when places.length > 0, so an as-yet-unwarmed area simply hides
+    // the strip instead of lying about the location.
+    return { label: center.label, places };
 }
 
 export type CityAnchor = {

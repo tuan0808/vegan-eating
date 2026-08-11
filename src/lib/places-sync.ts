@@ -4,7 +4,7 @@
 // upserts the results into Place. Shared by the seed script and the
 // CRON_SECRET-guarded sync route, so the two can never drift.
 import { prisma } from "@/lib/prisma";
-import { cellBBox, ensureCells, placeSetting, upsertOsmPlace } from "@/lib/places";
+import { cellBBox, cellsCovering, ensureCells, placeSetting, radiusBBox, upsertOsmPlace } from "@/lib/places";
 import { fetchBBox, mapElements, type LocalityHint } from "@/lib/places-osm";
 import { nearestSeedCity, type SeedCity } from "@/lib/places-seed-cities";
 
@@ -99,6 +99,101 @@ export async function drainCells(
     }
 
     return result;
+}
+
+export type AreaFetchResult = {
+    fetched: boolean; // false => fully cached, no Overpass call was made
+    created: number;
+    updated: number;
+    places: number; // created + updated
+};
+
+/**
+ * On-demand fill for a live search. Ensures the area around (lat,lng) within
+ * radiusKm has been pulled from Overpass at least once and isn't stale, so the
+ * "Vegan Food Near Me" tool returns real results *anywhere* — not just the
+ * preseeded cities.
+ *
+ * Unlike drainCells (one Overpass request per 0.1deg cell, for background
+ * warming), this issues a SINGLE bbox request covering the whole search radius
+ * and settles every covering GeoCell from it. The cells are just the ledger of
+ * "have we fetched here" + when — so a repeat search of a warm area returns
+ * immediately without touching the network.
+ *
+ * Safe to call on every search. Throws only if the Overpass fetch itself fails;
+ * callers time-box it and fall back to whatever is already in the DB.
+ */
+export async function ensureAreaFetched(lat: number, lng: number, radiusKm: number): Promise<AreaFetchResult> {
+    const empty: AreaFetchResult = { fetched: false, created: 0, updated: 0, places: 0 };
+    const keys = cellsCovering(lat, lng, radiusKm);
+    if (!keys.length) return empty;
+
+    const ttlDays = await placeSetting("places.cellTtlDays");
+    const staleBefore = new Date(Date.now() - ttlDays * 864e5);
+
+    const existing = await prisma.geoCell.findMany({
+        where: { key: { in: keys } },
+        select: { key: true, status: true, fetchedAt: true, attempts: true },
+    });
+    const known = new Map(existing.map((c) => [c.key, c]));
+
+    // Do we still need data for any covering cell? Never-seen, still-queued,
+    // retryable-error, or settled-but-stale all mean "fetch"; a fresh OK/EMPTY
+    // means we already have this area.
+    const needsFetch = keys.some((k) => {
+        const c = known.get(k);
+        if (!c) return true;
+        if (c.status === "PENDING") return true;
+        if (c.status === "ERROR") return c.attempts < MAX_ATTEMPTS;
+        return !c.fetchedAt || c.fetchedAt < staleBefore; // OK | EMPTY
+    });
+    if (!needsFetch) return empty;
+
+    // Make sure every covering cell has a row so the settle-updateMany below hits
+    // them all (createMany skips the ones that already exist).
+    const missing = keys.filter((k) => !known.has(k));
+    if (missing.length) {
+        await prisma.geoCell.createMany({
+            data: missing.map((key) => {
+                const [cLat, cLng] = key.split(",").map(Number);
+                return { key, lat: cLat, lng: cLng, status: "PENDING" };
+            }),
+            skipDuplicates: true,
+        });
+    }
+
+    const bbox = radiusBBox(lat, lng, radiusKm);
+    try {
+        const elements = await fetchBBox(bbox);
+        const mapped = mapElements(elements, hintForCell(lat, lng));
+
+        let created = 0;
+        let updated = 0;
+        for (const place of mapped) {
+            const outcome = await upsertOsmPlace(place);
+            if (outcome === "created") created++;
+            else updated++;
+        }
+
+        // One bbox request covered every cell in the radius, so settle them all
+        // together. EMPTY when the whole area genuinely has nothing — that's a
+        // real answer we cache, so we don't re-hit Overpass for a barren area.
+        await prisma.geoCell.updateMany({
+            where: { key: { in: keys } },
+            data: { status: mapped.length ? "OK" : "EMPTY", fetchedAt: new Date(), attempts: 0, error: null },
+        });
+
+        return { fetched: true, created, updated, places: created + updated };
+    } catch (e) {
+        // Bump attempts across the covering cells so a persistent Overpass
+        // failure eventually backs off to ERROR instead of retrying forever.
+        const message = e instanceof Error ? e.message : String(e);
+        await prisma.geoCell.updateMany({
+            where: { key: { in: keys }, status: { not: "OK" } },
+            data: { attempts: { increment: 1 }, error: message.slice(0, 500) },
+        });
+        throw e;
+    }
 }
 
 /** How much work is outstanding — for the admin view and the sync route's response. */

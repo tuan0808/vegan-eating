@@ -55,6 +55,7 @@ const MENU: Item[] = [
             { heading: "Tools", links: [
                     { label: "Veganize recipe", href: "/tools/veganize", note: "Powered by Plants. Inspired by Everything." },
                     { label: "Vegan food near me", href: "/tools/vegan-food-near-me", note: "Find plant-based spots around you" },
+                    { label: "Top vegan friendly cities", href: "/vegan-friendly-cities", note: "The best cities for plant-based eating" },
                     { label: "Ingredient substitutions", href: "/substitutions", note: "Find a swap for any ingredient" },
                 ] },
         ],

@@ -40,7 +40,7 @@ export default async function Home({
         randomRecipes(1),
         latestRecipes(6),
         randomRecipes(4),
-        popularCities(4),
+        popularCities(6),
         recentInstagram(8),
     ]);
 

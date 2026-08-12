@@ -115,6 +115,73 @@ async function searchGoogle(place: PhotoLookup): Promise<GoogleMeta | null> {
     }
 }
 
+// --- City photos -----------------------------------------------------------
+// Cities aren't rows in the Place table (they're aggregates of published
+// places), so their Google photo reference is cached in the Setting KV table
+// keyed by slug+country. Same 30-day recheck, and a miss is cached too (as
+// {ref:null}) so an unphotographed city isn't re-billed every render.
+
+type CityPhotoLookup = { slug: string; country: string; name: string; lat: number; lng: number };
+type CityPhotoCache = { ref: string | null; at: number };
+
+const cityPhotoKey = (slug: string, country: string) => `city.photo:${slug}:${country}`;
+
+/** Cached photo reference for a city, resolving + persisting it on first need. */
+export async function resolveCityPhotoRef(city: CityPhotoLookup): Promise<string | null> {
+    if (!KEY) return null;
+    const key = cityPhotoKey(city.slug, city.country);
+
+    const row = await prisma.setting.findUnique({ where: { key } }).catch(() => null);
+    if (row?.value) {
+        try {
+            const cached = JSON.parse(row.value) as CityPhotoCache;
+            if (Date.now() - cached.at < RECHECK_MS) return cached.ref; // fresh hit OR cached miss
+        } catch {
+            /* corrupt cache — fall through and re-resolve */
+        }
+    }
+
+    const ref = await searchCityPhoto(city);
+    const value = JSON.stringify({ ref, at: Date.now() } satisfies CityPhotoCache);
+    await prisma.setting
+        .upsert({ where: { key }, update: { value }, create: { key, value } })
+        .catch(() => {
+            /* cache write is best-effort */
+        });
+    return ref;
+}
+
+/** searchText for the city locality, biased to its centroid; returns a photo ref. */
+async function searchCityPhoto(city: CityPhotoLookup): Promise<string | null> {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), SEARCH_TIMEOUT_MS);
+    try {
+        const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+            method: "POST",
+            signal: ctrl.signal,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": KEY as string,
+                "X-Goog-FieldMask": "places.photos",
+            },
+            body: JSON.stringify({
+                textQuery: city.name,
+                // Wide bias around the centroid so we land on THIS city's locality
+                // (not a same-named town elsewhere), without over-constraining.
+                locationBias: { circle: { center: { latitude: city.lat, longitude: city.lng }, radius: 20000 } },
+                maxResultCount: 1,
+            }),
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as { places?: Array<{ photos?: Array<{ name: string }> }> };
+        return data.places?.[0]?.photos?.[0]?.name ?? null;
+    } catch {
+        return null; // timeout / network / parse — caller falls back to placeholder
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 /** Google media URL for a photo resource name. Key stays server-side (proxy only). */
 export function photoMediaUrl(photoName: string, maxWidthPx = 640): string {
     const w = Math.min(Math.max(Math.floor(maxWidthPx), 100), 1600);

@@ -1,9 +1,11 @@
 // A city rendered in the site card language for the "Top Vegan Friendly Cities"
-// rail and the /vegan-friendly-cities page. Cities carry no photo, so the image
-// slot is a rotating gradient with the city initial. Links into the Near Me
-// tool centred on the city.
+// rail and the /vegan-friendly-cities page. The image slot is a rotating
+// gradient with the city initial, with a Google Places city photo overlaid on
+// top when one resolves (see CityPhoto). Links into the Near Me tool centred on
+// the city.
 import Link from "next/link";
 import type { CityAnchor } from "@/lib/actions/places";
+import CityPhoto from "@/components/CityPhoto";
 
 // ISO-3166-1 alpha-2 -> display name for the few countries we surface most.
 const COUNTRY: Record<string, string> = {
@@ -22,6 +24,7 @@ export default function CityCard({ city, index = 0 }: { city: CityAnchor; index?
             <div className="photo">
                 <div className={`ph ${ph}`} />
                 <span className="city-initial">{city.city.charAt(0)}</span>
+                <CityPhoto slug={city.citySlug} country={city.country} name={city.city} lat={city.lat} lng={city.lng} />
                 <span className="ph-label">{country}</span>
             </div>
             <span className="tag">Vegan friendly</span>

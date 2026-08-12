@@ -13,10 +13,33 @@
 //
 // Results are cached in-process for a few minutes so we don't hit the API's
 // rate limit on every render; a failure returns [] and the section hides.
+//
+// TOKEN LIFECYCLE. An IG long-lived token lasts 60 days and must be refreshed
+// while still valid (>=24h old, <60d) to get a fresh 60-day one. The env token
+// is only the SEED: env vars are immutable at runtime on DO App Platform, so a
+// refreshed token can't be written back to the env. Instead we persist the
+// rotated token in the Setting KV table and always prefer that copy. Refresh
+// happens two ways: lazily on read (recentInstagram fires a throttled
+// background refresh as the token nears expiry) and on demand via the
+// CRON_SECRET-guarded /api/instagram/refresh route.
 
-const TOKEN = process.env.IG_ACCESS_TOKEN;
+import { prisma } from "@/lib/prisma";
+
+const ENV_TOKEN = process.env.IG_ACCESS_TOKEN;
 const USER_ID = process.env.IG_USER_ID;
 const HASHTAG_ID = process.env.IG_HASHTAG_ID;
+
+// Setting KV keys for the rotated token (no schema migration — reuses Setting).
+const K_TOKEN = "ig.access_token";
+const K_EXPIRES = "ig.token_expires_at"; // ISO string
+const K_REFRESHED = "ig.refreshed_at"; // ISO string
+
+// Refresh once the stored token is within this window of its expiry.
+const REFRESH_WINDOW_MS = 10 * 24 * 60 * 60 * 1000; // 10 days
+// IG rejects a refresh on a token younger than 24h; skip until then.
+const MIN_TOKEN_AGE_MS = 24 * 60 * 60 * 1000;
+// In-process throttle so lazy reads never hammer the refresh endpoint.
+const REFRESH_ATTEMPT_INTERVAL_MS = 60 * 60 * 1000; // 1h
 
 // Public handle + hashtag shown in the UI (safe to hardcode; not secrets).
 export const IG_HANDLE = process.env.NEXT_PUBLIC_IG_HANDLE || "VeganEating_Com";
@@ -36,7 +59,106 @@ export type IgPost = {
 };
 
 export function instagramEnabled(): boolean {
-    return Boolean(TOKEN && (USER_ID || HASHTAG_ID));
+    // Env token is always the seed, so a sync env check is enough to decide
+    // whether to render. The live fetch below prefers the rotated DB copy.
+    return Boolean(ENV_TOKEN && (USER_ID || HASHTAG_ID));
+}
+
+type TokenState = { token: string; expiresAt: number | null; refreshedAt: number | null; fromDb: boolean };
+
+/** Current token: the rotated copy in Setting if present, else the env seed. */
+async function loadTokenState(): Promise<TokenState | null> {
+    try {
+        const rows = await prisma.setting.findMany({ where: { key: { in: [K_TOKEN, K_EXPIRES, K_REFRESHED] } } });
+        const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+        if (map[K_TOKEN]) {
+            const expiresAt = map[K_EXPIRES] ? Date.parse(map[K_EXPIRES]) : NaN;
+            const refreshedAt = map[K_REFRESHED] ? Date.parse(map[K_REFRESHED]) : NaN;
+            return {
+                token: map[K_TOKEN],
+                expiresAt: Number.isNaN(expiresAt) ? null : expiresAt,
+                refreshedAt: Number.isNaN(refreshedAt) ? null : refreshedAt,
+                fromDb: true,
+            };
+        }
+    } catch {
+        // DB unreachable — fall back to the env seed below.
+    }
+    return ENV_TOKEN ? { token: ENV_TOKEN, expiresAt: null, refreshedAt: null, fromDb: false } : null;
+}
+
+export type RefreshResult = { ok: boolean; refreshed: boolean; reason?: string; expiresAt?: string };
+
+let lastRefreshAttempt = 0;
+let refreshInFlight: Promise<RefreshResult> | null = null;
+
+/**
+ * Exchange the current long-lived token for a fresh 60-day one and persist it.
+ * Skips (without calling the API) unless the token is nearing expiry, unless
+ * `force` is set — the cron route forces, lazy reads don't. Safe to call often:
+ * concurrent calls share one in-flight request.
+ */
+export async function refreshInstagramToken(opts: { force?: boolean } = {}): Promise<RefreshResult> {
+    if (refreshInFlight) return refreshInFlight;
+    refreshInFlight = doRefresh(opts).finally(() => {
+        refreshInFlight = null;
+    });
+    return refreshInFlight;
+}
+
+async function doRefresh(opts: { force?: boolean }): Promise<RefreshResult> {
+    const state = await loadTokenState();
+    if (!state) return { ok: false, refreshed: false, reason: "no-token" };
+
+    const now = Date.now();
+    if (!opts.force) {
+        // Due when we don't yet know the expiry (still on the env seed — refresh
+        // once to establish a tracked expiry) or when inside the renewal window.
+        const due = state.expiresAt == null || state.expiresAt - now < REFRESH_WINDOW_MS;
+        if (!due) return { ok: true, refreshed: false, reason: "not-due" };
+        // Respect IG's 24h minimum age when we can tell from our own records.
+        if (state.refreshedAt != null && now - state.refreshedAt < MIN_TOKEN_AGE_MS) {
+            return { ok: true, refreshed: false, reason: "too-young" };
+        }
+    }
+
+    const url = `${GRAPH}/refresh_access_token?grant_type=ig_refresh_token&access_token=${state.token}`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+    let json: { access_token?: string; expires_in?: number } | null = null;
+    try {
+        const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+        if (!res.ok) return { ok: false, refreshed: false, reason: `http-${res.status}` };
+        json = await res.json();
+    } catch {
+        return { ok: false, refreshed: false, reason: "fetch-failed" };
+    } finally {
+        clearTimeout(timer);
+    }
+    if (!json?.access_token) return { ok: false, refreshed: false, reason: "no-token-in-response" };
+
+    // expires_in is seconds from now; default to 60 days if the field is missing.
+    const ttlMs = (json.expires_in ?? 60 * 24 * 60 * 60) * 1000;
+    const expiresAt = new Date(now + ttlMs).toISOString();
+    const refreshedAt = new Date(now).toISOString();
+    try {
+        await prisma.$transaction([
+            prisma.setting.upsert({ where: { key: K_TOKEN }, update: { value: json.access_token }, create: { key: K_TOKEN, value: json.access_token } }),
+            prisma.setting.upsert({ where: { key: K_EXPIRES }, update: { value: expiresAt }, create: { key: K_EXPIRES, value: expiresAt } }),
+            prisma.setting.upsert({ where: { key: K_REFRESHED }, update: { value: refreshedAt }, create: { key: K_REFRESHED, value: refreshedAt } }),
+        ]);
+    } catch {
+        return { ok: false, refreshed: false, reason: "persist-failed" };
+    }
+    return { ok: true, refreshed: true, expiresAt };
+}
+
+/** Fire a throttled background refresh; never blocks the caller. */
+function kickBackgroundRefresh(): void {
+    const now = Date.now();
+    if (now - lastRefreshAttempt < REFRESH_ATTEMPT_INTERVAL_MS) return;
+    lastRefreshAttempt = now;
+    void refreshInstagramToken().catch(() => {});
 }
 
 type CacheEntry = { at: number; posts: IgPost[] };
@@ -83,10 +205,16 @@ export async function recentInstagram(limit = 8): Promise<IgPost[]> {
     if (!instagramEnabled()) return [];
     if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.posts.slice(0, limit);
 
+    const state = await loadTokenState();
+    if (!state) return cache?.posts.slice(0, limit) ?? [];
+    // Keep the token alive while we're here — throttled, never blocks the render.
+    kickBackgroundRefresh();
+    const token = state.token;
+
     const fields = "id,media_type,media_url,thumbnail_url,permalink,caption";
     const url = HASHTAG_ID
-        ? `${FACEBOOK_GRAPH}/${HASHTAG_ID}/recent_media?user_id=${USER_ID}&fields=${fields}&limit=${limit}&access_token=${TOKEN}`
-        : `${GRAPH}/${USER_ID}/media?fields=${fields}&limit=${limit}&access_token=${TOKEN}`;
+        ? `${FACEBOOK_GRAPH}/${HASHTAG_ID}/recent_media?user_id=${USER_ID}&fields=${fields}&limit=${limit}&access_token=${token}`
+        : `${GRAPH}/${USER_ID}/media?fields=${fields}&limit=${limit}&access_token=${token}`;
 
     const json = await fetchJson(url);
     if (!json?.data) return cache?.posts.slice(0, limit) ?? [];

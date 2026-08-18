@@ -58,6 +58,16 @@ export type IgPost = {
     isVideo: boolean;
 };
 
+/**
+ * Route an IG CDN image through our own origin (see /api/instagram/image).
+ * Instagram 403s hotlinked images and its signed URLs expire in the browser;
+ * proxying server-side sidesteps both. Non-IG/empty urls are returned as-is.
+ */
+export function proxiedIgImage(url: string): string {
+    if (!url) return url;
+    return `/api/instagram/image?u=${encodeURIComponent(url)}`;
+}
+
 export function instagramEnabled(): boolean {
     // Env token is always the seed, so a sync env check is enough to decide
     // whether to render. The live fetch below prefers the rotated DB copy.

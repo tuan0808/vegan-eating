@@ -2,7 +2,7 @@
 // Instagram Graph API (see src/lib/instagram.ts). Rendered only when the feed
 // is configured and returns posts, so it never shows an empty shell.
 import type { IgPost } from "@/lib/instagram";
-import { IG_HANDLE, IG_HASHTAG } from "@/lib/instagram";
+import { IG_HANDLE, IG_HASHTAG, proxiedIgImage } from "@/lib/instagram";
 
 const IgGlyph = () => (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -41,9 +41,10 @@ export default function InstagramSection({ posts }: { posts: IgPost[] }) {
                             title={p.caption?.slice(0, 120) || `@${IG_HANDLE} on Instagram`}
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            {/* Instagram's scontent CDN 403s hotlinked images when a
-                                cross-origin Referer is sent — suppress it so the tile loads. */}
-                            <img src={p.imageUrl} alt={p.caption?.slice(0, 80) || "Instagram post"} loading="lazy" referrerPolicy="no-referrer" />
+                            {/* Instagram's scontent CDN 403s hotlinked images and its
+                                signed URLs expire in the browser — serve the bytes
+                                through our own origin instead. */}
+                            <img src={proxiedIgImage(p.imageUrl)} alt={p.caption?.slice(0, 80) || "Instagram post"} loading="lazy" />
                             {p.isVideo && (
                                 <span className="ig-play" aria-hidden="true">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>

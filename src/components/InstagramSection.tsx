@@ -41,7 +41,9 @@ export default function InstagramSection({ posts }: { posts: IgPost[] }) {
                             title={p.caption?.slice(0, 120) || `@${IG_HANDLE} on Instagram`}
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.imageUrl} alt={p.caption?.slice(0, 80) || "Instagram post"} loading="lazy" />
+                            {/* Instagram's scontent CDN 403s hotlinked images when a
+                                cross-origin Referer is sent — suppress it so the tile loads. */}
+                            <img src={p.imageUrl} alt={p.caption?.slice(0, 80) || "Instagram post"} loading="lazy" referrerPolicy="no-referrer" />
                             {p.isVideo && (
                                 <span className="ig-play" aria-hidden="true">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>

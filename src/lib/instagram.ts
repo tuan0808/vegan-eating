@@ -33,6 +33,9 @@ const HASHTAG_ID = process.env.IG_HASHTAG_ID;
 const K_TOKEN = "ig.access_token";
 const K_EXPIRES = "ig.token_expires_at"; // ISO string
 const K_REFRESHED = "ig.refreshed_at"; // ISO string
+// Last-good posts, so a transient/timed-out live fetch (e.g. the first request
+// after a deploy restarts the server) doesn't blank the whole section.
+const K_POSTS = "ig.posts_cache"; // JSON-encoded IgPost[]
 
 // Refresh once the stored token is within this window of its expiry.
 const REFRESH_WINDOW_MS = 10 * 24 * 60 * 60 * 1000; // 10 days
@@ -49,6 +52,10 @@ const GRAPH = "https://graph.instagram.com";
 const FACEBOOK_GRAPH = "https://graph.facebook.com/v21.0";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 3500;
+// The media fetch gets a longer budget than the token refresh: the first
+// outbound call on a cold container can be slow, and timing out here would
+// hide the whole section.
+const MEDIA_FETCH_TIMEOUT_MS = 8000;
 
 export type IgPost = {
     id: string;
@@ -196,9 +203,9 @@ function mapMedia(items: IgMedia[]): IgPost[] {
         }));
 }
 
-async function fetchJson(url: string): Promise<{ data?: IgMedia[] } | null> {
+async function fetchJson(url: string, timeoutMs = FETCH_TIMEOUT_MS): Promise<{ data?: IgMedia[] } | null> {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
         const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
         if (!res.ok) return null;
@@ -210,13 +217,36 @@ async function fetchJson(url: string): Promise<{ data?: IgMedia[] } | null> {
     }
 }
 
+/** Last-good posts persisted in the DB — the cold-start fallback. */
+async function loadPersistedPosts(): Promise<IgPost[]> {
+    try {
+        const row = await prisma.setting.findUnique({ where: { key: K_POSTS } });
+        if (!row?.value) return [];
+        const parsed = JSON.parse(row.value);
+        return Array.isArray(parsed) ? (parsed as IgPost[]) : [];
+    } catch {
+        return [];
+    }
+}
+
+/** Persist the latest good posts so they survive a server restart. Best effort. */
+async function persistPosts(posts: IgPost[]): Promise<void> {
+    try {
+        const value = JSON.stringify(posts);
+        await prisma.setting.upsert({ where: { key: K_POSTS }, update: { value }, create: { key: K_POSTS, value } });
+    } catch {
+        // Non-fatal: the in-process cache still serves this process.
+    }
+}
+
 /** Latest posts (own feed, or hashtag media when IG_HASHTAG_ID is set). Cached. */
 export async function recentInstagram(limit = 8): Promise<IgPost[]> {
     if (!instagramEnabled()) return [];
     if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.posts.slice(0, limit);
 
     const state = await loadTokenState();
-    if (!state) return cache?.posts.slice(0, limit) ?? [];
+    // No token this process — fall back to whatever we last served.
+    if (!state) return (cache?.posts ?? (await loadPersistedPosts())).slice(0, limit);
     // Keep the token alive while we're here — throttled, never blocks the render.
     kickBackgroundRefresh();
     const token = state.token;
@@ -226,10 +256,15 @@ export async function recentInstagram(limit = 8): Promise<IgPost[]> {
         ? `${FACEBOOK_GRAPH}/${HASHTAG_ID}/recent_media?user_id=${USER_ID}&fields=${fields}&limit=${limit}&access_token=${token}`
         : `${GRAPH}/${USER_ID}/media?fields=${fields}&limit=${limit}&access_token=${token}`;
 
-    const json = await fetchJson(url);
-    if (!json?.data) return cache?.posts.slice(0, limit) ?? [];
+    const json = await fetchJson(url, MEDIA_FETCH_TIMEOUT_MS);
+    // Live fetch failed/timed out — serve the in-process cache, else the last
+    // good posts from the DB, so a blip never blanks the section.
+    if (!json?.data) return (cache?.posts ?? (await loadPersistedPosts())).slice(0, limit);
 
     const posts = mapMedia(json.data);
-    cache = { at: Date.now(), posts };
+    if (posts.length) {
+        cache = { at: Date.now(), posts };
+        void persistPosts(posts); // survive the next cold start
+    }
     return posts.slice(0, limit);
 }

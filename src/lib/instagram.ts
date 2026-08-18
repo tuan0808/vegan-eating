@@ -104,7 +104,15 @@ async function loadTokenState(): Promise<TokenState | null> {
     return ENV_TOKEN ? { token: ENV_TOKEN, expiresAt: null, refreshedAt: null, fromDb: false } : null;
 }
 
-export type RefreshResult = { ok: boolean; refreshed: boolean; reason?: string; expiresAt?: string };
+export type RefreshResult = {
+    ok: boolean;
+    refreshed: boolean;
+    reason?: string;
+    expiresAt?: string;
+    // Meta's raw error on an http-* failure — names the real cause (invalid
+    // token vs. revoked vs. checkpoint) instead of a bare status code.
+    detail?: { message?: string; code?: number; subcode?: number; type?: string };
+};
 
 let lastRefreshAttempt = 0;
 let refreshInFlight: Promise<RefreshResult> | null = null;
@@ -145,7 +153,18 @@ async function doRefresh(opts: { force?: boolean }): Promise<RefreshResult> {
     let json: { access_token?: string; expires_in?: number } | null = null;
     try {
         const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
-        if (!res.ok) return { ok: false, refreshed: false, reason: `http-${res.status}` };
+        if (!res.ok) {
+            // Pull Meta's error body so the caller sees the real cause (code 190
+            // = invalid/expired/revoked token, subcode distinguishes why).
+            const err = await res.json().catch(() => null);
+            const e = err?.error;
+            return {
+                ok: false,
+                refreshed: false,
+                reason: `http-${res.status}`,
+                detail: e ? { message: e.message, code: e.code, subcode: e.error_subcode, type: e.type } : undefined,
+            };
+        }
         json = await res.json();
     } catch {
         return { ok: false, refreshed: false, reason: "fetch-failed" };

@@ -1,0 +1,36 @@
+# Keeps the long-lived Instagram token alive by hitting the CRON_SECRET-guarded
+# refresh route daily. The route no-ops until the token is within its renewal
+# window, so running every day is safe and cheap — it only rotates when due.
+# One-time setup: add a repo secret CRON_SECRET matching the value in the
+# DigitalOcean app's environment (Settings → App-Level Environment Variables).
+name: instagram-token-refresh
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily at 06:00 UTC
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call refresh endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repo secret is not set" >&2
+            exit 1
+          fi
+          code=$(curl -sS -m 30 -o body.json -w '%{http_code}' \
+            -H "authorization: Bearer $CRON_SECRET" \
+            https://veganeating.com/api/instagram/refresh)
+          echo "HTTP $code"
+          cat body.json
+          echo
+          # Fail the run on a non-2xx so a dead/invalidated token surfaces as a
+          # red check instead of failing silently.
+          case "$code" in
+            2*) echo "Refresh OK" ;;
+            *)  echo "Refresh failed (HTTP $code)" >&2; exit 1 ;;
+          esac

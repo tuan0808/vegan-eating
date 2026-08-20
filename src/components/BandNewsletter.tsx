@@ -22,6 +22,8 @@ export default function BandNewsletter() {
     // One id per mount, shared between this pixel Lead and the CAPI Lead the
     // server action fires (via the hidden field) so Reddit dedupes them.
     const conversionId = useMemo(() => newConversionId(), []);
+    // Mount time — the action rejects submits faster than a human could type.
+    const mountedAt = useMemo(() => Date.now(), []);
     const fired = useRef(false);
 
     // Fire the pixel Lead once, when the server action reports success.
@@ -44,6 +46,16 @@ export default function BandNewsletter() {
         <>
             <form className="news-form" action={formAction}>
                 <input type="hidden" name="conversionId" value={conversionId} />
+                <input type="hidden" name="ts" value={mountedAt} />
+                {/* Honeypot — hidden from people, tempting to bots. Leave empty. */}
+                <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}
+                />
                 <input
                     type="email"
                     name="email"

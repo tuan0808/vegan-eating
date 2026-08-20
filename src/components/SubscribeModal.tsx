@@ -1,7 +1,7 @@
 // src/components/SubscribeModal.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { subscribeEmail } from "@/app/actions/newsletter";
 import { rdtTrack, newConversionId } from "@/components/analytics/reddit-pixel";
@@ -22,12 +22,16 @@ export default function SubscribeModal({
     const [err, setErr] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
     const [mounted, setMounted] = useState(false);
+    // When the modal opened + a honeypot input — the action rejects submits that
+    // are too fast or fill the hidden field (see looksLikeBot in newsletter.ts).
+    const openedAtRef = useRef(0);
+    const honeypotRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => setMounted(true), []);
 
     // Fresh form every time it opens.
     useEffect(() => {
-        if (open) { setEmail(""); setDone(false); setErr(null); setBusy(false); }
+        if (open) { setEmail(""); setDone(false); setErr(null); setBusy(false); openedAtRef.current = Date.now(); }
     }, [open]);
 
     // Lock page scroll + Escape-to-close while open.
@@ -51,7 +55,10 @@ export default function SubscribeModal({
         setBusy(true);
         // Same id for the pixel Lead and the CAPI Lead so Reddit dedupes them.
         const conversionId = newConversionId();
-        const res = await subscribeEmail(value, conversionId);
+        const res = await subscribeEmail(value, conversionId, {
+            website: honeypotRef.current?.value ?? "",
+            ts: openedAtRef.current,
+        });
         setBusy(false);
         if (res.ok) {
             rdtTrack("Lead", { conversionId });
@@ -78,6 +85,16 @@ export default function SubscribeModal({
                         <h3>New recipes &amp; notes, once a week</h3>
                         <p>The good stuff from the kitchen and the forum — a short weekly email. No ads, no selling your address, unsubscribe in one click.</p>
                         <form onSubmit={submit} className="vn-modal-form">
+                            {/* Honeypot — hidden from people, tempting to bots. Leave empty. */}
+                            <input
+                                ref={honeypotRef}
+                                type="text"
+                                name="website"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                aria-hidden="true"
+                                style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}
+                            />
                             <input
                                 type="email"
                                 value={email}

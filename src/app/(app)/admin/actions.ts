@@ -3,6 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeEmail } from "@/lib/email-normalize";
@@ -76,6 +77,42 @@ export async function updateMember(
         return { ok: false, error: "Couldn't save — that username or email may already be in use." };
     }
     revalidatePath("/admin");
+    return { ok: true };
+}
+
+/**
+ * Ban a bot account AND blocklist the IP it signed up from, so it can't just
+ * register again. Used from the member list's "likely bot" one-click action.
+ * Bans only THIS account (not everything from the IP — that shared-IP call is
+ * blockSignupCluster); blocking the IP still stops fresh signups from it.
+ * Self-block is guarded. Returns a result for inline feedback.
+ */
+export async function blockBotMember(userId: string): Promise<MemberResult> {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { ok: false, error: "Not authorised." };
+    if (!userId) return { ok: false, error: "Missing user." };
+    if (userId === session.user.id) return { ok: false, error: "You can't block yourself." };
+
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { signupIp: true } });
+    if (!user) return { ok: false, error: "That account no longer exists." };
+
+    const ops: Prisma.PrismaPromise<unknown>[] = [
+        prisma.user.update({ where: { id: userId }, data: { banned: true } }),
+    ];
+    // A null signup IP (older/local accounts) just means we can only ban.
+    if (user.signupIp) {
+        ops.push(
+            prisma.blockedIp.upsert({
+                where: { ip: user.signupIp },
+                update: { reason: "Bot signup" },
+                create: { ip: user.signupIp, reason: "Bot signup" },
+            }),
+        );
+    }
+    await prisma.$transaction(ops);
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/security");
     return { ok: true };
 }
 

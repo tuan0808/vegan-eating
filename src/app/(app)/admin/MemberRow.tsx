@@ -3,7 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateMember, deleteMember } from "./actions";
+import { updateMember, deleteMember, blockBotMember } from "./actions";
 
 export type Member = {
     id: string;
@@ -16,6 +16,9 @@ export type Member = {
     lastLogin: string | null;
     lastLoginIp: string | null;
     signupIp: string | null;
+    /** Heuristic triage flag from assessAccount — admin confirms before acting. */
+    likelyBot: boolean;
+    botSignals: string[];
 };
 
 const ROLES = ["MEMBER", "MODERATOR", "ADMIN"];
@@ -71,6 +74,16 @@ export default function MemberRow({ member, isMe }: { member: Member; isMe: bool
             else setError(res.error ?? "Couldn't delete.");
         });
 
+    const blockBot = () =>
+        start(async () => {
+            const ipNote = member.signupIp ? `and blocklist signup IP ${member.signupIp}` : "(no signup IP on record)";
+            if (!confirm(`Ban @${member.username} ${ipNote}? They won't be able to sign in, and that IP can't register again.`)) return;
+            setError(null);
+            const res = await blockBotMember(member.id);
+            if (res.ok) router.refresh();
+            else setError(res.error ?? "Couldn't block.");
+        });
+
     return (
         <div className="am-row" style={row}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -81,6 +94,11 @@ export default function MemberRow({ member, isMe }: { member: Member; isMe: bool
                         {display} {isMe ? <span style={muted}>(you)</span> : null}
                         <span style={muted}> · @{member.username}</span>
                         {member.banned ? <span style={bannedBadge}>banned</span> : null}
+                        {member.likelyBot && !member.banned ? (
+                            <span style={botBadge} title={`Heuristic flags: ${member.botSignals.join(", ")}. Review before blocking.`}>
+                                ⚠ likely bot
+                            </span>
+                        ) : null}
                     </div>
                     <div style={{ fontSize: 13, color: "var(--muted, #6b7264)" }}>
                         {member.email} · joined {member.joined}
@@ -94,10 +112,15 @@ export default function MemberRow({ member, isMe }: { member: Member; isMe: bool
 
                 <span style={{ ...pill, color: roleColor(member.role), borderColor: roleColor(member.role) }}>{member.role}</span>
 
-                <div style={{ display: "flex", gap: 8, width: 180, justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", gap: 8, minWidth: 180, justifyContent: "flex-end", flexWrap: "wrap" }}>
                     <button type="button" onClick={() => (editing ? cancel() : setEditing(true))} style={ghostBtn} disabled={pending}>
                         {editing ? "Close" : "Edit"}
                     </button>
+                    {!isMe && member.likelyBot && !member.banned && (
+                        <button type="button" onClick={blockBot} style={blockBtn} disabled={pending} title="Ban this account and blocklist its signup IP">
+                            Block + IP
+                        </button>
+                    )}
                     {!isMe && (
                         <button type="button" onClick={remove} style={delBtn} disabled={pending}>Delete</button>
                     )}
@@ -163,6 +186,14 @@ const pill: React.CSSProperties = {
 const bannedBadge: React.CSSProperties = {
     marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "1px 8px",
     borderRadius: 999, background: "#f6d9d3", color: "#9a3f1f",
+};
+const botBadge: React.CSSProperties = {
+    marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "1px 8px",
+    borderRadius: 999, background: "#fbe6c8", color: "#8a5a12", cursor: "help",
+};
+const blockBtn: React.CSSProperties = {
+    border: "none", borderRadius: 999, padding: "7px 14px",
+    fontSize: 13.5, fontWeight: 600, background: "#8a5a12", color: "#fff", cursor: "pointer",
 };
 const ghostBtn: React.CSSProperties = {
     border: "1px solid var(--line, #d9d5c8)", borderRadius: 999, padding: "7px 14px",

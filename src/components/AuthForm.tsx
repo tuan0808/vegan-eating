@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import Script from "next/script";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 type Props = {
     mode: "login" | "register";
@@ -32,7 +32,6 @@ const NOTICES: Record<string, string> = {
 
 export default function AuthForm({ mode, action, error, notice, resendAction }: Props) {
     const isRegister = mode === "register";
-    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
     // Offer the resend button when someone's clearly mid-verification: either they
     // just registered, or they tried to log in unverified. Reuses the email field
@@ -89,16 +88,9 @@ export default function AuthForm({ mode, action, error, notice, resendAction }: 
                         />
                     </label>
 
-                    {/* Cloudflare Turnstile — register only, and only once a site key is configured.
-                        The widget auto-injects a hidden `cf-turnstile-response` field the action reads. */}
-                    {isRegister && siteKey ? (
-                        <>
-                            <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
-                            <div className="captcha">
-                                <div className="cf-turnstile" data-sitekey={siteKey} />
-                            </div>
-                        </>
-                    ) : null}
+                    {/* Cloudflare Turnstile — register only. Renders nothing until a
+                        site key is configured; the action verifies the token server-side. */}
+                    {isRegister ? <TurnstileWidget className="captcha" /> : null}
 
                     <button type="submit">{isRegister ? "Create account" : "Log in"}</button>
 

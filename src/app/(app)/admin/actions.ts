@@ -117,6 +117,36 @@ export async function blockBotMember(userId: string): Promise<MemberResult> {
 }
 
 /**
+ * Bulk version of blockBotMember for clearing a flagged batch in one click.
+ * Bans every selected account and blocklists their distinct signup IPs. Skips
+ * the caller's own id defensively. Efficient (updateMany + createMany), so it
+ * scales to a few hundred rows. Returns how many were blocked.
+ */
+export async function blockBotMembers(
+    userIds: string[],
+): Promise<{ ok: boolean; blocked?: number; error?: string }> {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { ok: false, error: "Not authorised." };
+    const meId = session.user.id;
+    const ids = [...new Set(userIds)].filter((id) => id && id !== meId);
+    if (ids.length === 0) return { ok: false, error: "No accounts selected." };
+
+    const users = await prisma.user.findMany({ where: { id: { in: ids } }, select: { signupIp: true } });
+    const ips = [...new Set(users.map((u) => u.signupIp).filter((ip): ip is string => !!ip))];
+
+    await prisma.$transaction([
+        prisma.user.updateMany({ where: { id: { in: ids } }, data: { banned: true } }),
+        ...(ips.length
+            ? [prisma.blockedIp.createMany({ data: ips.map((ip) => ({ ip, reason: "Bot signup" })), skipDuplicates: true })]
+            : []),
+    ]);
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/security");
+    return { ok: true, blocked: ids.length };
+}
+
+/**
  * Hard-delete a member. Every User relation cascades, so their content goes too.
  * Self-deletion is blocked. Returns a result for inline feedback.
  */

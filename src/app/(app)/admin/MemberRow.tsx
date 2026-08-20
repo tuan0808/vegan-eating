@@ -29,7 +29,19 @@ function roleColor(role: string): string {
     return "#5b6b3f";
 }
 
-export default function MemberRow({ member, isMe }: { member: Member; isMe: boolean }) {
+export default function MemberRow({
+    member,
+    isMe,
+    selectable = false,
+    selected = false,
+    onToggle,
+}: {
+    member: Member;
+    isMe: boolean;
+    selectable?: boolean;
+    selected?: boolean;
+    onToggle?: (checked: boolean) => void;
+}) {
     const router = useRouter();
     const [editing, setEditing] = useState(false);
     const [pending, start] = useTransition();
@@ -87,6 +99,15 @@ export default function MemberRow({ member, isMe }: { member: Member; isMe: bool
     return (
         <div className="am-row" style={row}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                {selectable ? (
+                    <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={(e) => onToggle?.(e.target.checked)}
+                        aria-label={`Select @${member.username}`}
+                        style={{ width: 17, height: 17, flexShrink: 0, cursor: "pointer" }}
+                    />
+                ) : null}
                 <span style={{ ...avatar, background: roleColor(member.role) }}>{display.charAt(0).toUpperCase()}</span>
 
                 <div className="am-info" style={{ flex: 1, minWidth: 0 }}>

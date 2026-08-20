@@ -4,17 +4,20 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { assessAccount } from "@/lib/bot-heuristics";
-import MemberRow, { type Member } from "./MemberRow";
+import { type Member } from "./MemberRow";
+import MembersView, { type TabKey, type Counts } from "./MembersView";
 import "./admin-members.css";
 
 
 export const metadata: Metadata = { title: "Members & roles — admin" };
 export const dynamic = "force-dynamic"; // always show live roles
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+const TAB_KEYS: TabKey[] = ["all", "members", "flagged", "banned"];
+
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
     const me = await requireRole(["ADMIN"]); // redirects non-admins to /dashboard
-    const { filter } = await searchParams;
-    const botsOnly = filter === "bots";
+    const { tab: rawTab } = await searchParams;
+    const tab: TabKey = TAB_KEYS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "all";
     const users = await prisma.user.findMany({
         orderBy: { createdAt: "asc" },
         select: { id: true, name: true, username: true, email: true, role: true, banned: true, createdAt: true, lastLoginAt: true, lastLoginIp: true, signupIp: true },
@@ -40,9 +43,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         };
     });
 
-    // Flagged accounts still active (not already banned) — the triage worklist.
-    const flaggedCount = members.filter((m) => m.likelyBot && !m.banned).length;
-    const shown = botsOnly ? members.filter((m) => m.likelyBot) : members;
+    const counts: Counts = {
+        all: members.length,
+        members: members.filter((m) => !m.banned).length,
+        flagged: members.filter((m) => m.likelyBot && !m.banned).length,
+        banned: members.filter((m) => m.banned).length,
+    };
+    const shown =
+        tab === "members" ? members.filter((m) => !m.banned)
+        : tab === "flagged" ? members.filter((m) => m.likelyBot && !m.banned)
+        : tab === "banned" ? members.filter((m) => m.banned)
+        : members;
+    // Bulk-select only where every row is already a bot candidate — avoids
+    // accidentally mass-banning real members from the general tabs.
+    const selectable = tab === "flagged";
 
     return (
         <div className="am-wrap" style={{ maxWidth: "none", paddingRight: 40 }}>
@@ -50,26 +64,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <h1 style={h1}>Members &amp; roles</h1>
             <p style={{ color: "var(--muted, #6b7264)", marginTop: 8 }}>
                 Promote trusted members, or use Edit to change a member&apos;s name, username, email, role,
-                or ban state. Delete removes an account and all its content. Changes take effect on their next request.
+                or ban state. On <strong>Likely bots</strong>, tick accounts (or Select all) and use Block + IP to clear them in bulk.
             </p>
 
-            {flaggedCount > 0 ? (
-                <div style={botBanner}>
-                    <span>
-                        ⚠ <strong>{flaggedCount}</strong> active {flaggedCount === 1 ? "account looks" : "accounts look"} automated
-                        (random username or Gmail dot-alias). Review each — the flag is a heuristic, not proof.
-                    </span>
-                    <Link href={botsOnly ? "/admin" : "/admin?filter=bots"} style={botBannerLink}>
-                        {botsOnly ? "Show all members" : "Show flagged only"}
-                    </Link>
-                </div>
-            ) : null}
-
-            <div style={{ marginTop: 26, display: "flex", flexDirection: "column", gap: 10 }}>
-                {shown.map((m) => (
-                    <MemberRow key={m.id} member={m} isMe={m.id === me.id} />
-                ))}
-            </div>
+            <MembersView members={shown} meId={me.id} tab={tab} counts={counts} selectable={selectable} />
 
             <p style={{ marginTop: 30 }}>
                 <Link href="/dashboard" style={{ color: "var(--terra, #c2603a)", fontWeight: 600 }}>
@@ -92,13 +90,4 @@ const h1: React.CSSProperties = {
     fontSize: 32,
     color: "var(--ink, #1c2317)",
     margin: "8px 0 0",
-};
-const botBanner: React.CSSProperties = {
-    marginTop: 20, display: "flex", alignItems: "center", justifyContent: "space-between",
-    gap: 16, flexWrap: "wrap",
-    background: "#fbe6c8", border: "1px solid #e6c48a", borderRadius: 12,
-    padding: "12px 16px", fontSize: 14, color: "#6f4a10",
-};
-const botBannerLink: React.CSSProperties = {
-    color: "#8a5a12", fontWeight: 700, whiteSpace: "nowrap",
 };

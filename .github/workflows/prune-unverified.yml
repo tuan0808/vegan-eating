@@ -1,0 +1,33 @@
+# Daily cleanup of accounts that never verified their email (bot/abandoned
+# signups). Hits the CRON_SECRET-guarded route; the route only deletes MEMBER
+# accounts still unverified past the grace window, so a daily run is safe.
+# Uses the same CRON_SECRET repo secret as the Instagram refresh workflow.
+name: prune-unverified-members
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # daily at 06:30 UTC (just after the token refresh)
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call prune endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repo secret is not set" >&2
+            exit 1
+          fi
+          code=$(curl -sS -m 30 -o body.json -w '%{http_code}' \
+            -H "authorization: Bearer $CRON_SECRET" \
+            https://veganeating.com/api/members/prune-unverified)
+          echo "HTTP $code"
+          cat body.json
+          echo
+          case "$code" in
+            2*) echo "Prune OK" ;;
+            *)  echo "Prune failed (HTTP $code)" >&2; exit 1 ;;
+          esac

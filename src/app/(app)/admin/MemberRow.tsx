@@ -16,6 +16,8 @@ export type Member = {
     lastLogin: string | null;
     lastLoginIp: string | null;
     signupIp: string | null;
+    /** emailVerified is set — an unverified account can never log in or post. */
+    verified: boolean;
     /** Heuristic triage flag from assessAccount — admin confirms before acting. */
     likelyBot: boolean;
     botSignals: string[];
@@ -115,6 +117,9 @@ export default function MemberRow({
                         {display} {isMe ? <span style={muted}>(you)</span> : null}
                         <span style={muted}> · @{member.username}</span>
                         {member.banned ? <span style={bannedBadge}>banned</span> : null}
+                        {!member.verified && !member.banned ? (
+                            <span style={unverifiedBadge} title="Never verified their email — can't log in or post.">unverified</span>
+                        ) : null}
                         {member.likelyBot && !member.banned ? (
                             <span style={botBadge} title={`Heuristic flags: ${member.botSignals.join(", ")}. Review before blocking.`}>
                                 ⚠ likely bot
@@ -211,6 +216,10 @@ const bannedBadge: React.CSSProperties = {
 const botBadge: React.CSSProperties = {
     marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "1px 8px",
     borderRadius: 999, background: "#fbe6c8", color: "#8a5a12", cursor: "help",
+};
+const unverifiedBadge: React.CSSProperties = {
+    marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "1px 8px",
+    borderRadius: 999, background: "#e7e3d6", color: "#6b6350", cursor: "help",
 };
 const blockBtn: React.CSSProperties = {
     border: "none", borderRadius: 999, padding: "7px 14px",

@@ -12,7 +12,7 @@ import "./admin-members.css";
 export const metadata: Metadata = { title: "Members & roles — admin" };
 export const dynamic = "force-dynamic"; // always show live roles
 
-const TAB_KEYS: TabKey[] = ["all", "members", "flagged", "banned"];
+const TAB_KEYS: TabKey[] = ["all", "members", "unverified", "flagged", "banned"];
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
     const me = await requireRole(["ADMIN"]); // redirects non-admins to /dashboard
@@ -20,7 +20,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     const tab: TabKey = TAB_KEYS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "all";
     const users = await prisma.user.findMany({
         orderBy: { createdAt: "asc" },
-        select: { id: true, name: true, username: true, email: true, role: true, banned: true, createdAt: true, lastLoginAt: true, lastLoginIp: true, signupIp: true },
+        select: { id: true, name: true, username: true, email: true, role: true, banned: true, emailVerified: true, createdAt: true, lastLoginAt: true, lastLoginIp: true, signupIp: true },
     });
 
     const members: Member[] = users.map((u) => {
@@ -38,6 +38,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 : null,
             lastLoginIp: u.lastLoginIp,
             signupIp: u.signupIp,
+            verified: u.emailVerified != null,
             likelyBot: bot.likelyBot,
             botSignals: bot.signals,
         };
@@ -46,17 +47,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     const counts: Counts = {
         all: members.length,
         members: members.filter((m) => !m.banned).length,
+        unverified: members.filter((m) => !m.verified && !m.banned).length,
         flagged: members.filter((m) => m.likelyBot && !m.banned).length,
         banned: members.filter((m) => m.banned).length,
     };
     const shown =
         tab === "members" ? members.filter((m) => !m.banned)
+        : tab === "unverified" ? members.filter((m) => !m.verified && !m.banned)
         : tab === "flagged" ? members.filter((m) => m.likelyBot && !m.banned)
         : tab === "banned" ? members.filter((m) => m.banned)
         : members;
-    // Bulk-select only where every row is already a bot candidate — avoids
-    // accidentally mass-banning real members from the general tabs.
-    const selectable = tab === "flagged";
+    // Bulk-select only on the bot-candidate views (never-verified or flagged),
+    // so real members on the general tabs can't be mass-actioned by accident.
+    const selectable = tab === "flagged" || tab === "unverified";
 
     return (
         <div className="am-wrap" style={{ maxWidth: "none", paddingRight: 40 }}>
@@ -64,7 +67,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <h1 style={h1}>Members &amp; roles</h1>
             <p style={{ color: "var(--muted, #6b7264)", marginTop: 8 }}>
                 Promote trusted members, or use Edit to change a member&apos;s name, username, email, role,
-                or ban state. On <strong>Likely bots</strong>, tick accounts (or Select all) and use Block + IP to clear them in bulk.
+                or ban state. On <strong>Unverified</strong> and <strong>Likely bots</strong>, tick accounts (or Select all)
+                and use Block + IP to clear them in bulk. Accounts still unverified after 7 days are auto-pruned.
             </p>
 
             <MembersView members={shown} meId={me.id} tab={tab} counts={counts} selectable={selectable} />

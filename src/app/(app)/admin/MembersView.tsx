@@ -7,12 +7,13 @@ import Link from "next/link";
 import MemberRow, { type Member } from "./MemberRow";
 import { blockBotMembers } from "./actions";
 
-export type TabKey = "all" | "members" | "flagged" | "banned";
+export type TabKey = "all" | "members" | "unverified" | "flagged" | "banned";
 export type Counts = Record<TabKey, number>;
 
 const TABS: { key: TabKey; label: string }[] = [
     { key: "all", label: "All" },
     { key: "members", label: "Members" },
+    { key: "unverified", label: "Unverified" },
     { key: "flagged", label: "Likely bots" },
     { key: "banned", label: "Banned" },
 ];
@@ -75,7 +76,7 @@ export default function MembersView({
                             style={{ ...tabStyle, ...(active ? tabActive : {}) }}
                         >
                             {t.label}
-                            <span style={{ ...tabCount, ...(t.key === "flagged" && counts.flagged > 0 ? tabCountAlert : {}) }}>
+                            <span style={{ ...tabCount, ...((t.key === "flagged" || t.key === "unverified") && counts[t.key] > 0 ? tabCountAlert : {}) }}>
                                 {counts[t.key]}
                             </span>
                         </Link>

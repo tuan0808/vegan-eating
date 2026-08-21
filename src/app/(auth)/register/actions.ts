@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { isLikelyRandomUsername } from "@/lib/bot-heuristics";
 import { createVerificationToken } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
 import { sendRedditEvent, redditMatchFromRequest } from "@/lib/reddit-capi";
@@ -57,6 +58,22 @@ export async function registerAction(formData: FormData) {
     if (!USERNAME_RE.test(username)) redirect("/register?error=invalid");
     if (!EMAIL_RE.test(email)) redirect("/register?error=invalid");
     if (password.length < 8 || password.length > 100) redirect("/register?error=invalid");
+
+    // A machine-random username is a confirmed bot — no human types
+    // "XacKLGmIgXuJcXZLHlxWj". Reject the signup AND blocklist the IP so the same
+    // source can't just retry. Reuses the generic "invalid" error so the gate
+    // isn't advertised to whoever's scripting it. Threshold is tuned strict
+    // (see isLikelyRandomUsername) since this acts with no human review.
+    if (isLikelyRandomUsername(username)) {
+        if (ip) {
+            await prisma.blockedIp.upsert({
+                where: { ip },
+                update: { reason: "Random username (bot signup)" },
+                create: { ip, reason: "Random username (bot signup)" },
+            });
+        }
+        redirect("/register?error=invalid");
+    }
 
     // Canonical inbox: blocks the Gmail dot/+tag trick where one mailbox spawns many
     // "unique" addresses. A collision on the normalized form counts as taken even when

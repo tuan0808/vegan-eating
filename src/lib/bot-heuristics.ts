@@ -107,6 +107,18 @@ function assessEmail(raw: string): { score: number; signals: string[] } {
     return { score, signals };
 }
 
+// Signup-time gate: a username this random is machine-generated, so registration
+// can auto-reject (and IP-block) it. Deliberately STRICTER than the admin triage
+// above — it acts with no human in the loop, so it must be near zero-false-
+// positive. Reaching 4 requires erratic capitalization (weight 2) plus two of
+// the supporting signals, i.e. the full "random string" profile:
+//   "XacKLGmIgXuJcXZLHlxWj" → 4 (rejected)   "kLmZxQwRtPvBn" → 4 (rejected)
+//   "xX_DarkLord_Xx" → 3 (allowed)           "johnschmidt" → 2 (allowed)
+export const RANDOM_USERNAME_THRESHOLD = 4;
+export function isLikelyRandomUsername(username: string): boolean {
+    return assessUsername(username ?? "").score >= RANDOM_USERNAME_THRESHOLD;
+}
+
 /** Score an account for bot-likeness. Pure + side-effect free — safe to call per row. */
 export function assessAccount(input: { username: string; email: string }): AccountAssessment {
     const u = assessUsername(input.username ?? "");

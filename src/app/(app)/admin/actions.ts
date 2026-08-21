@@ -117,6 +117,25 @@ export async function blockBotMember(userId: string): Promise<MemberResult> {
 }
 
 /**
+ * Bulk ban / unban selected members in one save — no per-row expand-and-save.
+ * Skips the caller's own id. `banned` picks the direction. Returns the count.
+ */
+export async function setBannedMembers(
+    userIds: string[],
+    banned: boolean,
+): Promise<{ ok: boolean; count?: number; error?: string }> {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { ok: false, error: "Not authorised." };
+    const meId = session.user.id;
+    const ids = [...new Set(userIds)].filter((id) => id && id !== meId);
+    if (ids.length === 0) return { ok: false, error: "No accounts selected." };
+
+    const res = await prisma.user.updateMany({ where: { id: { in: ids } }, data: { banned } });
+    revalidatePath("/admin");
+    return { ok: true, count: res.count };
+}
+
+/**
  * Bulk version of blockBotMember for clearing a flagged batch in one click.
  * Bans every selected account and blocklists their distinct signup IPs. Skips
  * the caller's own id defensively. Efficient (updateMany + createMany), so it

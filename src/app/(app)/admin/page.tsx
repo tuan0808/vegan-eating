@@ -57,18 +57,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         : tab === "flagged" ? members.filter((m) => m.likelyBot && !m.banned)
         : tab === "banned" ? members.filter((m) => m.banned)
         : members;
-    // Bulk-select only on the bot-candidate views (never-verified or flagged),
-    // so real members on the general tabs can't be mass-actioned by accident.
-    const selectable = tab === "flagged" || tab === "unverified";
+    // Every tab supports bulk selection now; each bulk action has a count-aware
+    // confirm dialog as the guard against accidental mass changes.
+    const selectable = true;
 
     return (
         <div className="am-wrap" style={{ maxWidth: "none", paddingRight: 40 }}>
             <p style={kicker}>Admin</p>
             <h1 style={h1}>Members &amp; roles</h1>
             <p style={{ color: "var(--muted, #6b7264)", marginTop: 8 }}>
-                Promote trusted members, or use Edit to change a member&apos;s name, username, email, role,
-                or ban state. On <strong>Unverified</strong> and <strong>Likely bots</strong>, tick accounts (or Select all)
-                and use Block + IP to clear them in bulk. Accounts still unverified after 7 days are auto-pruned.
+                Tick accounts (or Select all) to <strong>Ban</strong> in bulk — no per-row expand-and-save. On the
+                bot tabs, <strong>Block + IP</strong> also blocklists their signup IP; the <strong>Banned</strong> tab has
+                bulk <strong>Unban</strong>. Use Edit for single-account changes (name, username, email, role). Accounts
+                still unverified after 7 days are auto-pruned.
             </p>
 
             <MembersView members={shown} meId={me.id} tab={tab} counts={counts} selectable={selectable} />

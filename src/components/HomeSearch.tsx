@@ -141,12 +141,33 @@ export default function HomeSearch() {
 
             <style jsx>{`
                 .hs {
+                    position: relative;
                     border-top: 1px solid var(--line, rgba(27, 42, 29, 0.1));
-                    border-bottom: 1px solid var(--line, rgba(27, 42, 29, 0.1));
                     background:
                             radial-gradient(120% 140% at 0% 0%, rgba(31, 74, 47, 0.04), transparent 60%),
                             var(--paper, #f3f2ea);
                     padding: 56px 0;
+                    /* Ambient lift so the panel reads as its own layer above the next section. */
+                    box-shadow: 0 22px 36px -30px rgba(31, 74, 47, 0.5);
+                }
+                /* A gradient "seam" instead of a flat rule: fades in from the edges with a
+                   warm carrot glow at the centre — a unique, on-brand divider. */
+                .hs::after {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    height: 3px;
+                    background: linear-gradient(
+                            90deg,
+                            transparent 0%,
+                            rgba(31, 74, 47, 0.26) 24%,
+                            rgba(207, 106, 60, 0.55) 50%,
+                            rgba(31, 74, 47, 0.26) 76%,
+                            transparent 100%
+                    );
+                    box-shadow: 0 1px 12px rgba(207, 106, 60, 0.28);
                 }
                 .hs-wrap {
                     max-width: 860px;

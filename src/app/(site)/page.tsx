@@ -5,7 +5,7 @@ import Meditation from "@/components/Meditation";
 import HomeSearch from "@/components/HomeSearch";
 import HomeNearby from "@/components/HomeNearby";
 import RecipeCard from "@/components/RecipeCard";
-import CityCard from "@/components/CityCard";
+import CitiesRail from "@/components/CitiesRail";
 import InstagramSection from "@/components/InstagramSection";
 import { latestRecipes, randomRecipes } from "@/lib/recipes";
 import { popularCities } from "@/lib/actions/places";
@@ -98,20 +98,7 @@ export default async function Home({
             <ForumSection />
             <Meditation />
 
-            {cities.length > 0 && (
-                <div className="wrap">
-                    <section style={{ paddingTop: 0 }}>
-                        <div className="sec-head">
-                            <div>
-                                <span className="kicker" style={{ color: "var(--carrot)" }}>Where to eat</span>
-                                <h2 style={{ marginTop: 10 }}>Top vegan friendly cities</h2>
-                            </div>
-                            <Link href="/vegan-friendly-cities">View more <Arrow /></Link>
-                        </div>
-                        <div className="grid">{cities.map((c, i) => <CityCard key={`${c.citySlug}-${c.country}`} city={c} index={i} />)}</div>
-                    </section>
-                </div>
-            )}
+            {cities.length > 0 && <CitiesRail cities={cities} />}
 
             <JoinBand />
 

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { homeNearby } from "@/lib/actions/places";
 import type { NearbyPlace } from "@/lib/places";
+import { usePreciseLocation } from "@/lib/use-precise-location";
 import PlaceHomeCard from "@/components/PlaceHomeCard";
 
 const RETRY_MS = 2500;
@@ -45,6 +46,15 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
     const [loaded, setLoaded] = useState(false);
     const [page, setPage] = useState(0);
 
+    // The seed we actually search from. Starts as the server's IP guess and is
+    // replaced in-place if the browser can silently hand us a precise position.
+    const [activeSeed, setActiveSeed] = useState<Seed | null>(seed);
+    // Heading label. Tracks the IP city until a precise refine lands, after which
+    // we name the town from the nearest result so it never says "Miami" when the
+    // visitor is really in Coral Springs.
+    const [label, setLabel] = useState(seed?.label ?? "you");
+    const preciseRef = useRef(false);
+
     const reqId = useRef(0);
     const retries = useRef(0);
     const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -67,6 +77,12 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
             }
             setNearest(res.nearest ?? []);
             setTopRated(res.topRated ?? []);
+            // After a precise refine we have no reliable city name for the centre,
+            // so borrow it from the closest venue — accurate and HappyCow-like.
+            if (preciseRef.current) {
+                const town = res.nearest?.[0]?.city;
+                if (town) setLabel(town);
+            }
 
             const keepPolling = Boolean(res.filling) && retries.current < MAX_RETRIES;
             setFilling(keepPolling);
@@ -79,16 +95,23 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
     );
 
     useEffect(() => {
-        if (seed) run(seed);
+        if (activeSeed) run(activeSeed);
         return () => {
             if (retryTimer.current) clearTimeout(retryTimer.current);
         };
-    }, [seed, run]);
+    }, [activeSeed, run]);
+
+    // Silently correct the coarse IP seed with the browser's precise position,
+    // but only for visitors who've already granted location (no new prompt).
+    usePreciseLocation((c) => {
+        preciseRef.current = true;
+        setLabel("you"); // neutral until the refined search names the town
+        setActiveSeed({ lat: c.lat, lng: c.lng, label: "you" });
+    });
 
     // Nothing to show: no IP seed (localhost/LAN), or the area resolved empty.
     if (!seed) return null;
 
-    const label = seed.label;
     const discovering = !loaded || filling;
     const pageCount = Math.ceil(topRated.length / PER_PAGE);
     const shown = topRated.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { searchNearby, type CityAnchor } from "@/lib/actions/places";
 import { CATEGORIES, TYPES, type PlaceCategory, type PlaceType } from "@/lib/places-osm";
 import type { NearbyPlace } from "@/lib/places";
+import { usePreciseLocation } from "@/lib/use-precise-location";
 import PlacePhoto from "@/components/PlacePhoto";
 
 const CAT_LABELS: Record<PlaceCategory, string> = {
@@ -199,6 +200,11 @@ export default function VeganFoodNearMe({
         if (origin) run(origin, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [origin, radiusKm, category, type, sort]);
+
+    // Silently correct the coarse IP seed with the browser's precise position —
+    // but only for visitors who've already granted location (no new prompt). The
+    // effect that watches `origin` re-runs the search on the tighter centre.
+    usePreciseLocation((c) => setOrigin({ lat: c.lat, lng: c.lng, label: "your location" }));
 
     function locate() {
         setGeoMsg(null);

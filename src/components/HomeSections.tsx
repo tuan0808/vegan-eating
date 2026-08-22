@@ -7,6 +7,7 @@ import { buildWhere } from "@/lib/recipe-filters";
 import { countByCat } from "@/lib/recipes";
 import { homeCollections, pillCategories } from "@/lib/category-config";
 import BandNewsletter from "./BandNewsletter";
+import { getBandConfig } from "@/lib/band-config";
 
 const Arrow = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -200,33 +201,39 @@ export function CooksSection() {
     );
 }
 
-export function JoinBand() {
+export async function JoinBand() {
+    const band = await getBandConfig();
+    // Pick a random clip per request (the home page is force-dynamic, so this
+    // re-rolls on every visit). Empty list → no video, just the empty frame.
+    const video = band.videos.length ? band.videos[Math.floor(Math.random() * band.videos.length)] : null;
     return (
         <div className="wrap">
             <div className="band">
                 <div>
                     <span className="kicker" style={{ color: "var(--gold)" }}>More than a recipe site</span>
-                    <h2>A kitchen full of people, not a wall of instructions.</h2>
-                    <p>Create a free account to save recipes, rate what you cook, swap tips in the forum, and follow your favourite contributors. Plus one tested recipe in your inbox each Sunday.</p>
+                    <h2>{band.heading}</h2>
+                    <p>{band.body}</p>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 22 }}>
                         <Link href="/register" className="btn-primary">
                             Create a free account <Arrow />
                         </Link>
                         <Link href="/forum" className="pill" style={{ padding: "15px 24px", background: "transparent", color: "var(--paper)", borderColor: "rgba(244,243,234,.4)" }}>Browse the forum</Link>
                     </div>
-                    <BandNewsletter />
+                    <BandNewsletter placeholder={band.placeholder} button={band.button} success={band.success} />
                 </div>
                 <div className="band-img">
                     <div className="photo">
-                        <video
-                            src="/media/veganeating.mp4"
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                            aria-hidden="true"
-                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-                        />
+                        {video && (
+                            <video
+                                src={video}
+                                autoPlay
+                                muted
+                                loop
+                                playsInline
+                                aria-hidden="true"
+                                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

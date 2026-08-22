@@ -8,16 +8,30 @@ import { rdtTrack, newConversionId } from "@/components/analytics/reddit-pixel";
 
 const initial: NewsletterState = { ok: false, error: null };
 
-function SignUpButton() {
+// Text is admin-editable (Site settings → Newsletter videos); the defaults here
+// mirror the original hardcoded copy for when nothing is configured yet.
+const DEFAULT_PLACEHOLDER = "Just want the newsletter? Drop your email";
+const DEFAULT_BUTTON = "Sign up";
+const DEFAULT_SUCCESS = "Thanks — you're on the list. A tested recipe lands each Sunday.";
+
+function SignUpButton({ label }: { label: string }) {
     const { pending } = useFormStatus();
     return (
         <button type="submit" disabled={pending}>
-            {pending ? "Signing up…" : "Sign up"}
+            {pending ? "Signing up…" : label}
         </button>
     );
 }
 
-export default function BandNewsletter() {
+export default function BandNewsletter({
+    placeholder = DEFAULT_PLACEHOLDER,
+    button = DEFAULT_BUTTON,
+    success = DEFAULT_SUCCESS,
+}: {
+    placeholder?: string;
+    button?: string;
+    success?: string;
+}) {
     const [state, formAction] = useActionState(subscribeNewsletter, initial);
     // One id per mount, shared between this pixel Lead and the CAPI Lead the
     // server action fires (via the hidden field) so Reddit dedupes them.
@@ -37,7 +51,7 @@ export default function BandNewsletter() {
     if (state.ok) {
         return (
             <p style={{ color: "var(--paper)", fontWeight: 600, margin: "4px 0 0" }}>
-                Thanks — you&apos;re on the list. A tested recipe lands each Sunday.
+                {success}
             </p>
         );
     }
@@ -59,11 +73,11 @@ export default function BandNewsletter() {
                 <input
                     type="email"
                     name="email"
-                    placeholder="Just want the newsletter? Drop your email"
+                    placeholder={placeholder}
                     aria-label="Email"
                     required
                 />
-                <SignUpButton />
+                <SignUpButton label={button} />
             </form>
             {state.error && (
                 <p style={{ color: "#ffd9c2", margin: "8px 0 0", fontSize: 14 }}>{state.error}</p>

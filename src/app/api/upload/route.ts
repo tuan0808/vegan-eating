@@ -7,8 +7,10 @@ import path from "node:path";
 
 export const runtime = "nodejs";
 
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
-const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
+const ALLOWED_IMAGE = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+const ALLOWED_VIDEO = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
+const MAX_VIDEO_BYTES = 64 * 1024 * 1024; // 64 MB — short looping band clips
 
 // --- Spaces config (all from env; absence => fall back to local disk for dev) ---
 const SPACES_ENDPOINT = process.env.SPACES_ENDPOINT;      // e.g. https://nyc3.digitaloceanspaces.com
@@ -39,16 +41,19 @@ const s3 = spacesEnabled
     : null;
 
 // Build a safe filename: lowercase slug + a short timestamp + a sane extension.
-function safeName(original: string): string {
+function safeName(original: string, isVideo: boolean): string {
     const ext0 = path.extname(original || "").toLowerCase();
-    const ext = /^\.(jpe?g|png|webp|gif|avif)$/.test(ext0) ? ext0 : ".jpg";
+    const ext = isVideo
+        ? (/^\.(mp4|webm|mov)$/.test(ext0) ? ext0 : ".mp4")
+        : (/^\.(jpe?g|png|webp|gif|avif)$/.test(ext0) ? ext0 : ".jpg");
+    const fallback = isVideo ? "video" : "image";
     const base =
         path
-            .basename(original || "image", path.extname(original || ""))
+            .basename(original || fallback, path.extname(original || ""))
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/^-+|-+$/g, "")
-            .slice(0, 60) || "image";
+            .slice(0, 60) || fallback;
     return `${base}-${Date.now().toString(36)}${ext}`;
 }
 
@@ -64,18 +69,21 @@ export async function POST(req: NextRequest) {
     if (!(file instanceof File)) {
         return NextResponse.json({ error: "No file received." }, { status: 400 });
     }
-    if (!ALLOWED.has(file.type)) {
-        return NextResponse.json({ error: "Only image files are allowed (JPEG, PNG, WebP, GIF, AVIF)." }, { status: 415 });
+    const isVideo = ALLOWED_VIDEO.has(file.type);
+    const isImage = ALLOWED_IMAGE.has(file.type);
+    if (!isImage && !isVideo) {
+        return NextResponse.json({ error: "Only image (JPEG, PNG, WebP, GIF, AVIF) or video (MP4, WebM, MOV) files are allowed." }, { status: 415 });
     }
-    if (file.size > MAX_BYTES) {
-        return NextResponse.json({ error: "That image is larger than 8 MB." }, { status: 413 });
+    const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > maxBytes) {
+        return NextResponse.json({ error: `That ${isVideo ? "video is larger than 64 MB" : "image is larger than 8 MB"}.` }, { status: 413 });
     }
 
     const buf = Buffer.from(await file.arrayBuffer());
     const now = new Date();
     const yyyy = String(now.getFullYear());
     const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const filename = safeName(file.name);
+    const filename = safeName(file.name, isVideo);
 
     // Same key layout in both modes: uploads/<year>/<month>/<filename> (always forward slashes).
     const key = ["uploads", yyyy, mm, filename].join("/");

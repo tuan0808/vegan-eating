@@ -20,6 +20,33 @@
 }
 .settings-desc { color: var(--muted); margin: 0; line-height: 1.55; }
 
+/* Tab bar for the Site settings page (SettingsTabs). */
+.settings-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 18px 0 28px;
+    border-bottom: 1px solid var(--line, #e6e3da);
+    padding-bottom: 14px;
+}
+.settings-tab {
+    border: 1px solid var(--line, #e6e3da);
+    background: transparent;
+    color: var(--muted, #6b7264);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s;
+}
+.settings-tab:hover { color: var(--ink, #1c2317); }
+.settings-tab.on {
+    background: var(--terra, #c2603a);
+    border-color: var(--terra, #c2603a);
+    color: #fff;
+}
+
 .settings-section { margin-bottom: 2rem; }
 .settings-section-head { margin-bottom: 1rem; }
 .settings-section-head h2 {

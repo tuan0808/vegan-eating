@@ -145,6 +145,10 @@ section{padding:74px 0}
 .sec-head h2{font-size:clamp(30px,3.6vw,44px)}
 .sec-head a{font-size:14px;font-weight:600;color:var(--terra);display:inline-flex;gap:7px;align-items:center}
 .sec-head a:hover{gap:12px;transition:gap .2s}
+.nm-home-locate{margin-top:12px;display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid var(--carrot);background:transparent;color:var(--carrot);font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.nm-home-locate:hover:not(:disabled){background:var(--carrot);color:#fff}
+.nm-home-locate:disabled{opacity:.6;cursor:default}
+.nm-home-note{display:block;margin-top:12px;font-size:13px;color:var(--terra)}
 
 /* TRUST BAR */
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:34px 0;text-align:center}

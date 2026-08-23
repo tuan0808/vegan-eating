@@ -23,6 +23,10 @@ const Arrow = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 );
 
+const Pin = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 21s-7-5.686-7-11a7 7 0 0114 0c0 5.314-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>
+);
+
 function Skeletons() {
     return (
         <div className="grid" aria-hidden="true">
@@ -54,6 +58,10 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
     // visitor is really in Coral Springs.
     const [label, setLabel] = useState(seed?.label ?? "you");
     const preciseRef = useRef(false);
+    // Whether we've moved off the IP guess (drives the fallback button/label) and
+    // the manual-button state for visitors who denied or dismissed the prompt.
+    const [precise, setPrecise] = useState(false);
+    const [geo, setGeo] = useState<"idle" | "locating" | "denied" | "unavailable">("idle");
 
     const reqId = useRef(0);
     const retries = useRef(0);
@@ -101,13 +109,30 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
         };
     }, [activeSeed, run]);
 
-    // Silently correct the coarse IP seed with the browser's precise position,
-    // but only for visitors who've already granted location (no new prompt).
-    usePreciseLocation((c) => {
+    // Recenter the search on a precise fix (from the auto-prompt or the button).
+    const applyPrecise = useCallback((c: { lat: number; lng: number }) => {
         preciseRef.current = true;
+        setPrecise(true);
+        setGeo("idle");
         setLabel("you"); // neutral until the refined search names the town
         setActiveSeed({ lat: c.lat, lng: c.lng, label: "you" });
-    });
+    }, []);
+
+    // Auto-prompt for precise location on load; corrects a coarse/wrong IP city.
+    usePreciseLocation(applyPrecise);
+
+    // Manual fallback for anyone who dismissed or denied the prompt — a fresh,
+    // high-accuracy fix on click.
+    const locate = useCallback(() => {
+        if (typeof window !== "undefined" && !window.isSecureContext) return setGeo("unavailable");
+        if (typeof navigator === "undefined" || !navigator.geolocation) return setGeo("unavailable");
+        setGeo("locating");
+        navigator.geolocation.getCurrentPosition(
+            (pos) => applyPrecise({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            (err) => setGeo(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable"),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+        );
+    }, [applyPrecise]);
 
     // Nothing to show: no IP seed (localhost/LAN), or the area resolved empty.
     if (!seed) return null;
@@ -126,6 +151,23 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
                             <div>
                                 <span className="kicker" style={{ color: "var(--carrot)" }}>New · find a spot</span>
                                 <h2 style={{ marginTop: 10 }}>Vegan food near {label}</h2>
+                                {/* Fallback path to precise location for anyone the auto-prompt
+                                    didn't catch (dismissed, denied, or on the IP guess still). */}
+                                {!precise && geo !== "denied" && (
+                                    <button type="button" className="nm-home-locate" onClick={locate} disabled={geo === "locating"}>
+                                        <Pin />
+                                        {geo === "locating"
+                                            ? "Finding you…"
+                                            : geo === "unavailable"
+                                              ? "Use my location"
+                                              : `Not in ${label}? Use my exact location`}
+                                    </button>
+                                )}
+                                {geo === "denied" && (
+                                    <span className="nm-home-note">
+                                        Location is blocked — enable it in your browser&apos;s address-bar icon, then reload.
+                                    </span>
+                                )}
                             </div>
                             <Link href="/tools/vegan-food-near-me">Find spots near you <Arrow /></Link>
                         </div>

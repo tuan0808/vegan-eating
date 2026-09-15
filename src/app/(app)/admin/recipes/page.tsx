@@ -71,6 +71,7 @@ export default async function AdminRecipesPage({
             </div>
 
             <div className="ar-tools">
+                <Link href="/admin/recipes/new" className="ar-new">＋ New recipe</Link>
                 <a href="/api/admin/recipes/export" className="ar-export">⬇ Export to Excel</a>
                 <RecipeImport />
             </div>

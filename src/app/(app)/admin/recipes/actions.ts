@@ -4,6 +4,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 // Admin gate shared by every action in this file.
 async function requireAdmin() {
@@ -81,4 +82,63 @@ export async function quickUpdateRecipe(
     });
     revalidatePath("/admin/recipes");
     revalidatePath(`/recipes/${slug}`);
+}
+
+/* ---------------------------- create a new recipe ---------------------------- */
+
+const PH = ["p1", "p2", "p3", "p4", "p5"];
+
+/** Slug-safe title — same rules as slugify() in recipe-filters. */
+function toSlug(s: string): string {
+    return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+/** First free slug of the form `base`, `base-2`, `base-3`… */
+async function uniqueRecipeSlug(base: string): Promise<string> {
+    const root = base || "recipe";
+    let slug = root;
+    let n = 2;
+    while (await prisma.recipe.findUnique({ where: { slug } })) slug = `${root}-${n++}`;
+    return slug;
+}
+
+/** Creates a bare recipe from the "New recipe" form and drops straight into the
+ *  full editor, where ingredients, steps, photos and the description get filled in.
+ *  It starts hidden so nothing half-written is ever public — untick "Published"
+ *  in the editor (or Unhide in the list) when it's ready to go live. */
+export async function createRecipe(formData: FormData): Promise<void> {
+    await requireAdmin();
+
+    const title = String(formData.get("title") ?? "").trim();
+    if (!title) throw new Error("A title is required.");
+
+    // An admin can hand-pick the URL; otherwise it comes off the title.
+    const wanted = String(formData.get("slug") ?? "").trim();
+    const slug = await uniqueRecipeSlug(toSlug(wanted || title));
+
+    // Both the public list and the admin list order by `sort` ascending over an
+    // imported 0…N range, so a new recipe takes the slot BEFORE the current
+    // first one — otherwise it lands on the last page and is a nuisance to find.
+    const minSort = await prisma.recipe.aggregate({ _min: { sort: true } });
+
+    await prisma.recipe.create({
+        data: {
+            id: slug, // id === slug in this model
+            slug,
+            title,
+            sourceUrl: "",
+            date: String(formData.get("date") ?? "").trim(),
+            description: "",  // filled in by the rich editor on the next screen
+            recipeType: String(formData.get("recipeType") ?? "").trim(),
+            category: String(formData.get("category") ?? "").trim(),
+            author: String(formData.get("author") ?? "").trim(),
+            ph: PH[title.length % PH.length], // gradient placeholder until a photo lands
+            sort: (minSort._min.sort ?? 0) - 1,
+            hidden: true, // drafts stay off the public site until published
+        },
+    });
+
+    revalidatePath("/admin/recipes");
+    revalidatePath("/recipes");
+    redirect(`/admin/recipes/${slug}/edit?created=1`);
 }

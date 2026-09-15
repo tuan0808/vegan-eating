@@ -247,9 +247,12 @@ export async function convertToRecipe(id: string): Promise<ReviewResult> {
     const imgs = parseImages(sub.images);
     const slug = await uniqueRecipeSlug(slugify(sub.title));
 
-    // Bump sort so the new recipe lands at the front of "latest".
-    const maxSort = await prisma.recipe.aggregate({ _max: { sort: true } });
-    const sort = (maxSort._max.sort ?? 0) + 1;
+    // Both /recipes and /admin/recipes order by `sort` ASCENDING, so the front of
+    // the list is the LOWEST sort — take the slot before the current first one.
+    // (`_max + 1` used to be used here, which buried an approved submission on the
+    // last page of ~1000 imported recipes.) Same rule as createRecipe().
+    const minSort = await prisma.recipe.aggregate({ _min: { sort: true } });
+    const sort = (minSort._min.sort ?? 0) - 1;
 
     await prisma.$transaction([
         prisma.recipe.create({

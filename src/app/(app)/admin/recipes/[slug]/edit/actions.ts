@@ -89,6 +89,9 @@ export async function updateRecipe(formData: FormData) {
         seasons: JSON.stringify(lines(formData.get("seasons"))),
         allergens: JSON.stringify(lines(formData.get("allergens"))),
         cuisines: JSON.stringify(lines(formData.get("cuisines"))),
+        // The editor's "Published" checkbox — the same flag the list's Hide/Unhide
+        // button flips. Unchecked boxes aren't submitted at all, so absence = hidden.
+        hidden: !formData.has("published"),
         // intentionally NOT touched: slug/id (primary key + public URL), `ph`,
         // and the AI-image columns (image*/stepImages*) which the image panel owns.
     };

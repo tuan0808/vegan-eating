@@ -56,7 +56,7 @@ export default async function EditRecipePage({
                                                  searchParams: searchParamsP,
                                              }: {
     params: Promise<{ slug: string }>;
-    searchParams: Promise<{ saved?: string }>;
+    searchParams: Promise<{ saved?: string; created?: string }>;
 }) {
     const params = await paramsP;
     const searchParams = await searchParamsP;
@@ -67,6 +67,7 @@ export default async function EditRecipePage({
     if (!recipe) notFound();
 
     const saved = searchParams?.saved === "1";
+    const created = searchParams?.created === "1";
 
     // Hero + gallery as one list — first image is the hero, the rest is the collage.
     const galleryList = [recipe.image, ...toArray(recipe.gallery)].filter((s): s is string => !!s && s.trim() !== "");
@@ -86,9 +87,16 @@ export default async function EditRecipePage({
                 <code className="ar-slug">/{recipe.slug}</code>
             </div>
 
+            {created && (
+                <div className="ar-banner" role="status">
+                    Recipe created — it&rsquo;s <strong>hidden</strong> for now. Fill it in below, then tick
+                    &ldquo;Published&rdquo; and save to put it on the site.
+                </div>
+            )}
+
             {saved && (
                 <div className="ar-banner" role="status">
-                    Saved. Your changes are live on the recipe page.
+                    Saved. Your changes are {recipe.hidden ? "stored, but the recipe is still hidden from the site." : "live on the recipe page."}
                 </div>
             )}
 
@@ -135,6 +143,13 @@ export default async function EditRecipePage({
                             <input name="servings" defaultValue={recipe.servings} />
                         </label>
                     </div>
+
+                    {/* Same `hidden` flag the list's Hide/Unhide button flips — exposed here
+                        so a draft can be published without a round trip to the list. */}
+                    <label className="ar-check">
+                        <input type="checkbox" name="published" defaultChecked={!recipe.hidden} />
+                        <span>Published — visible on /recipes and in search</span>
+                    </label>
                 </fieldset>
 
                 {/* Description (rich editor) */}

@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
-import { RECIPE_CATEGORIES } from "@/lib/categories";
+import { recipeCategoryOptions } from "@/lib/category-config";
 import { createRecipe } from "../actions";
 import "../admin-recipes.css";
 
@@ -17,6 +17,7 @@ export default async function NewRecipePage() {
     const user = await requireUser();
     if (user.role !== "ADMIN") redirect("/dashboard");
 
+    const cats = await recipeCategoryOptions();
     const today = new Date().toISOString().slice(0, 10);
 
     return (
@@ -56,7 +57,7 @@ export default async function NewRecipePage() {
                         <span>Category</span>
                         <select name="category" defaultValue="">
                             <option value="">— None —</option>
-                            {RECIPE_CATEGORIES.map((c) => (
+                            {cats.map((c) => (
                                 <option key={c.value} value={c.value}>{c.label}</option>
                             ))}
                         </select>

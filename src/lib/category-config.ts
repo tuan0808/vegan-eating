@@ -39,3 +39,17 @@ export async function pillCategories(): Promise<{ label: string; slug: string }[
     const cats = (await getCategories()).filter((c) => c.showAsPill).sort((a, b) => a.order - b.order);
     return [{ label: "All", slug: "all" }, ...cats.map((c) => ({ label: c.label, slug: c.slug }))];
 }
+
+// Assignable taxonomy for the recipe editor's Category dropdown (full editor,
+// quick-edit row, and the New recipe form).
+//
+// Deliberately NOT pillCategories(): a collection is assignable whether or not
+// it's opted into the pill row, and "All" isn't a real category. `dynamic`
+// collections (Weeknight in 30) are computed from readyIn rather than stored on
+// the recipe, so they can't be picked either.
+export async function recipeCategoryOptions(): Promise<{ value: string; label: string }[]> {
+    return (await getCategories())
+        .filter((c) => !c.dynamic && c.slug !== "all")
+        .sort((a, b) => a.order - b.order)
+        .map((c) => ({ value: c.slug, label: c.label }));
+}

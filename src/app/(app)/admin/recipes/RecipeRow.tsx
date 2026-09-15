@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { quickUpdateRecipe } from "./actions";
 import RecipeRowActions from "./RecipeRowActions";
-import { RECIPE_CATEGORIES } from "@/lib/categories";
+import { withCurrentCategory } from "@/lib/categories";
 
 type QuickRecipe = {
     slug: string;
@@ -56,10 +56,22 @@ const numOrNull = (v: string | number): number | null => {
 // "breakfast, brunch" -> ["breakfast", "brunch"]
 const toList = (s: string): string[] => s.split(",").map((t) => t.trim()).filter(Boolean);
 
-export default function RecipeRow({ recipe }: { recipe: QuickRecipe }) {
+export default function RecipeRow({
+                                      recipe,
+                                      categories,
+                                  }: {
+    recipe: QuickRecipe;
+    // Admin-managed taxonomy, read server-side and passed down — this is a
+    // client component, so it can't call recipeCategoryOptions() itself.
+    categories: { value: string; label: string }[];
+}) {
     const [expanded, setExpanded] = useState(false);
     const [f, setF] = useState(() => initForm(recipe));
     const [isPending, start] = useTransition();
+
+    // Keep a category that's been removed from the config selectable, so a quick
+    // edit of some other field can't silently re-file the recipe.
+    const catOptions = withCurrentCategory(categories, recipe.category);
 
     const editHref = `/admin/recipes/${recipe.slug}/edit`;
     const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -140,7 +152,7 @@ export default function RecipeRow({ recipe }: { recipe: QuickRecipe }) {
                         <label className="ar-qe-field"><span>Category</span>
                             <select value={f.category} onChange={set("category")}>
                                 <option value="">— None —</option>
-                                {RECIPE_CATEGORIES.map((c) => (
+                                {catOptions.map((c) => (
                                     <option key={c.value} value={c.value}>{c.label}</option>
                                 ))}
                             </select></label>

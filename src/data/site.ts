@@ -14,8 +14,6 @@ export const stats = [
   { num: "47", lab: "Contributors" },
 ];
 
-export const pills = ["All", "Breakfast", "Mains", "Baking", "Salads & bowls", "Desserts", "30 minutes"];
-
 export const promise = [
   {
     title: "Every recipe tested",

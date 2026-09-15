@@ -1,16 +1,30 @@
 // src/lib/categories.ts
-import { pills } from "@/data/site";
-import { slugify } from "@/lib/recipe-filters";
 
 export type CategoryOption = { value: string; label: string };
 
-// Recipes: derived from the public pills so the picker can never drift from the
-// filter bar. We drop "All" and the time-based "30 minutes" (that's a readyIn
-// filter, not a stored category). Value is the SLUG — it matches both catFilter
-// and the public pill links, e.g. "Salads & bowls" -> "salads-bowls".
-export const RECIPE_CATEGORIES: CategoryOption[] = pills
-    .filter((p) => slugify(p) !== "all" && slugify(p) !== "30-minutes")
-    .map((p) => ({ value: slugify(p), label: p }));
+// Recipes: the assignable category list is admin-managed and lives in the
+// Setting KV store, so it can't be a static const — see recipeCategoryOptions()
+// in ./category-config.ts. (It used to be derived from the hardcoded `pills`
+// array, which silently ignored every category added via /admin/categories.)
+
+/** Guarantees a recipe's stored category survives a round trip through a <select>.
+ *
+ *  A category removed from /admin/categories is no longer among the options, and
+ *  a select whose value matches no option renders the FIRST one — so opening the
+ *  editor and saving would silently re-file the recipe under whatever happens to
+ *  sort first. Pin the orphaned value as an explicit option instead, marked so
+ *  it's obvious the category is gone. Only its slug survives (the label lived in
+ *  the config that was deleted), so the slug is what we show.
+ *
+ *  Pure — no prisma import — so the client-side quick-edit row can use it too. */
+export function withCurrentCategory(
+    options: CategoryOption[],
+    current: string | null | undefined,
+): CategoryOption[] {
+    const value = (current ?? "").trim();
+    if (!value || options.some((o) => o.value === value)) return options;
+    return [...options, { value, label: `${value} — removed` }];
+}
 
 // Articles: the editorial taxonomy used by the bulk categorizer. Value is the
 // human-readable LABEL, because that's exactly the string written into each

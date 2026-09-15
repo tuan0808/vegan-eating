@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { listRecipesAdmin } from "@/lib/recipes";
 import { buildWhere } from "@/lib/recipe-filters";
-import { pillCategories } from "@/lib/category-config";
+import { pillCategories, recipeCategoryOptions } from "@/lib/category-config";
 import RecipeRow from "./RecipeRow";
 import RecipeImport from "./RecipeImport";
 import "./admin-recipes.css";
@@ -28,6 +28,7 @@ export default async function AdminRecipesPage({
     const sort = sp?.sort || "default";
     const page = Math.max(1, parseInt(sp?.page ?? "1", 10) || 1);
     const cats = await pillCategories();
+    const categoryOptions = await recipeCategoryOptions();
 
     // sort=newest|oldest order by date; otherwise the default seed order.
     const orderBy: Prisma.RecipeOrderByWithRelationInput =
@@ -133,6 +134,7 @@ export default async function AdminRecipesPage({
                 {recipes.map((r) => (
                     <RecipeRow
                         key={r.slug}
+                        categories={categoryOptions}
                         recipe={{
                             slug: r.slug,
                             title: r.title,

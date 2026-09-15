@@ -6,7 +6,8 @@ import { requireUser } from "@/lib/auth-helpers";
 import { updateRecipe } from "./actions";
 import RecipeListField from "./RecipeListField";
 import CookAlongField from "./CookAlongField";
-import { RECIPE_CATEGORIES } from "@/lib/categories";
+import { recipeCategoryOptions } from "@/lib/category-config";
+import { withCurrentCategory } from "@/lib/categories";
 import DescriptionEditor from "./DescriptionEditor";
 import RecipeImagePanel from "../../_components/RecipeImagePanel";
 import { parseBody } from "@/lib/article-body";
@@ -66,6 +67,10 @@ export default async function EditRecipePage({
     const recipe = await prisma.recipe.findUnique({ where: { slug: params.slug } });
     if (!recipe) notFound();
 
+    // Pin this recipe's stored category even if it's been removed from the
+    // config, so opening + saving the editor can't silently re-file it.
+    const cats = withCurrentCategory(await recipeCategoryOptions(), recipe.category);
+
     const saved = searchParams?.saved === "1";
     const created = searchParams?.created === "1";
 
@@ -116,7 +121,7 @@ export default async function EditRecipePage({
                         <span>Category</span>
                         <select name="category" defaultValue={recipe.category ?? ""}>
                             <option value="">— None —</option>
-                            {RECIPE_CATEGORIES.map((c) => (
+                            {cats.map((c) => (
                                 <option key={c.value} value={c.value}>{c.label}</option>
                             ))}
                         </select>

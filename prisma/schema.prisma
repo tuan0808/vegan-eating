@@ -328,10 +328,14 @@ model PageView {
   source    String   @default("direct") // search | social | referral | direct | internal
   visitor   String   // cookieless per-day visitor hash (for unique counts)
   country   String?  // best-effort from edge/proxy headers
+  utmSource   String?  // ?utm_source= on the landing URL, e.g. "reddit" (lowercased)
+  utmCampaign String?  // ?utm_campaign= — tells campaigns/ad groups apart
+  rdtCid    String?  // ?rdt_cid= Reddit ad click id — marks a Reddit ad click even with no referrer
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([source, createdAt])
+  @@index([utmSource, createdAt])
   @@index([kind, slug])
 }
 

@@ -28,6 +28,14 @@ export async function POST(req: Request) {
 
         // Pathname only — drop query/hash so we never store search terms (PII).
         const path = rawPath.split(/[?#]/)[0]!.slice(0, 512);
+        // Campaign attribution is the one thing we do keep from the query: an
+        // explicit allowlist, so arbitrary params (like ?q=) never reach the DB.
+        // Ad clicks from the Reddit app arrive with no referrer, so these are
+        // the only way to tell paid traffic apart from genuine "direct".
+        const params = new URLSearchParams(rawPath.split("#")[0]!.split("?")[1] || "");
+        const utmSource = params.get("utm_source")?.trim().toLowerCase().slice(0, 64) || null;
+        const utmCampaign = params.get("utm_campaign")?.trim().slice(0, 128) || null;
+        const rdtCid = params.get("rdt_cid")?.trim().slice(0, 200) || null;
         const referrer = typeof body.ref === "string" && body.ref ? body.ref.slice(0, 1024) : null;
 
         const selfHost = (req.headers.get("host") || "").split(":")[0]!;
@@ -43,7 +51,7 @@ export async function POST(req: Request) {
             null;
 
         await prisma.pageView.create({
-            data: { path, kind, slug, referrer, source, visitor, country },
+            data: { path, kind, slug, referrer, source, visitor, country, utmSource, utmCampaign, rdtCid },
         });
         return new NextResponse(null, { status: 204 });
     } catch {

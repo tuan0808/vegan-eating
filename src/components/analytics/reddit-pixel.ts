@@ -5,7 +5,7 @@
 // or blocked), so callers never have to guard.
 "use client";
 
-import type { RedditEventName } from "@/lib/reddit-config";
+import { redditEnabled, type RedditEventName } from "@/lib/reddit-config";
 
 // The pixel installs a queue-backed function; it's callable before the script
 // finishes loading (calls buffer, then flush on load).
@@ -27,9 +27,32 @@ export type RedditTrackOpts = {
     customEventName?: string;
 };
 
-/** Fire a Reddit standard event from the browser. Safe to call anywhere. */
+// Browser events that get a Conversions API twin via /api/reddit-event. SignUp
+// and Lead are excluded — their server twins are sent from the server actions
+// that have the email.
+const RELAYED: ReadonlySet<RedditEventName> = new Set(["PageVisit", "ViewContent", "Search"]);
+
+/** Beacon an event to our own origin so the server forwards it to Reddit CAPI
+ *  with the same conversion id. Survives ad-blockers that block pixel.js. */
+function relayToCapi(event: RedditEventName, conversionId: string): void {
+    try {
+        const body = JSON.stringify({ event, conversionId });
+        if (navigator.sendBeacon?.("/api/reddit-event", new Blob([body], { type: "application/json" }))) return;
+        void fetch("/api/reddit-event", { method: "POST", body, keepalive: true, headers: { "Content-Type": "application/json" } }).catch(() => {});
+    } catch {
+        /* best-effort */
+    }
+}
+
+/** Fire a Reddit standard event from the browser (and, for PageVisit /
+ *  ViewContent / Search, its server-side CAPI twin). Safe to call anywhere. */
 export function rdtTrack(event: RedditEventName, opts: RedditTrackOpts = {}): void {
-    if (typeof window === "undefined" || typeof window.rdt !== "function") return;
+    if (typeof window === "undefined" || !redditEnabled()) return;
+    if (RELAYED.has(event)) {
+        opts = { ...opts, conversionId: opts.conversionId || newConversionId() };
+        relayToCapi(event, opts.conversionId!);
+    }
+    if (typeof window.rdt !== "function") return;
     const payload: Record<string, unknown> = {};
     if (opts.conversionId) payload.conversionId = opts.conversionId;
     if (opts.currency) payload.currency = opts.currency;

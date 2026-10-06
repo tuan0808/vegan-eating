@@ -1,8 +1,9 @@
 // src/lib/reddit-capi.ts
 //
-// Server-side Reddit Conversions API (CAPI). Mirrors the browser pixel for the
-// high-value conversions (SignUp, Lead) so events still land when the pixel is
-// blocked by an ad-blocker or a redirect eats the client-side fire.
+// Server-side Reddit Conversions API (CAPI). Mirrors every browser pixel event
+// so events still land when the pixel is blocked by an ad-blocker or a redirect
+// eats the client-side fire. SignUp / Lead are sent from their server actions;
+// PageVisit / ViewContent / Search arrive via the /api/reddit-event relay.
 //
 // Dedup: every server event carries the SAME conversion_id as its pixel twin,
 // and Reddit de-duplicates on (event_type + conversion_id). So double-firing is
@@ -128,9 +129,15 @@ export async function sendRedditEvent(input: RedditCapiInput): Promise<boolean> 
             cache: "no-store",
         });
         if (!res.ok) {
-            // Swallow the body but surface status for debugging in server logs.
-            console.error(`Reddit CAPI ${input.eventName} failed: ${res.status}`);
+            // Surface Reddit's validation message — the status alone is undiagnosable.
+            const detail = (await res.text().catch(() => "")).slice(0, 500);
+            console.error(`Reddit CAPI ${input.eventName} failed: ${res.status} ${detail}`);
             return false;
+        }
+        // Log the email-bearing conversions so they're auditable in DO runtime logs;
+        // the high-volume relayed events (PageVisit etc.) stay quiet.
+        if (input.eventName === "SignUp" || input.eventName === "Lead") {
+            console.info(`Reddit CAPI ${input.eventName} sent (conversion_id=${input.conversionId}${TEST_MODE ? ", test mode" : ""})`);
         }
         return true;
     } catch (e) {

@@ -35,6 +35,8 @@ const icoChevRight = I(<path d="M9 6l6 6-6 6" />);
 const icoNews = I(<><path d="M19 20H5a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a2 2 0 0 0 2-2V8" /><path d="M8 8h6M8 11h6M8 14h4" /></>);
 const icoVeganize = I(<><path d="M11 21c-4.4 0-7-3-7-8 0-6 5-9 16-9 0 9.4-4 17-9 17Z" /><path d="M9 16c1.6-3.2 4.2-5.3 7.5-6.3" /></>);
 const icoAnalytics = I(<><path d="M4 20V4" /><path d="M4 20h16" /><path d="M8 17v-5M12 17V8M16 17v-7" /></>);
+const icoUpload = I(<><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
+const icoDownload = I(<><path d="M12 4v12M7 11l5 5 5-5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 
 
 const ACCOUNT: Item[] = [
@@ -59,7 +61,15 @@ const ADMIN: Item[] = [
     { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
 ];
 
-export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
+// Shared staff file repository — the ONLY admin-section items STAFF see.
+// MEDIA (third party) is download-only, so they get just Downloads.
+const UPLOAD: Item = { href: "/admin/files/upload", label: "Upload", icon: icoUpload };
+const DOWNLOADS: Item = { href: "/admin/files", label: "Downloads", icon: icoDownload };
+const FILES: Item[] = [UPLOAD, DOWNLOADS];
+
+export default function AppSidebar({ role }: { role: string }) {
+    const isAdmin = role === "ADMIN";
+    const fileItems = role === "STAFF" ? FILES : role === "MEDIA" ? [DOWNLOADS] : null;
     const path = usePathname();
     const { open: mobileOpen, close } = useMobileNav();
     const [collapsed, setCollapsed] = useState(false);
@@ -106,7 +116,7 @@ export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
     // deeper routes prefix-match so /admin/recipes/[slug]/edit still counts.
     const isActive = (href?: string) => {
         if (!href) return false;
-        if (href === "/dashboard" || href === "/admin") return path === href;
+        if (href === "/dashboard" || href === "/admin" || href === "/admin/files") return path === href;
         return path === href || path.startsWith(href + "/");
     };
 
@@ -167,6 +177,12 @@ export default function AppSidebar({ isAdmin }: { isAdmin: boolean }) {
                     <>
                         <p className="sec" style={{ marginTop: 22 }}>Admin</p>
                         {ADMIN.map(renderItem)}
+                        {FILES.map(renderItem)}
+                    </>
+                ) : fileItems ? (
+                    <>
+                        <p className="sec" style={{ marginTop: 22 }}>Admin</p>
+                        {fileItems.map(renderItem)}
                     </>
                 ) : null}
 

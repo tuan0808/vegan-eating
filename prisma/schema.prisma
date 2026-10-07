@@ -102,7 +102,7 @@ model User {
   lastLoginIp   String?
   emailChangedAt DateTime?
   nameChangedAt DateTime?
-  role          String    @default("MEMBER") // MEMBER | MODERATOR | ADMIN  (becomes an enum on Postgres)
+  role          String    @default("MEMBER") // MEMBER | STAFF | MEDIA | MODERATOR | ADMIN  (becomes an enum on Postgres)
   banned        Boolean   @default(false)
   createdAt     DateTime  @default(now())
   onboardedAt   DateTime? // set when they read the welcome thread; gates posting
@@ -127,6 +127,9 @@ model User {
 
   // --- place interactions ---
   placeReviews PlaceReview[]
+
+  // --- staff file sharing ---
+  staffFiles StaffFile[]
 
   @@index([signupIp])
   @@index([lastLoginIp])
@@ -626,4 +629,22 @@ model GeocodeCache {
   city      String   @default("")
   country   String   @default("")
   createdAt DateTime @default(now())
+}
+
+// Private file repository shared between STAFF/ADMIN (raw video etc.). Bytes live in
+// Spaces under staff-files/ with a PRIVATE ACL — never on the public CDN. Browsers
+// upload/download directly via short-lived presigned URLs. See src/lib/staff-files.ts.
+model StaffFile {
+  id           String    @id @default(cuid())
+  name         String    // original filename, shown in the list + used for download
+  key          String    @unique // opaque storage key: staff-files/<id> (no filename)
+  size         BigInt    // bytes; BigInt because raw video can exceed 2 GB
+  contentType  String
+  note         String?
+  status       String    @default("PENDING") // PENDING (upload in flight) | READY
+  uploadedById String
+  uploadedBy   User      @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+
+  @@index([status, createdAt])
 }

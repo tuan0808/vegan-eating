@@ -23,11 +23,13 @@ export type Member = {
     botSignals: string[];
 };
 
-const ROLES = ["MEMBER", "MODERATOR", "ADMIN"];
+const ROLES = ["MEMBER", "STAFF", "MEDIA", "MODERATOR", "ADMIN"];
 
 function roleColor(role: string): string {
     if (role === "ADMIN") return "#c2603a";
     if (role === "MODERATOR") return "#c79a3c";
+    if (role === "STAFF") return "#3f6b6b";
+    if (role === "MEDIA") return "#5a5f8c";
     return "#5b6b3f";
 }
 

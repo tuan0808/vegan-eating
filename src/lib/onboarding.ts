@@ -55,5 +55,5 @@ export async function needsOnboarding(userId: string): Promise<boolean> {
         select: { role: true, onboardedAt: true },
     });
     if (!u) return false;
-    return u.role === "MEMBER" && !u.onboardedAt;
+    return (u.role === "MEMBER" || u.role === "STAFF" || u.role === "MEDIA") && !u.onboardedAt;
 }

@@ -1,9 +1,9 @@
 // src/lib/forum-perms.ts
 import { prisma } from "@/lib/prisma";
 
-export type Role = "MEMBER" | "MODERATOR" | "ADMIN";
+export type Role = "MEMBER" | "STAFF" | "MEDIA" | "MODERATOR" | "ADMIN";
 
-const RANK: Record<string, number> = { MEMBER: 1, MODERATOR: 2, ADMIN: 3 };
+const RANK: Record<string, number> = { MEMBER: 1, STAFF: 1, MEDIA: 1, MODERATOR: 2, ADMIN: 3 } // STAFF/MEDIA = member privileges + file access;
 
 export function roleRank(role?: string | null): number {
     return RANK[role ?? "MEMBER"] ?? 1;

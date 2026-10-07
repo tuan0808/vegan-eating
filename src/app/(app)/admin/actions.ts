@@ -8,7 +8,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeEmail } from "@/lib/email-normalize";
 
-const ROLES = ["MEMBER", "MODERATOR", "ADMIN"];
+const ROLES = ["MEMBER", "STAFF", "MEDIA", "MODERATOR", "ADMIN"];
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

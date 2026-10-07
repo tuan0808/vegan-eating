@@ -20,3 +20,6 @@ tsconfig.tsbuildinfo
 
 # Local email template working files
 /newsletter
+
+# Dev-only staff file storage (prod uses private Spaces objects)
+/.staff-files/

@@ -94,7 +94,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 {/* body: sidebar + content. On mobile the sidebar is a fixed drawer
                     (see app-sidebar.css), so it leaves the flow and the content fills. */}
                 <div className="app-shell-body" style={{ flex: 1, display: "flex" }}>
-                    <AppSidebar isAdmin={user.role === "ADMIN"} />
+                    <AppSidebar role={user.role} />
                     {/* padding lives in .app-shell-main so the mobile breakpoint can shrink it */}
                     <div className="app-shell-main" style={{ flex: 1, minWidth: 0 }}>{children}</div>
                 </div>

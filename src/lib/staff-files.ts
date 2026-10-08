@@ -180,3 +180,59 @@ export function formatBytes(n: number): string {
     }
     return `${v.toFixed(v >= 10 ? 0 : 1)} ${units[i]}`;
 }
+
+// --- Folders ---------------------------------------------------------------
+// Folders are DB-only (storage keys stay flat and opaque), so creating, renaming
+// or deleting one never touches Spaces except to remove the files inside it.
+
+export type StaffFolderRow = { id: string; name: string; parentId: string | null; createdById: string };
+
+/** Every folder. The repository is small, so tree work happens in memory. */
+export function allFolders(): Promise<StaffFolderRow[]> {
+    return prisma.staffFolder.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, parentId: true, createdById: true },
+    });
+}
+
+/** The folder and all its descendants' ids. */
+export function subtreeIds(folders: StaffFolderRow[], rootId: string): string[] {
+    const out = [rootId];
+    for (let i = 0; i < out.length; i++) {
+        for (const f of folders) if (f.parentId === out[i]) out.push(f.id);
+    }
+    return out;
+}
+
+/** Chain from the top level down to `id` (empty if it doesn't exist). */
+export function folderPath(folders: StaffFolderRow[], id: string | null): StaffFolderRow[] {
+    const byId = new Map(folders.map((f) => [f.id, f]));
+    const chain: StaffFolderRow[] = [];
+    for (let f = id ? byId.get(id) : undefined; f && chain.length < 100; f = f.parentId ? byId.get(f.parentId) : undefined) {
+        chain.unshift(f);
+    }
+    return chain;
+}
+
+/** Folders flattened depth-first with "A / B / C" labels, for pickers. */
+export function folderOptions(folders: StaffFolderRow[]): { id: string; label: string }[] {
+    const out: { id: string; label: string }[] = [];
+    const walk = (parentId: string | null, prefix: string) => {
+        for (const f of folders) {
+            if (f.parentId !== parentId) continue;
+            const label = prefix ? `${prefix} / ${f.name}` : f.name;
+            out.push({ id: f.id, label });
+            walk(f.id, label);
+        }
+    };
+    walk(null, "");
+    return out;
+}
+
+/** Trimmed folder name, or null if empty / too long / has control characters. */
+export function cleanFolderName(raw: unknown): string | null {
+    if (typeof raw !== "string") return null;
+    const name = raw.trim().replace(/\s+/g, " ");
+    if (!name || name.length > 100 || /[\x00-\x1f\x7f]/.test(name)) return null;
+    return name;
+}

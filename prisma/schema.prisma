@@ -5,74 +5,74 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")  // the POOL connection string
-  directUrl = env("DIRECT_URL")    // the DIRECT cluster string (port 25060)
+  url       = env("DATABASE_URL") // the POOL connection string
+  directUrl = env("DIRECT_URL") // the DIRECT cluster string (port 25060)
 }
 
 model Recipe {
-  id          String    @id // slug
-  slug        String    @unique
-  title       String
-  sourceUrl   String
-  date        String
-  description String
-  recipeType  String
-  author      String
+  id                String         @id // slug
+  slug              String         @unique
+  title             String
+  sourceUrl         String
+  date              String
+  description       String
+  recipeType        String
+  author            String
   // SQLite has no array type, so list fields are stored as JSON strings
-  views       Int       @default(0)
-  courses     String    @default("[]")
-  seasons     String    @default("[]")
-  allergens   String    @default("[]")
-  cuisines    String    @default("[]")
-  prepTime    Int?
-  cookTime    Int?
-  readyIn     Int?
-  servings    String    @default("")
-  calories    Int?
-  ingredients String    @default("[]")
-  steps       String    @default("[]")
-  image       String?
-  gallery     String    @default("[]")
-  comments    Comment[]
-  bookmarks     Bookmark[]
-  ratings       Rating[]
-  shoppingItems ShoppingItem[]
-  cookalong   String    @default("[]")
-  ph          String
-  sort        Int       @default(0)
-  hidden      Boolean   @default(false)
-  category    String    @default("")
+  views             Int            @default(0)
+  courses           String         @default("[]")
+  seasons           String         @default("[]")
+  allergens         String         @default("[]")
+  cuisines          String         @default("[]")
+  prepTime          Int?
+  cookTime          Int?
+  readyIn           Int?
+  servings          String         @default("")
+  calories          Int?
+  ingredients       String         @default("[]")
+  steps             String         @default("[]")
+  image             String?
+  gallery           String         @default("[]")
+  comments          Comment[]
+  bookmarks         Bookmark[]
+  ratings           Rating[]
+  shoppingItems     ShoppingItem[]
+  cookalong         String         @default("[]")
+  ph                String
+  sort              Int            @default(0)
+  hidden            Boolean        @default(false)
+  category          String         @default("")
   // --- AI image generation (gpt-image-2) ---
-  imageBackup       String?                // previous/alternate hero — enables swap-back
-  imagePending      String?                // freshly generated hero, awaiting review
-  stepImages        String  @default("[]") // live per-step image keys, aligned to steps[]
-  stepImagesPending String  @default("[]") // generated step images, awaiting review
+  imageBackup       String? // previous/alternate hero — enables swap-back
+  imagePending      String? // freshly generated hero, awaiting review
+  stepImages        String         @default("[]") // live per-step image keys, aligned to steps[]
+  stepImagesPending String         @default("[]") // generated step images, awaiting review
 
   @@index([recipeType])
   @@index([sort])
 }
 
 model Article {
-  id        Int       @id @default(autoincrement())
-  slug      String    @unique
-  title     String
-  author    String    @default("vegor")
-  sourceUrl String
-  date      String
-  image     String?
-  views     Int       @default(0)
-  body      String    @default("[]")
-  tags      String    @default("[]")
-  category  String    @default("")
-  sort      Int       @default(0)
-  hidden    Boolean   @default(false)
-  gallery   String    @default("[]")
-  comments  Comment[]
-  imageBackup   String?               // previous hero, for swap-back
-  imagePending  String?               // freshly generated hero, awaiting "Set as hero"
-  sectionImages String  @default("[]") // generated per-subtitle images (the draggable gallery)
-  bodyBackup String?
-  legacyBody String?
+  id            Int       @id @default(autoincrement())
+  slug          String    @unique
+  title         String
+  author        String    @default("vegor")
+  sourceUrl     String
+  date          String
+  image         String?
+  views         Int       @default(0)
+  body          String    @default("[]")
+  tags          String    @default("[]")
+  category      String    @default("")
+  sort          Int       @default(0)
+  hidden        Boolean   @default(false)
+  gallery       String    @default("[]")
+  comments      Comment[]
+  imageBackup   String? // previous hero, for swap-back
+  imagePending  String? // freshly generated hero, awaiting "Set as hero"
+  sectionImages String    @default("[]") // generated per-subtitle images (the draggable gallery)
+  bodyBackup    String?
+  legacyBody    String?
 
   @@index([sort])
 }
@@ -80,56 +80,57 @@ model Article {
 // ======================== COPY FROM HERE ========================
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id              String    @id @default(cuid())
+  email           String    @unique
   // Canonical inbox for `email` (Gmail dots + "+tags" stripped). Blocks one mailbox
   // from minting many "unique" accounts. Nullable for legacy rows until backfilled;
   // uniqueness is enforced in the signup action, not by a DB constraint, so existing
   // dot-variant collisions don't break `db push`. See src/lib/email-normalize.ts.
   normalizedEmail String?
-  username      String    @unique
-  password      String?
-  name          String?
-  avatarUrl     String?
-  bio           String?
+  username        String    @unique
+  password        String?
+  name            String?
+  avatarUrl       String?
+  bio             String?
   // --- public profile, all opt-in ---
-  location      String?
-  website       String?
-  showActivity  Boolean   @default(true) // show thread/post stats + recent threads on public profile
-  emailVerified DateTime?
-  signupIp      String?
-  lastLoginAt   DateTime?
-  lastLoginIp   String?
-  emailChangedAt DateTime?
-  nameChangedAt DateTime?
-  role          String    @default("MEMBER") // MEMBER | STAFF | MEDIA | MODERATOR | ADMIN  (becomes an enum on Postgres)
-  banned        Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  onboardedAt   DateTime? // set when they read the welcome thread; gates posting
+  location        String?
+  website         String?
+  showActivity    Boolean   @default(true) // show thread/post stats + recent threads on public profile
+  emailVerified   DateTime?
+  signupIp        String?
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+  emailChangedAt  DateTime?
+  nameChangedAt   DateTime?
+  role            String    @default("MEMBER") // MEMBER | STAFF | MEDIA | MODERATOR | ADMIN  (becomes an enum on Postgres)
+  banned          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  onboardedAt     DateTime? // set when they read the welcome thread; gates posting
 
   emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
-  comments    Comment[]
-  threads     Thread[]
-  posts       Post[]
+  comments            Comment[]
+  threads             Thread[]
+  posts               Post[]
 
   // --- direct messaging ---
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
-  contactReplies  ContactReply[]
+  sentMessages     Message[]         @relation("SentMessages")
+  receivedMessages Message[]         @relation("ReceivedMessages")
+  contactReplies   ContactReply[]
   veganizeRequests VeganizeRequest[]
 
   // --- recipe interactions ---
-  bookmarks     Bookmark[]
-  ratings       Rating[]
-  shoppingItems ShoppingItem[]
+  bookmarks       Bookmark[]
+  ratings         Rating[]
+  shoppingItems   ShoppingItem[]
   contactMessages ContactMessage[]
 
   // --- place interactions ---
   placeReviews PlaceReview[]
 
   // --- staff file sharing ---
-  staffFiles StaffFile[]
+  staffFiles   StaffFile[]
+  staffFolders StaffFolder[]
 
   @@index([signupIp])
   @@index([lastLoginIp])
@@ -223,7 +224,7 @@ model Comment {
   body       String
   authorName String
   status     String @default("APPROVED") // APPROVED | HIDDEN | SPAM
-  rating     Int?   // 1..5 when this comment is also a recipe review; null = plain comment
+  rating     Int? // 1..5 when this comment is also a recipe review; null = plain comment
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -308,9 +309,9 @@ model Message {
 
 model ItemView {
   id       String   @id @default(cuid())
-  kind     String   // "recipe" | "article"
-  itemId   String   // recipe.id (cuid) or article.id as a string
-  userId   String   // user.id, or email as a fallback key
+  kind     String // "recipe" | "article"
+  itemId   String // recipe.id (cuid) or article.id as a string
+  userId   String // user.id, or email as a fallback key
   userName String   @default("")
   viewedAt DateTime @default(now())
 
@@ -323,18 +324,18 @@ model ItemView {
 // Powers the admin Analytics dashboard. No PII: `visitor` is a cookieless daily
 // hash, query strings are stripped from `path`.
 model PageView {
-  id        String   @id @default(cuid())
-  path      String   // pathname only, e.g. "/recipes/creamy-pasta" (no query)
-  kind      String   @default("page") // "recipe" | "article" | "news" | "page"
-  slug      String?  // content slug when kind != "page"
-  referrer  String?  // raw external referrer URL, null for direct
-  source    String   @default("direct") // search | social | referral | direct | internal
-  visitor   String   // cookieless per-day visitor hash (for unique counts)
-  country   String?  // best-effort from edge/proxy headers
-  utmSource   String?  // ?utm_source= on the landing URL, e.g. "reddit" (lowercased)
-  utmCampaign String?  // ?utm_campaign= — tells campaigns/ad groups apart
-  rdtCid    String?  // ?rdt_cid= Reddit ad click id — marks a Reddit ad click even with no referrer
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  path        String // pathname only, e.g. "/recipes/creamy-pasta" (no query)
+  kind        String   @default("page") // "recipe" | "article" | "news" | "page"
+  slug        String? // content slug when kind != "page"
+  referrer    String? // raw external referrer URL, null for direct
+  source      String   @default("direct") // search | social | referral | direct | internal
+  visitor     String // cookieless per-day visitor hash (for unique counts)
+  country     String? // best-effort from edge/proxy headers
+  utmSource   String? // ?utm_source= on the landing URL, e.g. "reddit" (lowercased)
+  utmCampaign String? // ?utm_campaign= — tells campaigns/ad groups apart
+  rdtCid      String? // ?rdt_cid= Reddit ad click id — marks a Reddit ad click even with no referrer
+  createdAt   DateTime @default(now())
 
   @@index([createdAt])
   @@index([source, createdAt])
@@ -343,25 +344,24 @@ model PageView {
 }
 
 model RecipeSubmission {
-  id         String   @id @default(cuid())
-  title      String
-  dietType   String   // "VEGAN" | "VEGETARIAN"
-  ingredients String  // raw multiline text, reviewer maps to a real Recipe
-  method     String
-  prepMin    Int?
-  cookMin    Int?
-  readyMin   Int?
-  images     String   @default("[]")  // JSON array of /uploads/... paths
-  status     String   @default("PENDING")
-  userId     String?  // plain field, no relation — keeps the change to one model
-  authorName String?
-  createdAt  DateTime @default(now())
-  threadSlug String?  // set on approval — links back to the created thread
-  reviewedAt DateTime?
-  recipeSlug String?  // set when promoted into the Recipe library
-  source     String  @default("MANUAL") // "MANUAL" | "VEGANIZER"
+  id                String    @id @default(cuid())
+  title             String
+  dietType          String // "VEGAN" | "VEGETARIAN"
+  ingredients       String // raw multiline text, reviewer maps to a real Recipe
+  method            String
+  prepMin           Int?
+  cookMin           Int?
+  readyMin          Int?
+  images            String    @default("[]") // JSON array of /uploads/... paths
+  status            String    @default("PENDING")
+  userId            String? // plain field, no relation — keeps the change to one model
+  authorName        String?
+  createdAt         DateTime  @default(now())
+  threadSlug        String? // set on approval — links back to the created thread
+  reviewedAt        DateTime?
+  recipeSlug        String? // set when promoted into the Recipe library
+  source            String    @default("MANUAL") // "MANUAL" | "VEGANIZER"
   veganizeRequestId String?
-
 }
 
 // ======================== RECIPE INTERACTIONS ========================
@@ -419,27 +419,27 @@ model ShoppingItem {
 }
 
 model NewsArticle {
-  id          String   @id @default(cuid())
-  externalId  String   @unique
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  externalId  String    @unique
+  slug        String    @unique
   title       String
-  description String   @default("")
+  description String    @default("")
   link        String
   image       String?
-  source      String   @default("")
+  source      String    @default("")
   pubDate     DateTime
-  categories  String   @default("[]")
-  content     String   @default("")   // ← the missing field (full article body)
+  categories  String    @default("[]")
+  content     String    @default("") // ← the missing field (full article body)
   comments    Comment[]
-  hidden      Boolean  @default(false)
+  hidden      Boolean   @default(false)
   // Editorial gate: a fetched story stays unpublished (pending review) until an
   // editor approves it, so meat/off-brand results never reach the public feed.
   // Defaults true so existing rows and manual imports stay live; only syncNews()
   // creates new rows as false. Public reads require published:true AND hidden:false.
-  published   Boolean  @default(true)
-  sort        Int      @default(0)
-  createdAt   DateTime @default(now())
-  dupeOf      String?   // slug of the kept original when sync auto-hides this as an exact-title duplicate
+  published   Boolean   @default(true)
+  sort        Int       @default(0)
+  createdAt   DateTime  @default(now())
+  dupeOf      String? // slug of the kept original when sync auto-hides this as an exact-title duplicate
 
   @@index([dupeOf])
   @@index([pubDate])
@@ -449,19 +449,20 @@ model NewsArticle {
 
 model ContactMessage {
   id        String   @id @default(cuid())
-  userId    String              // the signed-in member who sent it
-  name      String              // display name at send time (prefilled, editable)
-  category  String              // "GENERAL" | "SUPPORT" | "RECIPES"
+  userId    String // the signed-in member who sent it
+  name      String // display name at send time (prefilled, editable)
+  category  String // "GENERAL" | "SUPPORT" | "RECIPES"
   body      String
   status    String   @default("OPEN") // "OPEN" | "HANDLED"
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   replies ContactReply[]
 
   @@index([status])
   @@index([createdAt])
 }
+
 model ContactReply {
   id        String   @id @default(cuid())
   ticketId  String
@@ -474,12 +475,13 @@ model ContactReply {
 
   @@index([ticketId, createdAt])
 }
+
 model VeganizeRequest {
   id        String   @id @default(cuid())
   userId    String
   inputHash String
-  input     String   // raw pasted recipe (for admin review + abuse detection)
-  output    String   // cached JSON result we returned
+  input     String // raw pasted recipe (for admin review + abuse detection)
+  output    String // cached JSON result we returned
   cached    Boolean  @default(false)
   ip        String?
   createdAt DateTime @default(now())
@@ -489,11 +491,12 @@ model VeganizeRequest {
   @@index([userId, createdAt])
   @@index([inputHash])
 }
+
 model IngredientSub {
   id        String   @id @default(cuid())
-  name      String   @unique          // canonical, lowercased: "olive oil"
+  name      String   @unique // canonical, lowercased: "olive oil"
   aliases   String   @default("[]")
-  subs      String   @default("[]")   // [{ "name": "avocado oil", "note": "1:1, neutral" }]
+  subs      String   @default("[]") // [{ "name": "avocado oil", "note": "1:1, neutral" }]
   vegan     Boolean  @default(true)
   updatedAt DateTime @updatedAt
 
@@ -544,9 +547,9 @@ model Place {
   // permitted; the image bytes are NOT stored — they're proxied on demand per
   // Google's terms. photoCheckedAt gates re-lookups, including misses, so we
   // don't re-hit (and re-bill) Google for a place Google doesn't know.
-  googlePlaceId  String?
-  googlePhotoRef String? // Places API (New) photo resource name
-  photoCheckedAt DateTime?
+  googlePlaceId     String?
+  googlePhotoRef    String? // Places API (New) photo resource name
+  photoCheckedAt    DateTime?
   // Google-sourced rating, captured in the same lookup as the photo ref. Kept
   // separate from ratingAvg/ratingCount (which are our own member reviews) so
   // the two sources never overwrite each other.
@@ -635,16 +638,37 @@ model GeocodeCache {
 // Spaces under staff-files/ with a PRIVATE ACL — never on the public CDN. Browsers
 // upload/download directly via short-lived presigned URLs. See src/lib/staff-files.ts.
 model StaffFile {
-  id           String    @id @default(cuid())
-  name         String    // original filename, shown in the list + used for download
-  key          String    @unique // opaque storage key: staff-files/<id> (no filename)
-  size         BigInt    // bytes; BigInt because raw video can exceed 2 GB
+  id           String       @id @default(cuid())
+  name         String // original filename, shown in the list + used for download
+  key          String       @unique // opaque storage key: staff-files/<id> (no filename)
+  size         BigInt // bytes; BigInt because raw video can exceed 2 GB
   contentType  String
   note         String?
-  status       String    @default("PENDING") // PENDING (upload in flight) | READY
+  status       String       @default("PENDING") // PENDING (upload in flight) | READY
   uploadedById String
-  uploadedBy   User      @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
-  createdAt    DateTime  @default(now())
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  // null = top level. Folder deletes remove their files (and stored bytes) in code
+  // first; SetNull is only a safety net so a stray row resurfaces at the top level.
+  folderId     String?
+  folder       StaffFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  createdAt    DateTime     @default(now())
 
   @@index([status, createdAt])
+  @@index([folderId])
+}
+
+// Folders in the staff file repository. STAFF create folders and delete their own
+// (only when everything inside is theirs); ADMIN can rename/delete any folder.
+model StaffFolder {
+  id          String        @id @default(cuid())
+  name        String
+  parentId    String? // null = top level
+  parent      StaffFolder?  @relation("StaffFolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    StaffFolder[] @relation("StaffFolderTree")
+  files       StaffFile[]
+  createdById String
+  createdBy   User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+
+  @@index([parentId])
 }

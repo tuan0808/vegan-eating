@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { MAX_STAFF_FILE_BYTES as MAX_BYTES } from "@/lib/staff-files-config";
 import { button, card, ghostButton, muted } from "../styles";
+import { NewFolderButton } from "../FolderControls";
 
 type Job = { file: File; progress: number; state: "queued" | "uploading" | "done" | "error"; error?: string };
 
@@ -30,11 +31,15 @@ function put(url: string, file: File, headers: Record<string, string>, onProgres
     });
 }
 
-export default function StaffUploader() {
+type FolderOption = { id: string; label: string };
+
+export default function StaffUploader({ folders: initialFolders, initialFolder }: { folders: FolderOption[]; initialFolder: string | null }) {
     const input = useRef<HTMLInputElement>(null);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [note, setNote] = useState("");
     const [running, setRunning] = useState(false);
+    const [folders, setFolders] = useState(initialFolders);
+    const [folderId, setFolderId] = useState<string | null>(initialFolder);
 
     const patch = (i: number, p: Partial<Job>) => setJobs((js) => js.map((j, k) => (k === i ? { ...j, ...p } : j)));
 
@@ -62,7 +67,7 @@ export default function StaffUploader() {
                 const r = await fetch("/api/staff-files", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: file.name, size: file.size, type: file.type, note }),
+                    body: JSON.stringify({ name: file.name, size: file.size, type: file.type, note, folderId }),
                 });
                 const reg = await r.json().catch(() => null);
                 if (!r.ok) throw new Error(reg?.error ?? "Couldn't start upload.");
@@ -83,8 +88,35 @@ export default function StaffUploader() {
     const queued = jobs.some((j) => j.state === "queued");
     const anyDone = jobs.some((j) => j.state === "done");
 
+    // A new folder is created inside the selected one, then becomes the target.
+    const onFolderCreated = (f: { id: string; name: string }) => {
+        const parent = folders.find((o) => o.id === folderId);
+        const label = parent ? `${parent.label} / ${f.name}` : f.name;
+        setFolders((os) => [...os, { id: f.id, label }].sort((a, b) => a.label.localeCompare(b.label)));
+        setFolderId(f.id);
+    };
+
     return (
         <div style={{ ...card, marginTop: 24 }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 16 }}>
+                <label style={{ fontSize: 13.5, fontWeight: 600, flex: "1 1 240px" }}>
+                    Upload to
+                    <select
+                        value={folderId ?? ""}
+                        onChange={(e) => setFolderId(e.target.value || null)}
+                        disabled={running}
+                        style={{
+                            display: "block", width: "100%", marginTop: 6, padding: "9px 12px", fontSize: 14,
+                            border: "1px solid var(--line, #d9d5c8)", borderRadius: 10, background: "#fff",
+                        }}
+                    >
+                        <option value="">All files (top level)</option>
+                        {folders.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+                    </select>
+                </label>
+                {!running && <NewFolderButton key={folderId ?? "root"} parentId={folderId} onCreated={onFolderCreated} />}
+            </div>
+
             <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
@@ -153,7 +185,7 @@ export default function StaffUploader() {
                     <button type="button" onClick={() => setJobs([])} style={ghostButton}>Clear</button>
                 )}
                 {anyDone && !running && (
-                    <Link href="/admin/files" style={{ color: "var(--terra, #c2603a)", fontWeight: 600, marginLeft: "auto" }}>
+                    <Link href={folderId ? `/admin/files?folder=${folderId}` : "/admin/files"} style={{ color: "var(--terra, #c2603a)", fontWeight: 600, marginLeft: "auto" }}>
                         View downloads →
                     </Link>
                 )}

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { assessAccount } from "@/lib/bot-heuristics";
 import { type Member } from "./MemberRow";
 import MembersView, { type TabKey, type Counts } from "./MembersView";
+import AddMemberForm from "./AddMemberForm";
 import "./admin-members.css";
 
 
@@ -71,6 +72,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 bulk <strong>Unban</strong>. Use Edit for single-account changes (name, username, email, role). Accounts
                 still unverified after 7 days are auto-pruned.
             </p>
+
+            <AddMemberForm />
 
             <MembersView members={shown} meId={me.id} tab={tab} counts={counts} selectable={selectable} />
 

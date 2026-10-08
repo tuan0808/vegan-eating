@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const rawType = typeof body?.type === "string" ? body.type : "";
     const contentType = MIME_RE.test(rawType) ? rawType : "application/octet-stream";
     const note = typeof body?.note === "string" ? body.note.trim().slice(0, 500) || null : null;
+    const folderId = typeof body?.folderId === "string" && body.folderId ? body.folderId : null;
 
     if (!name) return NextResponse.json({ error: "Missing file name." }, { status: 400 });
     if (!Number.isSafeInteger(size) || size <= 0) return NextResponse.json({ error: "Empty file." }, { status: 400 });
@@ -27,11 +28,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Files are limited to 2 GB each." }, { status: 413 });
     }
 
+    if (folderId && !(await prisma.staffFolder.findUnique({ where: { id: folderId }, select: { id: true } }))) {
+        return NextResponse.json({ error: "That folder no longer exists." }, { status: 404 });
+    }
+
     // Key is derived from the id; generate it up front so it's one insert.
     const id = crypto.randomUUID();
     const key = staffFileKey(id);
     await prisma.staffFile.create({
-        data: { id, name, key, size: BigInt(size), contentType, note, uploadedById: user.id },
+        data: { id, name, key, size: BigInt(size), contentType, note, folderId, uploadedById: user.id },
     });
 
     return NextResponse.json({

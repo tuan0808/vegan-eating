@@ -1,6 +1,7 @@
 // src/app/admin/actions.ts
 "use server";
 
+import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
@@ -31,6 +32,56 @@ export async function setUserRole(formData: FormData) {
 
     revalidatePath("/admin");
     redirect("/admin?ok=1");
+}
+
+/**
+ * Admin-created account (e.g. onboarding staff/media without them going through
+ * signup). Same field rules and uniqueness checks as registration, minus the bot
+ * gates. The email is marked verified so they can log in straight away with the
+ * password the admin hands them; they can change it later in Settings.
+ */
+export async function createMember(data: {
+    name: string;
+    username: string;
+    email: string;
+    role: string;
+    password: string;
+}): Promise<MemberResult> {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { ok: false, error: "Not authorised." };
+
+    const name = data.name.trim();
+    const username = data.username.trim();
+    const email = data.email.trim().toLowerCase();
+
+    if (name.length > 60) return { ok: false, error: "Display name must be 60 characters or fewer." };
+    if (!USERNAME_RE.test(username)) return { ok: false, error: "Username must be 3–24 letters, numbers, or underscores." };
+    if (!EMAIL_RE.test(email)) return { ok: false, error: "Enter a valid email address." };
+    if (!ROLES.includes(data.role)) return { ok: false, error: "That isn't a valid role." };
+    if (data.password.length < 8 || data.password.length > 100) {
+        return { ok: false, error: "Password must be 8–100 characters." };
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+    const clash = await prisma.user.findFirst({
+        where: { OR: [{ username }, { email }, { normalizedEmail }] },
+        select: { id: true },
+    });
+    if (clash) return { ok: false, error: "That username or email is already taken." };
+
+    try {
+        await prisma.user.create({
+            data: {
+                username, email, normalizedEmail, name: name || null, role: data.role,
+                password: await bcrypt.hash(data.password, 10),
+                emailVerified: new Date(),
+            },
+        });
+    } catch {
+        return { ok: false, error: "Couldn't create — that username or email may already be in use." };
+    }
+    revalidatePath("/admin");
+    return { ok: true };
 }
 
 /**

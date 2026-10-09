@@ -1,6 +1,7 @@
 # Keeps the long-lived Instagram token alive by hitting the CRON_SECRET-guarded
-# refresh route daily. The route no-ops until the token is within its renewal
-# window, so running every day is safe and cheap — it only rotates when due.
+# refresh route daily. The route always rotates (a fresh 60-day token each day),
+# so a run that goes red means Meta has invalidated the token: no refresh can fix
+# that — set a new IG_ACCESS_TOKEN in DigitalOcean (see src/lib/instagram.ts).
 # One-time setup: add a repo secret CRON_SECRET matching the value in the
 # DigitalOcean app's environment (Settings → App-Level Environment Variables).
 name: instagram-token-refresh

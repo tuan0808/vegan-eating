@@ -22,7 +22,13 @@
 // happens two ways: lazily on read (recentInstagram fires a throttled
 // background refresh as the token nears expiry) and on demand via the
 // CRON_SECRET-guarded /api/instagram/refresh route.
+//
+// REPLACING A DEAD TOKEN. Meta kills a token early on a password change, a
+// security checkpoint or the app losing access; no refresh can revive it. Paste
+// a new token into IG_ACCESS_TOKEN: the DB copy records which env seed it grew
+// from (K_SEED), so a changed env token supersedes the stale rotated one.
 
+import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
 const ENV_TOKEN = process.env.IG_ACCESS_TOKEN;
@@ -33,6 +39,7 @@ const HASHTAG_ID = process.env.IG_HASHTAG_ID;
 const K_TOKEN = "ig.access_token";
 const K_EXPIRES = "ig.token_expires_at"; // ISO string
 const K_REFRESHED = "ig.refreshed_at"; // ISO string
+const K_SEED = "ig.seed_hash"; // sha256 of the env token the DB copy descends from
 // Last-good posts, so a transient/timed-out live fetch (e.g. the first request
 // after a deploy restarts the server) doesn't blank the whole section.
 const K_POSTS = "ig.posts_cache"; // JSON-encoded IgPost[]
@@ -83,12 +90,18 @@ export function instagramEnabled(): boolean {
 
 type TokenState = { token: string; expiresAt: number | null; refreshedAt: number | null; fromDb: boolean };
 
-/** Current token: the rotated copy in Setting if present, else the env seed. */
+const seedHash = (token: string) => createHash("sha256").update(token).digest("hex");
+
+/**
+ * Current token: the rotated copy in Setting if it descends from the current env
+ * seed, else the env seed. (Rows written before K_SEED existed count as stale.)
+ */
 async function loadTokenState(): Promise<TokenState | null> {
     try {
-        const rows = await prisma.setting.findMany({ where: { key: { in: [K_TOKEN, K_EXPIRES, K_REFRESHED] } } });
+        const rows = await prisma.setting.findMany({ where: { key: { in: [K_TOKEN, K_EXPIRES, K_REFRESHED, K_SEED] } } });
         const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
-        if (map[K_TOKEN]) {
+        const sameSeed = !ENV_TOKEN || map[K_SEED] === seedHash(ENV_TOKEN);
+        if (map[K_TOKEN] && sameSeed) {
             const expiresAt = map[K_EXPIRES] ? Date.parse(map[K_EXPIRES]) : NaN;
             const refreshedAt = map[K_REFRESHED] ? Date.parse(map[K_REFRESHED]) : NaN;
             return {
@@ -177,8 +190,11 @@ async function doRefresh(opts: { force?: boolean }): Promise<RefreshResult> {
     const ttlMs = (json.expires_in ?? 60 * 24 * 60 * 60) * 1000;
     const expiresAt = new Date(now + ttlMs).toISOString();
     const refreshedAt = new Date(now).toISOString();
+    // Lineage: a DB token keeps its seed's hash; a fresh env seed starts a new one.
+    const seed = state.fromDb ? (ENV_TOKEN ? seedHash(ENV_TOKEN) : "") : seedHash(state.token);
     try {
         await prisma.$transaction([
+            prisma.setting.upsert({ where: { key: K_SEED }, update: { value: seed }, create: { key: K_SEED, value: seed } }),
             prisma.setting.upsert({ where: { key: K_TOKEN }, update: { value: json.access_token }, create: { key: K_TOKEN, value: json.access_token } }),
             prisma.setting.upsert({ where: { key: K_EXPIRES }, update: { value: expiresAt }, create: { key: K_EXPIRES, value: expiresAt } }),
             prisma.setting.upsert({ where: { key: K_REFRESHED }, update: { value: refreshedAt }, create: { key: K_REFRESHED, value: refreshedAt } }),

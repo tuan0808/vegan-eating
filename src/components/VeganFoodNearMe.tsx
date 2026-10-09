@@ -13,8 +13,8 @@ const CAT_LABELS: Record<PlaceCategory, string> = {
     VEG_FRIENDLY: "Veg-friendly",
 };
 
-// OSM carries no photos, so each card leads with a category-tinted gradient +
-// venue glyph — a clean placeholder, not a stand-in for a real photo.
+// Each card leads with a category-tinted gradient + venue glyph, covered by the
+// place's photo once one is found (see PlacePhoto).
 const CAT_GRAD: Record<PlaceCategory, string> = {
     VEGAN: "linear-gradient(135deg,#5BB35F,#1F5E27)",
     VEGETARIAN: "linear-gradient(135deg,#8FBF6A,#4B7A2F)",
@@ -104,10 +104,12 @@ export default function VeganFoodNearMe({
     cities,
     initialOrigin,
     photosEnabled = false,
+    isAdmin = false,
 }: {
     cities: CityAnchor[];
     initialOrigin?: Origin;
     photosEnabled?: boolean;
+    isAdmin?: boolean;
 }) {
     // Seed from the server's IP-derived guess so results appear on first paint;
     // the effect below runs the search for it, and "Update my location" refines.
@@ -351,7 +353,7 @@ export default function VeganFoodNearMe({
             {places.length > 0 && (
                 <ul className="nm-list">
                     {places.map((p) => (
-                        <PlaceCard key={p.id} place={p} photos={photosEnabled} />
+                        <PlaceCard key={p.id} place={p} photos={photosEnabled} isAdmin={isAdmin} />
                     ))}
                 </ul>
             )}
@@ -397,7 +399,7 @@ export default function VeganFoodNearMe({
     );
 }
 
-function PlaceCard({ place: p, photos = false }: { place: NearbyPlace; photos?: boolean }) {
+function PlaceCard({ place: p, photos = false, isAdmin = false }: { place: NearbyPlace; photos?: boolean; isAdmin?: boolean }) {
     const cuisines = parseCuisines(p.cuisines);
     const cat = p.category as PlaceCategory;
     const address = [p.address, p.city].filter(Boolean).join(", ");
@@ -408,7 +410,7 @@ function PlaceCard({ place: p, photos = false }: { place: NearbyPlace; photos?: 
                 <span className="nm-photo-glyph">
                     <CardGlyph type={p.type as PlaceType} />
                 </span>
-                {photos && <PlacePhoto placeId={p.id} alt={p.name} />}
+                <PlacePhoto place={p} google={photos} isAdmin={isAdmin} />
                 <span className={`nm-photo-chip cat-${cat.toLowerCase()}`}>{CAT_LABELS[cat] ?? cat}</span>
                 <span className="nm-photo-dist">{fmtDistance(p.distanceKm)}</span>
             </div>

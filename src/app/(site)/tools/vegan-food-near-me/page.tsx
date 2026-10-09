@@ -5,6 +5,7 @@ import VeganFoodNearMe from "@/components/VeganFoodNearMe";
 import { popularCities } from "@/lib/actions/places";
 import { clientIp, ipLocation } from "@/lib/geo-ip";
 import { photosEnabled } from "@/lib/place-photos";
+import { auth } from "@/auth";
 import "./vegan-food-near-me.css";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +61,12 @@ export default async function VeganFoodNearMePage({
             />
 
             <div className="wrap nm-wrap">
-                <VeganFoodNearMe cities={cities} initialOrigin={initialOrigin} photosEnabled={photosEnabled()} />
+                <VeganFoodNearMe
+                    cities={cities}
+                    initialOrigin={initialOrigin}
+                    photosEnabled={photosEnabled()}
+                    isAdmin={(await auth())?.user?.role === "ADMIN"}
+                />
 
                 <p className="nm-source">
                     Place data comes from OpenStreetMap contributors and is offered as a guide — hours and menus change,

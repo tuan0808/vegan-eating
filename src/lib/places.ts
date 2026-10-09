@@ -182,6 +182,8 @@ export type NearbyPlace = {
     ratingCount: number;
     googleRating: number | null;
     googleRatingCount: number | null;
+    photoUrl: string | null;
+    photoCredit: string | null;
     distanceKm: number;
 };
 
@@ -242,6 +244,7 @@ export async function placesNear(q: NearQuery): Promise<{ places: NearbyPlace[];
                 "city", "citySlug", "region", "country", "phone", "website",
                 "openingHours", "cuisines", "wheelchair", "images",
                 "ratingAvg", "ratingCount", "googleRating", "googleRatingCount",
+                "photoUrl", "photoCredit",
                 6371 * 2 * asin(LEAST(1, sqrt(
                     power(sin(radians("lat" - ${q.lat}) / 2), 2) +
                     cos(radians(${q.lat})) * cos(radians("lat")) *

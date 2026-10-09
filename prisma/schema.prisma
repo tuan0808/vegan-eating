@@ -556,6 +556,18 @@ model Place {
   googleRating      Float?
   googleRatingCount Int?
 
+  // Free photo source (see src/lib/place-photo-sources.ts): the place's own
+  // website preview image when it's a real photo, else a Mapillary street-level
+  // panorama cropped toward the venue. Stored on our CDN (both sources allow it;
+  // Mapillary needs the credit shown). Admins can hide a bad one, which blocks
+  // that exact source and lets the next candidate be tried.
+  photoUrl       String?
+  photoSourceId  String? // "website:<image url>" | "mapillary:<image id>"
+  photoCredit    String? // shown on the card, e.g. "© jdoe · Mapillary"
+  photoCreditUrl String?
+  photoTriedAt   DateTime? // last lookup (hit or miss); gates retries
+  photoBlocked   String    @default("[]") // JSON array of hidden photoSourceIds
+
   // --- provenance ---
   source       String    @default("OSM") // OSM | USER | ADMIN
   osmType      String? // node | way | relation

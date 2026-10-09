@@ -13,6 +13,7 @@ import { distanceKm } from "@/lib/places";
 import { TOP_CITIES, withCityImages } from "@/lib/city-images";
 import { clientIp, ipLocation } from "@/lib/geo-ip";
 import { photosEnabled } from "@/lib/place-photos";
+import { auth } from "@/auth";
 import { recentInstagram } from "@/lib/instagram";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/seo";
@@ -88,7 +89,7 @@ export default async function Home({
             </div>
 
             {/* Nearest strip + "10 best by Google rating" rail, seeded from IP. */}
-            <HomeNearby seed={seed} photos={photosEnabled()} />
+            <HomeNearby seed={seed} photos={photosEnabled()} isAdmin={(await auth())?.user?.role === "ADMIN"} />
 
             <Collections />
 

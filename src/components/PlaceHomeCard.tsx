@@ -1,9 +1,9 @@
 // src/components/PlaceHomeCard.tsx
 //
 // A place rendered in the recipe-card visual language for the home-page
-// "Vegan food near you" strip. Since OSM carries no photos, the image slot is a
-// category-tinted gradient with a venue-type glyph — a clean placeholder, not a
-// stand-in for a real photo. Links into the tool centred on the place.
+// "Vegan food near you" strip. The image slot is a category-tinted gradient with
+// a venue-type glyph, covered by the place's photo once one is found (see
+// PlacePhoto). Links into the tool centred on the place.
 import Link from "next/link";
 import type { NearbyPlace } from "@/lib/places";
 import type { PlaceCategory, PlaceType } from "@/lib/places-osm";
@@ -42,7 +42,7 @@ function TypeGlyph({ type }: { type: PlaceType }) {
     }
 }
 
-export default function PlaceHomeCard({ p, photos = false }: { p: NearbyPlace; photos?: boolean }) {
+export default function PlaceHomeCard({ p, photos = false, isAdmin = false }: { p: NearbyPlace; photos?: boolean; isAdmin?: boolean }) {
     const cat = CAT[p.category as PlaceCategory] ?? CAT.VEG_FRIENDLY;
     const type = p.type as PlaceType;
     const href = `/tools/vegan-food-near-me?lat=${p.lat}&lng=${p.lng}&label=${encodeURIComponent(p.city || "here")}`;
@@ -55,7 +55,7 @@ export default function PlaceHomeCard({ p, photos = false }: { p: NearbyPlace; p
                 <span className="place-glyph">
                     <TypeGlyph type={type} />
                 </span>
-                {photos && <PlacePhoto placeId={p.id} alt={p.name} />}
+                <PlacePhoto place={p} google={photos} isAdmin={isAdmin} />
                 <span className="diet-chip">{cat.label}</span>
             </div>
             <span className="tag">{TYPE_LABELS[type] ?? "Vegan spot"}</span>

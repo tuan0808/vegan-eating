@@ -43,7 +43,7 @@ function Skeletons() {
     );
 }
 
-export default function HomeNearby({ seed, photos = false }: { seed: Seed | null; photos?: boolean }) {
+export default function HomeNearby({ seed, photos = false, isAdmin = false }: { seed: Seed | null; photos?: boolean; isAdmin?: boolean }) {
     const [nearest, setNearest] = useState<NearbyPlace[]>([]);
     const [topRated, setTopRated] = useState<NearbyPlace[]>([]);
     const [filling, setFilling] = useState(false);
@@ -174,7 +174,7 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
 
                         {nearest.length > 0 ? (
                             <div className="grid">
-                                {nearest.map((p) => <PlaceHomeCard key={p.id} p={p} photos={photos} />)}
+                                {nearest.map((p) => <PlaceHomeCard key={p.id} p={p} photos={photos} isAdmin={isAdmin} />)}
                             </div>
                         ) : (
                             <>
@@ -223,7 +223,7 @@ export default function HomeNearby({ seed, photos = false }: { seed: Seed | null
                             {shown.map((p, i) => (
                                 <div key={p.id} className="rail-item">
                                     <span className="rail-rank">{page * PER_PAGE + i + 1}</span>
-                                    <PlaceHomeCard p={p} photos={photos} />
+                                    <PlaceHomeCard p={p} photos={photos} isAdmin={isAdmin} />
                                 </div>
                             ))}
                         </div>

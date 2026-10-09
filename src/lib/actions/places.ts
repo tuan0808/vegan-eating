@@ -7,6 +7,7 @@ import { CATEGORIES, TYPES, type PlaceCategory, type PlaceType } from "@/lib/pla
 import { clientIp, ipLocation } from "@/lib/geo-ip";
 import { ensureAreaFetched } from "@/lib/places-sync";
 import { resolveGoogleMeta, type PhotoLookup } from "@/lib/place-photos";
+import { queuePlacePhotos } from "@/lib/place-photo-sources";
 
 // How long a search waits for the on-demand Overpass fill before returning what
 // it has so far. Kept short now that the client polls: a fast fill still lands
@@ -97,6 +98,9 @@ export async function searchNearby(input: {
             limit: 24,
             offset,
         });
+        // Free photos (website / Mapillary) for cards without one: background,
+        // so they show on a later search rather than slowing this one.
+        void queuePlacePhotos(places.filter((p) => !p.photoUrl).map((p) => p.id)).catch(() => {});
         return { ok: true, places, hasMore, radiusKm, filling };
     } catch (err) {
         console.error("searchNearby failed", err);
@@ -221,6 +225,7 @@ async function candidatesNear(lat: number, lng: number, radiusKm: number, take: 
             phone: true, website: true, openingHours: true, cuisines: true, wheelchair: true,
             images: true, ratingAvg: true, ratingCount: true, googleRating: true, googleRatingCount: true,
             googlePlaceId: true, googlePhotoRef: true, photoCheckedAt: true,
+            photoUrl: true, photoCredit: true,
         },
         take: 800, // bbox cap; nearest `take` kept after the true-distance trim
     });
@@ -272,7 +277,8 @@ function toNearby(c: Candidate): NearbyPlace {
         region: c.region, country: c.country, phone: c.phone, website: c.website,
         openingHours: c.openingHours, cuisines: c.cuisines, wheelchair: c.wheelchair,
         images: c.images, ratingAvg: c.ratingAvg, ratingCount: c.ratingCount,
-        googleRating: c.googleRating, googleRatingCount: c.googleRatingCount, distanceKm: c.distanceKm,
+        googleRating: c.googleRating, googleRatingCount: c.googleRatingCount,
+        photoUrl: c.photoUrl, photoCredit: c.photoCredit, distanceKm: c.distanceKm,
     };
 }
 
@@ -318,6 +324,7 @@ export async function homeNearby(input: { lat: number; lng: number }): Promise<H
         // resolve is mid-flight; let the client poll once more (it caps retries).
         if (!topRated.length && cands.some((c) => EATERY_TYPES.has(c.type) && !c.photoCheckedAt)) filling = true;
 
+        void queuePlacePhotos([...nearest, ...topRated].filter((p) => !p.photoUrl).map((p) => p.id)).catch(() => {});
         return { ok: true, filling, nearest, topRated };
     } catch (err) {
         console.error("homeNearby failed", err);

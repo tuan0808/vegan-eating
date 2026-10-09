@@ -19,7 +19,7 @@ export default async function StaffUploadPage({ searchParams }: { searchParams: 
             <p style={kicker}>Admin · Staff files</p>
             <h1 style={h1}>Upload</h1>
             <p style={{ ...muted, marginTop: 8 }}>
-                Share raw footage or other files with staff for review. Up to 2 GB per file. Files are private —
+                Share raw footage or other files with staff for review. Up to 3 GB per file. Files are private —
                 only staff and admins can download them. Keep this tab open until each upload finishes.
             </p>
             <StaffUploader folders={options} initialFolder={initialFolder} />

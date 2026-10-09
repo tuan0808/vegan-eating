@@ -49,7 +49,7 @@ export default function StaffUploader({ folders: initialFolders, initialFolder }
             ...js.filter((j) => j.state !== "done"),
             ...Array.from(list).map<Job>((file) =>
                 file.size > MAX_BYTES
-                    ? { file, progress: 0, state: "error", error: "Over the 2 GB limit." }
+                    ? { file, progress: 0, state: "error", error: "Over the 3 GB limit." }
                     : { file, progress: 0, state: "queued" },
             ),
         ]);

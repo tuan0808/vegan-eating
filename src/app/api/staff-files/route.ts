@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!name) return NextResponse.json({ error: "Missing file name." }, { status: 400 });
     if (!Number.isSafeInteger(size) || size <= 0) return NextResponse.json({ error: "Empty file." }, { status: 400 });
     if (size > MAX_STAFF_FILE_BYTES) {
-        return NextResponse.json({ error: "Files are limited to 2 GB each." }, { status: 413 });
+        return NextResponse.json({ error: "Files are limited to 3 GB each." }, { status: 413 });
     }
 
     if (folderId && !(await prisma.staffFolder.findUnique({ where: { id: folderId }, select: { id: true } }))) {

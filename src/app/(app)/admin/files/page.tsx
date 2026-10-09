@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { DOWNLOAD_ROLES, UPLOAD_ROLES, allFolders, folderPath, staffUser, formatBytes } from "@/lib/staff-files";
+import { DOWNLOAD_ROLES, UPLOAD_ROLES, allFolders, folderOptions, folderPath, staffUser, formatBytes } from "@/lib/staff-files";
 import DeleteFileButton from "./DeleteFileButton";
 import { FolderRowActions, NewFolderButton } from "./FolderControls";
+import { MOVE_FORM_ID, MoveFilesBar, SelectAllFiles } from "./MoveFiles";
 import { card, h1, kicker, muted } from "./styles";
 
 export const metadata: Metadata = { title: "Downloads — staff files" };
@@ -44,6 +45,11 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
             uploadedBy: { select: { name: true, username: true } },
         },
     });
+    // Same rule as delete: STAFF move their own files, ADMIN anyone's.
+    const canMove = (f: { uploadedById: string }) => canUpload && (isAdmin || f.uploadedById === me.id);
+    const showSelect = files.some(canMove);
+    // Selection widgets read the checkboxes from the DOM, so remount them whenever the
+    // listed files change (folder switch, or after a move refreshes the page).
 
     return (
         <div style={{ maxWidth: 1000, paddingRight: 40 }}>
@@ -79,6 +85,8 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                 </div>
             )}
 
+            {showSelect && <MoveFilesBar key={folderId ?? "root"} folders={folderOptions(folders)} currentFolderId={folderId} />}
+
             <div style={{ ...card, marginTop: 24, padding: 0, overflowX: "auto" }}>
                 {files.length === 0 && subfolders.length === 0 ? (
                     <p style={{ ...muted, padding: 20, margin: 0 }}>{current ? "This folder is empty." : "No files yet."}</p>
@@ -86,6 +94,7 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                         <thead>
                             <tr style={{ textAlign: "left", ...muted, fontSize: 12.5 }}>
+                                {showSelect && <th style={checkCell}><SelectAllFiles key={files.map((f) => f.id).join()} /></th>}
                                 <th style={th}>File</th>
                                 <th style={th}>Size</th>
                                 <th style={th}>Added by</th>
@@ -96,6 +105,7 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                         <tbody>
                             {subfolders.map((f) => (
                                 <tr key={f.id} style={{ borderTop: "1px solid var(--line, #e6e3da)" }}>
+                                    {showSelect && <td style={checkCell} />}
                                     <td style={td}>
                                         <Link href={`/admin/files?folder=${f.id}`} style={{ color: "var(--ink, #1c2317)", fontWeight: 600, wordBreak: "break-all" }}>
                                             <span aria-hidden style={{ marginRight: 8 }}>📁</span>
@@ -123,6 +133,13 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                             ))}
                             {files.map((f) => (
                                 <tr key={f.id} style={{ borderTop: "1px solid var(--line, #e6e3da)" }}>
+                                    {showSelect && (
+                                        <td style={checkCell}>
+                                            {canMove(f) && (
+                                                <input type="checkbox" name="file" value={f.id} form={MOVE_FORM_ID} aria-label={`Select ${f.name}`} />
+                                            )}
+                                        </td>
+                                    )}
                                     <td style={td}>
                                         <a
                                             href={`/api/staff-files/${f.id}/download`}
@@ -161,3 +178,4 @@ const crumb: React.CSSProperties = { color: "var(--terra, #c2603a)", fontWeight:
 const crumbCurrent: React.CSSProperties = { color: "var(--ink, #1c2317)", fontWeight: 700 };
 const th: React.CSSProperties = { padding: "12px 16px", fontWeight: 600 };
 const td: React.CSSProperties = { padding: "12px 16px", verticalAlign: "top" };
+const checkCell: React.CSSProperties = { padding: "12px 0 12px 16px", width: 1, verticalAlign: "top" };

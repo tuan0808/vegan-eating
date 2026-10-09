@@ -115,7 +115,7 @@ export async function uploadUrl(id: string, key: string, contentType: string, si
         s3(),
         new PutObjectCommand({ Bucket: SPACES_BUCKET!, Key: key, ContentType: contentType, ContentLength: size, ACL: "private" }),
         // Expiry is checked when the PUT starts, not when it ends, so an hour is
-        // plenty even for a 2 GB file on a slow link.
+        // plenty even for a 3 GB file on a slow link.
         {
             expiresIn: 60 * 60,
             signableHeaders: new Set(["content-type", "content-length", "x-amz-acl"]),

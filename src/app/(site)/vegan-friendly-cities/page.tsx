@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import CityCard from "@/components/CityCard";
 import { popularCities } from "@/lib/actions/places";
+import { TOP_CITIES, withCityImages } from "@/lib/city-images";
 import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function VeganFriendlyCitiesPage() {
-    const cities = await popularCities(48);
+    const cities = await withCityImages(await popularCities(TOP_CITIES));
 
     return (
         <>

@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CityCard from "@/components/CityCard";
-import type { CityAnchor } from "@/lib/actions/places";
+import type { CityWithImage } from "@/lib/city-images";
 
 const Arrow = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -19,7 +19,7 @@ const Chevron = ({ dir }: { dir: "l" | "r" }) => (
     </svg>
 );
 
-export default function CitiesRail({ cities }: { cities: CityAnchor[] }) {
+export default function CitiesRail({ cities }: { cities: CityWithImage[] }) {
     const scroller = useRef<HTMLDivElement>(null);
     const [atStart, setAtStart] = useState(true);
     const [atEnd, setAtEnd] = useState(false);

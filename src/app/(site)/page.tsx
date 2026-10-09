@@ -9,11 +9,15 @@ import CitiesRail from "@/components/CitiesRail";
 import InstagramSection from "@/components/InstagramSection";
 import { latestRecipes, randomRecipes } from "@/lib/recipes";
 import { popularCities } from "@/lib/actions/places";
+import { distanceKm } from "@/lib/places";
+import { TOP_CITIES, withCityImages } from "@/lib/city-images";
 import { clientIp, ipLocation } from "@/lib/geo-ip";
 import { photosEnabled } from "@/lib/place-photos";
 import { recentInstagram } from "@/lib/instagram";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/seo";
+
+const RAIL_CITIES = 12;
 
 // random picks differ per visit, so render on each request
 export const dynamic = "force-dynamic";
@@ -36,12 +40,12 @@ export default async function Home({
 }) {
     const sp = await searchParams;
 
-    const [hero, latest, picks, cities, ig] = await Promise.all([
+    const [hero, latest, picks, topCities, ig] = await Promise.all([
         randomRecipes(1),
         latestRecipes(6),
         randomRecipes(4),
-        popularCities(6),
-        recentInstagram(8),
+        popularCities(TOP_CITIES),
+        recentInstagram(),
     ]);
 
     // Seed the "near me" area from the visitor's IP so it renders local on first
@@ -55,6 +59,14 @@ export default async function Home({
         const loc = await ipLocation(await clientIp());
         if (loc) seed = { lat: loc.lat, lng: loc.lng, label: loc.city || loc.label };
     }
+
+    // Top cities, nearest first when we know roughly where the visitor is (a
+    // Florida visitor sees Atlanta and New York, not Berlin); else by size.
+    const here = seed;
+    const near = here
+        ? [...topCities].sort((a, b) => distanceKm(here.lat, here.lng, a.lat, a.lng) - distanceKm(here.lat, here.lng, b.lat, b.lng))
+        : topCities;
+    const cities = await withCityImages(near.slice(0, RAIL_CITIES));
 
     return (
         <>

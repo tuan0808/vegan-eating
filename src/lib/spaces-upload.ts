@@ -55,7 +55,8 @@ function s3(): S3Client {
 // key looks like: uploads/recipes/<slug>/ai/hero-<ts>.png  (always forward slashes)
 export async function uploadPngToSpaces(
     buffer: Buffer,
-    key: string
+    key: string,
+    contentType = "image/png"
 ): Promise<{ key: string; url: string }> {
     // ---------- Production: DigitalOcean Spaces ----------
     if (spacesEnabled && SPACES_PUBLIC_BASE) {
@@ -64,7 +65,7 @@ export async function uploadPngToSpaces(
                 Bucket: SPACES_BUCKET!,
                 Key: key,
                 Body: buffer,
-                ContentType: "image/png",
+                ContentType: contentType,
                 ACL: "public-read",
                 CacheControl: "public, max-age=31536000, immutable",
             })

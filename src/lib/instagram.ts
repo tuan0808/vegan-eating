@@ -58,6 +58,11 @@ export const IG_HASHTAG = process.env.NEXT_PUBLIC_IG_HASHTAG || "VeganEating";
 const GRAPH = "https://graph.instagram.com";
 const FACEBOOK_GRAPH = "https://graph.facebook.com/v21.0";
 const CACHE_TTL_MS = 5 * 60 * 1000;
+// The home strip is a 4-column grid: never more than two full rows.
+export const IG_MAX_POSTS = 8;
+// Over-fetch so posts we can't render (no image url, e.g. a flagged video) don't
+// leave the strip short of IG_MAX_POSTS.
+const FETCH_COUNT = IG_MAX_POSTS * 2;
 const FETCH_TIMEOUT_MS = 3500;
 // The media fetch gets a longer budget than the token refresh: the first
 // outbound call on a cold container can be slow, and timing out here would
@@ -70,6 +75,7 @@ export type IgPost = {
     imageUrl: string;
     caption: string;
     isVideo: boolean;
+    timestamp?: string; // ISO; absent on posts cached before it was fetched
 };
 
 /**
@@ -223,7 +229,14 @@ type IgMedia = {
     thumbnail_url?: string;
     permalink?: string;
     caption?: string;
+    timestamp?: string;
 };
+
+/** Newest first, capped. Sorted here rather than trusting the API's order. */
+function latest(posts: IgPost[], limit: number): IgPost[] {
+    const time = (p: IgPost) => (p.timestamp ? Date.parse(p.timestamp) || 0 : 0);
+    return [...posts].sort((a, b) => time(b) - time(a)).slice(0, Math.min(limit, IG_MAX_POSTS));
+}
 
 function mapMedia(items: IgMedia[]): IgPost[] {
     return items
@@ -235,6 +248,7 @@ function mapMedia(items: IgMedia[]): IgPost[] {
             imageUrl: (m.media_type === "VIDEO" ? m.thumbnail_url : m.media_url) ?? m.media_url ?? m.thumbnail_url ?? "",
             caption: m.caption ?? "",
             isVideo: m.media_type === "VIDEO",
+            timestamp: m.timestamp,
         }));
 }
 
@@ -275,28 +289,28 @@ async function persistPosts(posts: IgPost[]): Promise<void> {
 }
 
 /** Latest posts (own feed, or hashtag media when IG_HASHTAG_ID is set). Cached. */
-export async function recentInstagram(limit = 8): Promise<IgPost[]> {
+export async function recentInstagram(limit = IG_MAX_POSTS): Promise<IgPost[]> {
     if (!instagramEnabled()) return [];
-    if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.posts.slice(0, limit);
+    if (cache && Date.now() - cache.at < CACHE_TTL_MS) return latest(cache.posts, limit);
 
     const state = await loadTokenState();
     // No token this process — fall back to whatever we last served.
-    if (!state) return (cache?.posts ?? (await loadPersistedPosts())).slice(0, limit);
+    if (!state) return latest(cache?.posts ?? (await loadPersistedPosts()), limit);
     // Keep the token alive while we're here — throttled, never blocks the render.
     kickBackgroundRefresh();
     const token = state.token;
 
-    const fields = "id,media_type,media_url,thumbnail_url,permalink,caption";
+    const fields = "id,media_type,media_url,thumbnail_url,permalink,caption,timestamp";
     const url = HASHTAG_ID
-        ? `${FACEBOOK_GRAPH}/${HASHTAG_ID}/recent_media?user_id=${USER_ID}&fields=${fields}&limit=${limit}&access_token=${token}`
-        : `${GRAPH}/${USER_ID}/media?fields=${fields}&limit=${limit}&access_token=${token}`;
+        ? `${FACEBOOK_GRAPH}/${HASHTAG_ID}/recent_media?user_id=${USER_ID}&fields=${fields}&limit=${FETCH_COUNT}&access_token=${token}`
+        : `${GRAPH}/${USER_ID}/media?fields=${fields}&limit=${FETCH_COUNT}&access_token=${token}`;
 
     const json = await fetchJson(url, MEDIA_FETCH_TIMEOUT_MS);
     // Live fetch failed/timed out — serve the in-process cache, else the last
     // good posts from the DB, so a blip never blanks the section.
-    if (!json?.data) return (cache?.posts ?? (await loadPersistedPosts())).slice(0, limit);
+    if (!json?.data) return latest(cache?.posts ?? (await loadPersistedPosts()), limit);
 
-    const posts = mapMedia(json.data);
+    const posts = latest(mapMedia(json.data), IG_MAX_POSTS);
     if (posts.length) {
         cache = { at: Date.now(), posts };
         void persistPosts(posts); // survive the next cold start

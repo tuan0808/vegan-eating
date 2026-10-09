@@ -25,7 +25,9 @@ async function handler(req: Request) {
 
     // force: the cron always attempts a rotation regardless of the renewal window.
     const result = await refreshInstagramToken({ force: true });
-    return NextResponse.json(result, { status: result.ok ? 200 : 502 });
+    // 424, not 5xx: DigitalOcean's edge swaps a 5xx response for its own bare
+    // "error code: 504" page, which hid Meta's error detail from the workflow log.
+    return NextResponse.json(result, { status: result.ok ? 200 : 424 });
 }
 
 // Allow either verb — most schedulers fire a simple GET.

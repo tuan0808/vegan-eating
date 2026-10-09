@@ -140,6 +140,26 @@ export async function downloadUrl(id: string, key: string, name: string): Promis
     );
 }
 
+/**
+ * Where the browser should GET an image for inline preview. Only call for
+ * PREVIEW_IMAGE_TYPES: the response type comes from that allowlist, never from
+ * the object, and the bytes are served from the Spaces origin, not ours, so an
+ * SVG can't script against the site.
+ */
+export async function viewUrl(id: string, key: string, contentType: string): Promise<string> {
+    if (!spacesEnabled) return `/api/staff-files/${id}/blob?inline=1`;
+    return getSignedUrl(
+        s3(),
+        new GetObjectCommand({
+            Bucket: SPACES_BUCKET!,
+            Key: key,
+            ResponseContentType: contentType,
+            ResponseContentDisposition: "inline",
+        }),
+        { expiresIn: 60 * 5 },
+    );
+}
+
 /** Size of the stored object, or null if it isn't there (upload never finished). */
 export async function storedSize(key: string): Promise<number | null> {
     try {
@@ -215,13 +235,13 @@ export function folderPath(folders: StaffFolderRow[], id: string | null): StaffF
 }
 
 /** Folders flattened depth-first with "A / B / C" labels, for pickers. */
-export function folderOptions(folders: StaffFolderRow[]): { id: string; label: string }[] {
-    const out: { id: string; label: string }[] = [];
+export function folderOptions(folders: StaffFolderRow[]): { id: string; label: string; parentId: string | null }[] {
+    const out: { id: string; label: string; parentId: string | null }[] = [];
     const walk = (parentId: string | null, prefix: string) => {
         for (const f of folders) {
             if (f.parentId !== parentId) continue;
             const label = prefix ? `${prefix} / ${f.name}` : f.name;
-            out.push({ id: f.id, label });
+            out.push({ id: f.id, label, parentId: f.parentId });
             walk(f.id, label);
         }
     };

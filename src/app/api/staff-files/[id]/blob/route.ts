@@ -8,6 +8,7 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import { prisma } from "@/lib/prisma";
+import { fileKind } from "@/lib/staff-files-config";
 import { MAX_STAFF_FILE_BYTES, contentDisposition, localPath, spacesEnabled, staffUser, DOWNLOAD_ROLES, UPLOAD_ROLES } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
@@ -36,23 +37,27 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return new Response(null, { status: 200 });
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     if (disabled()) return notFound();
     const user = await staffUser(DOWNLOAD_ROLES);
     if (!user) return notFound();
     const { id } = await params;
 
-    const file = await prisma.staffFile.findUnique({ where: { id }, select: { key: true, name: true, status: true } });
+    const file = await prisma.staffFile.findUnique({ where: { id }, select: { key: true, name: true, status: true, contentType: true } });
     if (!file || file.status !== "READY") return notFound();
+    // ?inline=1 previews allowlisted images. Unlike Spaces, this is OUR origin, so
+    // sandbox it in case someone opens an SVG directly.
+    const inline = new URL(req.url).searchParams.has("inline") && fileKind(file.contentType) === "image";
 
     try {
         const abs = await localPath(file.key);
         const s = await stat(abs);
         return new Response(Readable.toWeb(createReadStream(abs)) as ReadableStream, {
             headers: {
-                "Content-Type": "application/octet-stream",
+                "Content-Type": inline ? file.contentType : "application/octet-stream",
                 "Content-Length": String(s.size),
-                "Content-Disposition": contentDisposition(file.name),
+                "Content-Disposition": inline ? "inline" : contentDisposition(file.name),
+                ...(inline && { "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:" }),
                 "X-Content-Type-Options": "nosniff",
                 "Cache-Control": "no-store",
             },

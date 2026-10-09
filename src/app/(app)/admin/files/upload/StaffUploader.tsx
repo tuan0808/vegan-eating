@@ -9,6 +9,7 @@ import { useRef, useState } from "react";
 import { MAX_STAFF_FILE_BYTES as MAX_BYTES } from "@/lib/staff-files-config";
 import { button, card, ghostButton, muted } from "../styles";
 import { NewFolderButton } from "../FolderControls";
+import { LocalThumb } from "../FilePreview";
 
 type Job = { file: File; progress: number; state: "queued" | "uploading" | "done" | "error"; error?: string };
 
@@ -155,23 +156,26 @@ export default function StaffUploader({ folders: initialFolders, initialFolder }
             {jobs.length > 0 && (
                 <ul style={{ listStyle: "none", padding: 0, margin: "18px 0 0" }}>
                     {jobs.map((j, i) => (
-                        <li key={i} style={{ padding: "10px 0", borderTop: "1px solid var(--line, #e6e3da)", fontSize: 14 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                                <span style={{ wordBreak: "break-all" }}>{j.file.name}</span>
-                                <span style={{ ...muted, whiteSpace: "nowrap" }}>
-                                    {fmt(j.file.size)} ·{" "}
-                                    {j.state === "uploading" ? `${Math.floor(j.progress * 100)}%`
-                                        : j.state === "done" ? "Uploaded"
-                                        : j.state === "error" ? "Failed"
-                                        : "Ready"}
-                                </span>
-                            </div>
-                            {j.state === "uploading" && (
-                                <div style={{ height: 6, background: "var(--line, #e6e3da)", borderRadius: 999, marginTop: 6 }}>
-                                    <div style={{ height: 6, width: `${j.progress * 100}%`, background: "var(--terra, #c2603a)", borderRadius: 999 }} />
+                        <li key={i} style={{ padding: "10px 0", borderTop: "1px solid var(--line, #e6e3da)", fontSize: 14, display: "flex", gap: 12, alignItems: "center" }}>
+                            <LocalThumb file={j.file} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                                    <span style={{ wordBreak: "break-all" }}>{j.file.name}</span>
+                                    <span style={{ ...muted, whiteSpace: "nowrap" }}>
+                                        {fmt(j.file.size)} ·{" "}
+                                        {j.state === "uploading" ? `${Math.floor(j.progress * 100)}%`
+                                            : j.state === "done" ? "Uploaded"
+                                            : j.state === "error" ? "Failed"
+                                            : "Ready"}
+                                    </span>
                                 </div>
-                            )}
-                            {j.error && <div style={{ color: "#b23e26", fontSize: 13, marginTop: 4 }}>{j.error}</div>}
+                                {j.state === "uploading" && (
+                                    <div style={{ height: 6, background: "var(--line, #e6e3da)", borderRadius: 999, marginTop: 6 }}>
+                                        <div style={{ height: 6, width: `${j.progress * 100}%`, background: "var(--terra, #c2603a)", borderRadius: 999 }} />
+                                    </div>
+                                )}
+                                {j.error && <div style={{ color: "#b23e26", fontSize: 13, marginTop: 4 }}>{j.error}</div>}
+                            </div>
                         </li>
                     ))}
                 </ul>

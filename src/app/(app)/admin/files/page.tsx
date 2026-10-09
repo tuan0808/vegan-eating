@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { DOWNLOAD_ROLES, UPLOAD_ROLES, allFolders, folderOptions, folderPath, staffUser, formatBytes } from "@/lib/staff-files";
 import DeleteFileButton from "./DeleteFileButton";
+import FileThumb from "./FilePreview";
+import { MAX_THUMB_BYTES, fileKind } from "@/lib/staff-files-config";
 import { FolderRowActions, NewFolderButton } from "./FolderControls";
 import { MOVE_FORM_ID, MoveFilesBar, SelectAllFiles } from "./MoveFiles";
 import { card, h1, kicker, muted } from "./styles";
@@ -41,13 +43,15 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
         where: { status: "READY", folderId },
         orderBy: { createdAt: "desc" },
         select: {
-            id: true, name: true, size: true, note: true, createdAt: true, uploadedById: true,
+            id: true, name: true, size: true, contentType: true, note: true, createdAt: true, uploadedById: true,
             uploadedBy: { select: { name: true, username: true } },
         },
     });
-    // Same rule as delete: STAFF move their own files, ADMIN anyone's.
+    // Same rules as delete: STAFF move their own files and folders, ADMIN anything.
+    // (The move route also refuses a STAFF folder holding other people's things.)
     const canMove = (f: { uploadedById: string }) => canUpload && (isAdmin || f.uploadedById === me.id);
-    const showSelect = files.some(canMove);
+    const canMoveFolder = (f: { createdById: string }) => canUpload && (isAdmin || f.createdById === me.id);
+    const showSelect = files.some(canMove) || subfolders.some(canMoveFolder);
     // Selection widgets read the checkboxes from the DOM, so remount them whenever the
     // listed files change (folder switch, or after a move refreshes the page).
 
@@ -94,7 +98,7 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                         <thead>
                             <tr style={{ textAlign: "left", ...muted, fontSize: 12.5 }}>
-                                {showSelect && <th style={checkCell}><SelectAllFiles key={files.map((f) => f.id).join()} /></th>}
+                                {showSelect && <th style={checkCell}><SelectAllFiles key={[...subfolders, ...files].map((f) => f.id).join()} /></th>}
                                 <th style={th}>File</th>
                                 <th style={th}>Size</th>
                                 <th style={th}>Added by</th>
@@ -105,7 +109,13 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                         <tbody>
                             {subfolders.map((f) => (
                                 <tr key={f.id} style={{ borderTop: "1px solid var(--line, #e6e3da)" }}>
-                                    {showSelect && <td style={checkCell} />}
+                                    {showSelect && (
+                                        <td style={checkCell}>
+                                            {canMoveFolder(f) && (
+                                                <input type="checkbox" name="folder" value={f.id} form={MOVE_FORM_ID} aria-label={`Select folder ${f.name}`} />
+                                            )}
+                                        </td>
+                                    )}
                                     <td style={td}>
                                         <Link href={`/admin/files?folder=${f.id}`} style={{ color: "var(--ink, #1c2317)", fontWeight: 600, wordBreak: "break-all" }}>
                                             <span aria-hidden style={{ marginRight: 8 }}>📁</span>
@@ -141,13 +151,23 @@ export default async function StaffDownloadsPage({ searchParams }: { searchParam
                                         </td>
                                     )}
                                     <td style={td}>
-                                        <a
-                                            href={`/api/staff-files/${f.id}/download`}
-                                            style={{ color: "var(--ink, #1c2317)", fontWeight: 600, wordBreak: "break-all" }}
-                                        >
-                                            {f.name}
-                                        </a>
-                                        {f.note && <div style={{ ...muted, fontSize: 13, marginTop: 4 }}>{f.note}</div>}
+                                        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                                            <FileThumb
+                                                id={f.id}
+                                                name={f.name}
+                                                kind={fileKind(f.contentType)}
+                                                showThumb={Number(f.size) <= MAX_THUMB_BYTES}
+                                            />
+                                            <div style={{ minWidth: 0 }}>
+                                                <a
+                                                    href={`/api/staff-files/${f.id}/download`}
+                                                    style={{ color: "var(--ink, #1c2317)", fontWeight: 600, wordBreak: "break-all" }}
+                                                >
+                                                    {f.name}
+                                                </a>
+                                                {f.note && <div style={{ ...muted, fontSize: 13, marginTop: 4 }}>{f.note}</div>}
+                                            </div>
+                                        </div>
                                     </td>
                                     <td style={{ ...td, whiteSpace: "nowrap" }}>{formatBytes(Number(f.size))}</td>
                                     <td style={td}>{f.uploadedBy.name ?? f.uploadedBy.username}</td>

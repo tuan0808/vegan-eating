@@ -1,0 +1,42 @@
+/* src/components/admin/socials-admin.css */
+.soc-editor { max-width: 760px; }
+.soc-ico { width: 34px; height: 34px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--green-soft, #dfe7da); color: var(--terra, #2F7D38); font-size: 17px; }
+
+.soc-add { display: flex; align-items: center; gap: 10px; }
+.soc-add input, .soc-row input {
+    flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--line, #e6e3d8); border-radius: 9px; font-size: 14px; background: #fff;
+}
+.soc-plus {
+    width: 40px; height: 40px; flex: none; border-radius: 999px; border: none; cursor: pointer;
+    background: var(--terra, #2F7D38); color: #fff; font-size: 16px;
+}
+.soc-plus:hover { background: var(--terra-deep, #1F5E27); }
+.soc-err { margin-top: 8px; font-size: 13px; color: #b4452a; }
+
+.soc-rows { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.soc-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line, #e6e3d8); border-radius: 12px; background: var(--card, #fffdf7); }
+.soc-label { width: 84px; flex: none; font-weight: 600; font-size: 14px; }
+.soc-actions { display: flex; gap: 4px; flex: none; }
+.soc-actions button {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line, #e6e3d8); background: transparent;
+    color: var(--muted, #6b7264); cursor: pointer;
+}
+.soc-actions button:disabled { opacity: .35; cursor: default; }
+.soc-actions .soc-del { color: #b4452a; border-color: #d9b3a6; }
+.soc-actions .soc-del:hover { background: #fbeee9; }
+
+.soc-empty { margin-top: 16px; font-size: 14px; }
+.soc-foot { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+.soc-foot .as-save {
+    background: var(--green, #5b6b3f); color: #fff; border: none; border-radius: 999px;
+    padding: 0.55rem 1.4rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+}
+.soc-foot .as-flash { font-size: 0.88rem; font-weight: 600; }
+.soc-foot .as-flash.ok { color: var(--green, #5b6b3f); }
+.soc-foot .as-flash.err { color: #b4452a; }
+
+@media (max-width: 560px) {
+    .soc-row { flex-wrap: wrap; }
+    .soc-row input { flex-basis: 100%; order: 3; }
+    .soc-actions { margin-left: auto; }
+}

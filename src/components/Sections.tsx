@@ -7,6 +7,9 @@ import RecipeViews from "./RecipeViews";
 import { viewSummary } from "@/lib/views";
 import { getRatingSummary } from "@/lib/comments";
 import type { Recipe } from "@/data/recipes";
+import SocialIcon from "./SocialIcon";
+import { getSocials } from "@/lib/socials";
+import { detectPlatform } from "@/lib/social-platforms";
 
 const Arrow = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -129,7 +132,10 @@ export function PromiseStrip() {
     );
 }
 
-export function Footer() {
+export async function Footer() {
+    // Same admin-managed list as /links (Admin → Socials).
+    const socials = (await getSocials()).map((href) => ({ href, ...detectPlatform(href) }));
+
     return (
         <footer>
             <div className="wrap">
@@ -148,6 +154,15 @@ export function Footer() {
                             />
                         </Link>
                         <p style={{ marginTop: 14 }}>Eat green, feel green. Honest, tested plant-based recipes for everyday cooking — and a community to cook them with.</p>
+                        {socials.length > 0 && (
+                            <div className="foot-social">
+                                {socials.map((s) => (
+                                    <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}>
+                                        <SocialIcon platform={s.key} />
+                                    </a>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="fcol">
                         <h4>Recipes</h4>

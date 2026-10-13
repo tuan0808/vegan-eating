@@ -306,6 +306,9 @@ footer{border-top:1px solid var(--line);padding:60px 0 36px;margin-top:30px;back
 .fcol h4{font-family:'Hanken Grotesk';font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;font-weight:700}
 .fcol a{display:block;font-size:14.5px;margin-bottom:11px;color:var(--ink);transition:.2s}
 .fcol a:hover{color:var(--terra);padding-left:4px}
+.foot-social{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.foot-social a{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);color:var(--ink);font-size:16px;transition:.2s}
+.foot-social a:hover{background:var(--terra);border-color:var(--terra);color:#fff}
 .foot-bot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:24px;font-size:13px;color:var(--muted);flex-wrap:wrap;gap:12px}
 
 /* SCROLL REVEAL */

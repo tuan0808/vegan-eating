@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useMobileNav } from "@/components/MobileNav";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import "./app-sidebar.css";
 
 type Item = { href?: string; label: string; soon?: boolean; icon: ReactNode };
@@ -36,6 +38,7 @@ const icoNews = I(<><path d="M19 20H5a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1h12a1 1 0 0 1
 const icoVeganize = I(<><path d="M11 21c-4.4 0-7-3-7-8 0-6 5-9 16-9 0 9.4-4 17-9 17Z" /><path d="M9 16c1.6-3.2 4.2-5.3 7.5-6.3" /></>);
 const icoAnalytics = I(<><path d="M4 20V4" /><path d="M4 20h16" /><path d="M8 17v-5M12 17V8M16 17v-7" /></>);
 const icoUpload = I(<><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
+const icoSocials = <FontAwesomeIcon icon={faShareNodes} style={{ width: 18, height: 18 }} />;
 const icoDownload = I(<><path d="M12 4v12M7 11l5 5 5-5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 
 
@@ -57,6 +60,7 @@ const ADMIN: Item[] = [
     { href: "/admin/forums", label: "Forums", icon: icoForums },
     { href: "/admin/comments", label: "Moderation", icon: icoModeration },
     { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize },
+    { href: "/admin/socials", label: "Socials", icon: icoSocials },
     { href: "/admin/security", label: "Security", icon: icoSecurity },
     { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
 ];

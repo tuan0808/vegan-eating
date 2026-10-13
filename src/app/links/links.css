@@ -1,0 +1,14 @@
+.links-page{min-height:100vh;display:flex;justify-content:center;padding:48px 16px 40px}
+.links-card{width:100%;max-width:440px;text-align:center}
+.links-logo{height:44px;width:auto;display:inline-block}
+.links-dek{margin-top:10px;color:var(--muted);font-family:'Fraunces',serif;font-style:italic;font-size:1.05rem}
+.links-h{margin:32px 0 12px;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.links-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.links-btn{display:block;padding:15px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:600;text-decoration:none;transition:transform .15s,border-color .15s,background .15s}
+.links-btn:hover{transform:translateY(-1px);border-color:var(--terra)}
+.links-btn--social{position:relative;background:var(--terra);border-color:var(--terra);color:#fff}
+.links-btn--social:hover{background:var(--terra-deep);border-color:var(--terra-deep)}
+.links-btn--news{padding:0}
+.links-btn--news a{display:block;padding:15px 18px;color:var(--carrot-deep)}
+.links-home{display:inline-block;margin-top:36px;color:var(--muted);font-size:.9rem;text-decoration:none}
+.links-ico{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:1.15rem}

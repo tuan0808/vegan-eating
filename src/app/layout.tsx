@@ -4,6 +4,7 @@ import { isMaintenanceBlocked, getMaintenance } from "@/lib/maintenance";
 import MaintenanceScreen from "@/components/maintenance/MaintenanceScreen";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_DEFAULT_TITLE, siteJsonLdScript } from "@/lib/seo";
 import RedditPixel from "@/components/analytics/RedditPixel";
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

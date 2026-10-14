@@ -1,7 +1,7 @@
 // src/app/(app)/admin/veganize/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { listGenerations, countGenerations } from "@/lib/veganize-admin";
 
 export const metadata: Metadata = { title: "Veganizer log — admin" };
@@ -24,7 +24,7 @@ function statusPill(submission: { status: string } | null): { text: string; bg: 
 }
 
 export default async function VeganizeLogPage() {
-    await requireRole(["ADMIN"]); // redirects non-admins
+    await requirePermission("veganize"); // redirects non-admins
 
     const [rows, total] = await Promise.all([listGenerations(100), countGenerations()]);
 

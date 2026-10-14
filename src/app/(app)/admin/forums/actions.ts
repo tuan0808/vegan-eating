@@ -3,12 +3,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { userWith } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 async function requireAdmin() {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") redirect("/dashboard");
+    if (!(await userWith("forums"))) redirect("/dashboard");
 }
 
 function slugify(s: string) {

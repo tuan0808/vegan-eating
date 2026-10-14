@@ -1,7 +1,7 @@
 "use server";
 // src/lib/actions/categories.ts — admin category config + bulk categorize tool.
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { getCategories, saveCategories } from "@/lib/category-config";
 import { scanRecipes, slugifyCategory, type Category, type ScanResult } from "@/lib/categorize";
@@ -11,7 +11,7 @@ export type SaveState = { ok: boolean; message: string | null; key?: number };
 // --- save the whole category list (editor serialises it to a hidden field) ---
 export async function saveCategoriesAction(_prev: SaveState, formData: FormData): Promise<SaveState> {
     try {
-        await requireRole(["ADMIN"]);
+        await requirePermission("categories");
     } catch {
         return { ok: false, message: "You don't have permission to change this.", key: Date.now() };
     }
@@ -57,7 +57,7 @@ export async function saveCategoriesAction(_prev: SaveState, formData: FormData)
 
 // --- bulk categorize: preview (read-only) ---
 export async function previewCategorize(): Promise<ScanResult & { ok: boolean; message?: string }> {
-    await requireRole(["ADMIN"]);
+    await requirePermission("categories");
     const cats = await getCategories();
     const rows = await prisma.recipe.findMany({
         select: { id: true, title: true, recipeType: true, category: true, readyIn: true },
@@ -67,7 +67,7 @@ export async function previewCategorize(): Promise<ScanResult & { ok: boolean; m
 
 // --- bulk categorize: apply (writes only recipes whose category is still "") ---
 export async function applyCategorize(): Promise<{ ok: boolean; written: number; message: string }> {
-    await requireRole(["ADMIN"]);
+    await requirePermission("categories");
     const cats = await getCategories();
     const rows = await prisma.recipe.findMany({
         select: { id: true, title: true, recipeType: true, category: true, readyIn: true },

@@ -1,6 +1,6 @@
 // src/app/(app)/admin/forums/page.tsx
 import type { Metadata } from "next";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import {
     createCategory,
@@ -22,7 +22,7 @@ export default async function ForumAdminPage({
                                              }: {
     searchParams: Promise<{ ok?: string; error?: string }>;
 }) {
-    await requireRole(["ADMIN"]);
+    await requirePermission("forums");
     const sp = await searchParams;
     const categories = await prisma.category.findMany({
         orderBy: { position: "asc" },

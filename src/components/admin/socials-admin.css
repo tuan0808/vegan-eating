@@ -25,6 +25,13 @@
 .soc-actions .soc-del { color: #b4452a; border-color: #d9b3a6; }
 .soc-actions .soc-del:hover { background: #fbeee9; }
 
+.soc-row.is-hidden { background: transparent; border-style: dashed; }
+.soc-row.is-hidden .soc-ico, .soc-row.is-hidden input { opacity: .5; }
+.soc-hidden-tag {
+    display: block; font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted, #6b7264);
+}
+
 .soc-empty { margin-top: 16px; font-size: 14px; }
 .soc-foot { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
 .soc-foot .as-save {

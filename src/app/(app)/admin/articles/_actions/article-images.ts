@@ -4,11 +4,10 @@
 // Generation runs through the streaming route. These are the small, fast actions.
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { userWith } from "@/lib/permissions";
 
 async function requireAdmin() {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") throw new Error("Not authorised");
+    if (!(await userWith("articles"))) throw new Error("Not authorised");
 }
 
 type Result = { ok: boolean; message: string };

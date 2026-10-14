@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import VeganizeLogActions from "@/components/admin/VeganizeLogActions";
 import type { VeganizeResult } from "@/lib/veganize";
@@ -30,7 +30,7 @@ const H2: React.CSSProperties = { fontFamily: "var(--display, 'Fraunces', serif)
 
 export default async function GenerationDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
     const params = await paramsP;
-    await requireRole(["ADMIN"]);
+    await requirePermission("veganize");
 
     const req = await prisma.veganizeRequest.findUnique({
         where: { id: params.id },

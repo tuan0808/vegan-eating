@@ -3,12 +3,12 @@
 // files; ADMIN may delete anyone's. MEDIA can't upload, so never owns one.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { deleteStored, staffUser, UPLOAD_ROLES } from "@/lib/staff-files";
+import { deleteStored, staffUser } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     const { id } = await params;
 

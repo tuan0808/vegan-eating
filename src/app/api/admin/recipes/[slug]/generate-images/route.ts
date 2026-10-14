@@ -1,7 +1,7 @@
 // src/app/api/admin/recipes/[slug]/generate-images/route.ts
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { userWith } from "@/lib/permissions";
 import {
     generateRecipeImageSet,
     estimateImageCount,
@@ -22,8 +22,7 @@ export async function POST(
     const params = await paramsP;
     // ---- auth (same pattern as /api/upload: auth() + manual 403, since a
     // redirect thrown inside a route handler does not return cleanly) ----
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (!(await userWith("recipes"))) {
         return new Response("Forbidden", { status: 403 });
     }
 

@@ -2,14 +2,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { userWith } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 // Admin gate shared by every action in this file.
 async function requireAdmin() {
-    const user = await requireUser(); // throws/redirects if logged out
-    if (user.role !== "ADMIN") throw new Error("Not authorised");
+    const user = await userWith("recipes");
+    if (!user) throw new Error("Not authorised");
     return user;
 }
 

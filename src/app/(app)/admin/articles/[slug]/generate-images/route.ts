@@ -1,7 +1,7 @@
 // src/app/api/admin/articles/[slug]/generate-images/route.ts
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { userWith } from "@/lib/permissions";
 import {
     generateArticleImageSet,
     extractArticleSubtitles,
@@ -19,8 +19,7 @@ export const maxDuration = 600;
 // `image`, or `gallery`, so it can't clobber the editor or your hero.
 export async function POST(req: NextRequest, { params: paramsP }: { params: Promise<{ slug: string }> }) {
     const params = await paramsP;
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (!(await userWith("articles"))) {
         return new Response("Forbidden", { status: 403 });
     }
 

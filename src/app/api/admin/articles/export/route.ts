@@ -1,6 +1,6 @@
 // src/app/api/admin/news/export/route.ts
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { userWith } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { COLUMNS, newsToRow } from "@/lib/news-xlsx";
@@ -15,8 +15,7 @@ const WIDTHS: Record<string, number> = {
 };
 
 export async function GET() {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (!(await userWith("articles"))) {
         return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 

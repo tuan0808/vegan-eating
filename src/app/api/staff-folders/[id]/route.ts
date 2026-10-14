@@ -5,12 +5,12 @@
 // back door to deleting other people's files.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { allFolders, cleanFolderName, deleteStored, staffUser, subtreeIds, UPLOAD_ROLES } from "@/lib/staff-files";
+import { allFolders, cleanFolderName, deleteStored, staffUser, subtreeIds } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const user = await staffUser(["ADMIN"]);
+    const user = await staffUser("ADMIN");
     if (!user) return NextResponse.json({ error: "Only admins can rename folders." }, { status: 403 });
     const { id } = await params;
 
@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     const { id } = await params;
 

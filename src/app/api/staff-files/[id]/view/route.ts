@@ -5,13 +5,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fileKind } from "@/lib/staff-files-config";
-import { DOWNLOAD_ROLES, staffUser, viewUrl } from "@/lib/staff-files";
+import { staffUser, viewUrl } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-    const user = await staffUser(DOWNLOAD_ROLES);
+    const user = await staffUser("files.download");
     if (!user) return new Response("Not found", { status: 404 });
     const { id } = await params;
 

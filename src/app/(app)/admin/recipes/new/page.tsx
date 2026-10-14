@@ -5,8 +5,7 @@
 // permanent once saved). Everything else — description, photos, ingredients,
 // steps, cook-along, tags — is filled in on the full editor this redirects to.
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { recipeCategoryOptions } from "@/lib/category-config";
 import { createRecipe } from "../actions";
 import "../admin-recipes.css";
@@ -14,8 +13,7 @@ import "../admin-recipes.css";
 export const dynamic = "force-dynamic";
 
 export default async function NewRecipePage() {
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("recipes");
 
     const cats = await recipeCategoryOptions();
     const today = new Date().toISOString().slice(0, 10);

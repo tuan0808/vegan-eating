@@ -1,7 +1,7 @@
 // src/app/(app)/admin/files/upload/page.tsx
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { UPLOAD_ROLES, allFolders, folderOptions, staffUser } from "@/lib/staff-files";
+import { allFolders, folderOptions, staffUser } from "@/lib/staff-files";
 import StaffUploader from "./StaffUploader";
 import { h1, kicker, muted } from "../styles";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function StaffUploadPage({ searchParams }: { searchParams: Promise<{ folder?: string }> }) {
     // DB-backed check, not the JWT role: a demoted/banned user loses access at once.
-    if (!(await staffUser(UPLOAD_ROLES))) redirect("/dashboard");
+    if (!(await staffUser("files.upload"))) redirect("/dashboard");
     const { folder } = await searchParams;
     const options = folderOptions(await allFolders());
     const initialFolder = options.some((o) => o.id === folder) ? folder! : null;

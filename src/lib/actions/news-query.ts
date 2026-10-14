@@ -3,7 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import {
     DEFAULT_NEWS_QUERY,
     NEWS_QUERY_SETTING_KEY,
@@ -19,7 +19,7 @@ export type SaveState = { ok: boolean; message: string | null; key?: number };
  */
 export async function saveNewsQuery(_prev: SaveState, formData: FormData): Promise<SaveState> {
     // Outside the try so the admin-gate redirect propagates, not caught as an error.
-    await requireRole(["ADMIN"]);
+    await requirePermission("news");
 
     const mode = String(formData.get("action") ?? "save");
 

@@ -1,8 +1,7 @@
 // src/app/(app)/admin/news/page.tsx
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import NewsRow from "./NewsRow";
 import NewsSyncButton from "./NewsSyncButton";
 import NewsImport from "./NewsImport";
@@ -39,8 +38,7 @@ export default async function AdminNewsPage({
                                             }: {
     searchParams: Promise<{ q?: string; page?: string; sort?: string; cat?: string; view?: string }>;
 }) {
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("news");
 
     const sp = await searchParams;
     const q = (sp?.q ?? "").trim();

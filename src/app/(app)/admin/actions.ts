@@ -8,8 +8,12 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeEmail } from "@/lib/email-normalize";
+import { allRoles } from "@/lib/permissions";
 
-const ROLES = ["MEMBER", "STAFF", "MEDIA", "MODERATOR", "ADMIN"];
+async function isRole(role: string): Promise<boolean> {
+    return (await allRoles()).some((r) => r.key === role);
+}
+
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,7 +28,7 @@ export async function setUserRole(formData: FormData) {
     const userId = String(formData.get("userId") ?? "");
     const role = String(formData.get("role") ?? "");
 
-    if (!ROLES.includes(role)) redirect("/admin?error=role");
+    if (!(await isRole(role))) redirect("/admin?error=role");
     // Block changing your own role so you can't accidentally lock yourself out.
     if (userId === session.user.id) redirect("/admin?error=self");
 
@@ -57,7 +61,7 @@ export async function createMember(data: {
     if (name.length > 60) return { ok: false, error: "Display name must be 60 characters or fewer." };
     if (!USERNAME_RE.test(username)) return { ok: false, error: "Username must be 3–24 letters, numbers, or underscores." };
     if (!EMAIL_RE.test(email)) return { ok: false, error: "Enter a valid email address." };
-    if (!ROLES.includes(data.role)) return { ok: false, error: "That isn't a valid role." };
+    if (!(await isRole(data.role))) return { ok: false, error: "That isn't a valid role." };
     if (data.password.length < 8 || data.password.length > 100) {
         return { ok: false, error: "Password must be 8–100 characters." };
     }
@@ -106,7 +110,7 @@ export async function updateMember(
     if (name.length > 60) return { ok: false, error: "Display name must be 60 characters or fewer." };
     if (!USERNAME_RE.test(username)) return { ok: false, error: "Username must be 3–24 letters, numbers, or underscores." };
     if (!EMAIL_RE.test(email)) return { ok: false, error: "Enter a valid email address." };
-    if (!ROLES.includes(data.role)) return { ok: false, error: "That isn't a valid role." };
+    if (!(await isRole(data.role))) return { ok: false, error: "That isn't a valid role." };
     if (userId === session.user.id && data.role !== session.user.role) {
         return { ok: false, error: "You can't change your own role." };
     }

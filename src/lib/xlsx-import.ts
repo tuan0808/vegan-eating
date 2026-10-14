@@ -4,13 +4,14 @@
 // small adapter (its schema mappers + Prisma operations); everything else —
 // auth, parsing, the dry-run diff, the apply loop, the response — lives here once.
 import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "@/auth";
+import { userWith, type Permission } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import ExcelJS from "exceljs";
 
 type Parsed<D> = { slug: string; title: string; sort: number | null; data: D };
 
 export type ImportAdapter<D extends Record<string, unknown>> = {
+    permission: Permission; // who may import
     columns: readonly string[];
     cellValue: (v: unknown) => string | number | boolean | null;
     rowToData: (row: Record<string, unknown>) => Parsed<D>;
@@ -25,8 +26,7 @@ export async function handleXlsxImport<D extends Record<string, unknown>>(
     req: NextRequest,
     a: ImportAdapter<D>,
 ): Promise<NextResponse> {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    if (!(await userWith(a.permission))) {
         return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 

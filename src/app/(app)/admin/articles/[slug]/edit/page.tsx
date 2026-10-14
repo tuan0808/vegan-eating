@@ -1,8 +1,8 @@
 // src/app/(app)/admin/articles/[slug]/edit/page.tsx
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { updateArticle } from "./actions";
 import { ARTICLE_CATEGORIES } from "@/lib/categories";
 import ArticleImagesField from "./ArticleImagesField";
@@ -45,8 +45,7 @@ export default async function EditArticlePage({
 }) {
     const params = await paramsP;
     const searchParams = await searchParamsP;
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("articles");
 
     const article = await prisma.article.findUnique({ where: { slug: params.slug } });
     if (!article) notFound();

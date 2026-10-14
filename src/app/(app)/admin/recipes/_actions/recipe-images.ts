@@ -9,11 +9,10 @@
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma"; // ← adjust if your Prisma client lives elsewhere
-import { requireUser } from "@/lib/auth-helpers";
+import { userWith } from "@/lib/permissions";
 
 async function requireAdmin() {
-    const user = await requireUser();
-    if (user.role !== "ADMIN") throw new Error("Not authorised");
+    if (!(await userWith("recipes"))) throw new Error("Not authorised");
 }
 
 type Result = { ok: boolean; message: string };

@@ -3,7 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 
 // Mirrors the AntiSpam save contract so the form can drive a keyed flash.
 export type SaveState = { ok: boolean; message: string | null; key?: number };
@@ -25,7 +25,7 @@ export async function updateVeganizeSettings(
 ): Promise<SaveState> {
     // requireRole redirects non-admins; keep it OUTSIDE the try so its control-flow
     // redirect propagates instead of being turned into an error flash.
-    await requireRole(["ADMIN"]);
+    await requirePermission("veganize");
 
     try {
         for (const key of KEYS) {

@@ -3,7 +3,7 @@
 
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -59,8 +59,7 @@ function cookalongClean(value: FormDataEntryValue | null): { src: string; step: 
 
 export async function updateRecipe(formData: FormData) {
     // Admin-only write. requireUser() handles the logged-out case; we add the role gate.
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("recipes");
 
     const slug = str(formData.get("slug"));
     if (!slug) throw new Error("Missing recipe slug.");

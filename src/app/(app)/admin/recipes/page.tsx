@@ -1,7 +1,6 @@
 // src/app/(app)/admin/recipes/page.tsx
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { listRecipesAdmin } from "@/lib/recipes";
 import { buildWhere } from "@/lib/recipe-filters";
 import { pillCategories, recipeCategoryOptions } from "@/lib/category-config";
@@ -19,8 +18,7 @@ export default async function AdminRecipesPage({
                                                }: {
     searchParams: Promise<{ q?: string; page?: string; cat?: string; sort?: string }>;
 }) {
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("recipes");
 
     const sp = await searchParams;
     const q = (sp?.q ?? "").trim();

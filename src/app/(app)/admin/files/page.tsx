@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { DOWNLOAD_ROLES, UPLOAD_ROLES, allFolders, folderOptions, folderPath, staffUser, formatBytes } from "@/lib/staff-files";
+import { hasPermission } from "@/lib/permissions";
+import { allFolders, folderOptions, folderPath, staffUser, formatBytes } from "@/lib/staff-files";
 import DeleteFileButton from "./DeleteFileButton";
 import FileThumb from "./FilePreview";
 import { MAX_THUMB_BYTES, fileKind } from "@/lib/staff-files-config";
@@ -17,9 +18,9 @@ export const dynamic = "force-dynamic";
 
 export default async function StaffDownloadsPage({ searchParams }: { searchParams: Promise<{ folder?: string }> }) {
     // DB-backed check, not the JWT role: a demoted/banned user loses access at once.
-    const me = await staffUser(DOWNLOAD_ROLES);
+    const me = await staffUser("files.download");
     if (!me) redirect("/dashboard");
-    const canUpload = UPLOAD_ROLES.includes(me.role);
+    const canUpload = await hasPermission(me.role, "files.upload");
     const isAdmin = me.role === "ADMIN";
 
     const { folder: folderParam } = await searchParams;

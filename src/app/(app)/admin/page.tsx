@@ -7,6 +7,7 @@ import { assessAccount } from "@/lib/bot-heuristics";
 import { type Member } from "./MemberRow";
 import MembersView, { type TabKey, type Counts } from "./MembersView";
 import AddMemberForm from "./AddMemberForm";
+import { allRoles } from "@/lib/permissions";
 import "./admin-members.css";
 
 
@@ -17,6 +18,7 @@ const TAB_KEYS: TabKey[] = ["all", "members", "unverified", "flagged", "banned"]
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
     const me = await requireRole(["ADMIN"]); // redirects non-admins to /dashboard
+    const roles = (await allRoles()).map((r) => r.key);
     const { tab: rawTab } = await searchParams;
     const tab: TabKey = TAB_KEYS.includes(rawTab as TabKey) ? (rawTab as TabKey) : "all";
     const users = await prisma.user.findMany({
@@ -73,9 +75,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 still unverified after 7 days are auto-pruned.
             </p>
 
-            <AddMemberForm />
+            <AddMemberForm roles={roles} />
 
-            <MembersView members={shown} meId={me.id} tab={tab} counts={counts} selectable={selectable} />
+            <MembersView members={shown} meId={me.id} tab={tab} counts={counts} selectable={selectable} roles={roles} />
 
             <p style={{ marginTop: 30 }}>
                 <Link href="/dashboard" style={{ color: "var(--terra, #c2603a)", fontWeight: 600 }}>

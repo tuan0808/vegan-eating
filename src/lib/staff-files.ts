@@ -18,14 +18,13 @@ import type * as NodePath from "node:path";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_STAFF_FILE_BYTES } from "@/lib/staff-files-config";
+import { hasPermission, type Permission } from "@/lib/permissions";
 
 export { MAX_STAFF_FILE_BYTES };
-// Permission matrix for the shared repository:
-//   STAFF  — upload, download, delete their OWN files
-//   MEDIA  — download only (third-party access; no upload, no delete)
-//   ADMIN  — everything, including deleting anyone's files
-export const DOWNLOAD_ROLES = ["STAFF", "MEDIA", "ADMIN"];
-export const UPLOAD_ROLES = ["STAFF", "ADMIN"];
+// Access is configured per role at Admin → Roles (src/lib/permissions.ts):
+//   files.download — browse + download
+//   files.upload   — upload, create folders, move/delete their OWN files
+//   ADMIN          — everything, including deleting/renaming anyone's
 /** Extra headers the browser must send on the upload PUT (they're signed). */
 export const UPLOAD_HEADERS = { "x-amz-acl": "private" } as const;
 
@@ -74,19 +73,20 @@ export async function localPath(key: string): Promise<string> {
 }
 
 /**
- * Returns the user if their role is in `roles`, else null. Reads the role from the DB
+ * Returns the user if their role holds `need` (or is ADMIN, for "ADMIN"), else null. Reads the role from the DB
  * rather than the JWT so demoting (or banning) someone revokes file access at once,
  * not when their session cookie happens to expire.
  */
-export async function staffUser(roles: string[]) {
+export async function staffUser(need: Permission | "ADMIN") {
     const session = await auth();
     if (!session?.user?.id) return null;
     const u = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { id: true, role: true, banned: true },
     });
-    if (!u || u.banned || !roles.includes(u.role)) return null;
-    return u;
+    if (!u || u.banned) return null;
+    const ok = need === "ADMIN" ? u.role === "ADMIN" : await hasPermission(u.role, need);
+    return ok ? u : null;
 }
 
 /**

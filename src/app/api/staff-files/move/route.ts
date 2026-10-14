@@ -5,7 +5,7 @@
 // Folders are DB-only, so this never touches storage.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { allFolders, staffUser, subtreeIds, UPLOAD_ROLES } from "@/lib/staff-files";
+import { allFolders, staffUser, subtreeIds } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,7 @@ function stringIds(raw: unknown): string[] {
 }
 
 export async function POST(req: NextRequest) {
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     const isAdmin = user.role === "ADMIN";
 

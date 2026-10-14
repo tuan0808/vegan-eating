@@ -2,13 +2,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { userWith } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { syncNews } from "@/lib/news-sync";
 
 async function requireAdmin() {
-    const user = await requireUser();
-    if (user.role !== "ADMIN") throw new Error("Not authorised");
+    const user = await userWith("news");
+    if (!user) throw new Error("Not authorised");
     return user;
 }
 

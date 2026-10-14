@@ -1,7 +1,7 @@
 // src/app/(app)/admin/analytics/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import {
     getKpis, getTrafficOverTime, getSourceBreakdown, getTopContent, getTopReferrers,
     type RangeDays, type DayPoint, type SourceSlice, type ContentRow,
@@ -23,7 +23,7 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-    await requireRole(["ADMIN"]); // redirects non-admins to /dashboard
+    await requirePermission("analytics"); // redirects non-admins to /dashboard
 
     const sp = await searchParams;
     const range = (RANGES.includes(Number(sp.range) as RangeDays) ? Number(sp.range) : 30) as RangeDays;

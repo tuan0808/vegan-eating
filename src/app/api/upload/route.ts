@@ -1,6 +1,6 @@
 // src/app/api/upload/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { userWith } from "@/lib/permissions";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -58,9 +58,8 @@ function safeName(original: string, isVideo: boolean): string {
 }
 
 export async function POST(req: NextRequest) {
-    // Admin only — never let an unauthenticated request write files to the server.
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") {
+    // Content editors only — never let an unauthenticated request write files to the server.
+    if (!(await userWith("recipes", "articles"))) {
         return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 

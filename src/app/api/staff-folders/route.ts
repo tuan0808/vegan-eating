@@ -2,12 +2,12 @@
 // Create a folder in the staff file repository (STAFF + ADMIN).
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cleanFolderName, staffUser, UPLOAD_ROLES } from "@/lib/staff-files";
+import { cleanFolderName, staffUser } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
 
     const body = await req.json().catch(() => null);

@@ -9,7 +9,7 @@ import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import { prisma } from "@/lib/prisma";
 import { fileKind } from "@/lib/staff-files-config";
-import { MAX_STAFF_FILE_BYTES, contentDisposition, localPath, spacesEnabled, staffUser, DOWNLOAD_ROLES, UPLOAD_ROLES } from "@/lib/staff-files";
+import { MAX_STAFF_FILE_BYTES, contentDisposition, localPath, spacesEnabled, staffUser } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const disabled = () => spacesEnabled || process.env.NODE_ENV === "production";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     if (disabled()) return notFound();
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return new Response("Not authorized", { status: 403 });
     const { id } = await params;
 
@@ -39,7 +39,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     if (disabled()) return notFound();
-    const user = await staffUser(DOWNLOAD_ROLES);
+    const user = await staffUser("files.download");
     if (!user) return notFound();
     const { id } = await params;
 

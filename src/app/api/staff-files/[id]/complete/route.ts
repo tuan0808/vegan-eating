@@ -3,12 +3,12 @@
 // declared size) before the file appears in Downloads.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { MAX_STAFF_FILE_BYTES, deleteStored, staffUser, storedSize, UPLOAD_ROLES } from "@/lib/staff-files";
+import { MAX_STAFF_FILE_BYTES, deleteStored, staffUser, storedSize } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     const { id } = await params;
 

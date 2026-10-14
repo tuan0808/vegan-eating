@@ -8,7 +8,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createMember } from "./actions";
 
-const ROLES = ["MEMBER", "STAFF", "MEDIA", "MODERATOR", "ADMIN"];
 
 /** 14 chars from an alphabet without look-alikes (0/O, 1/l/I), so it's easy to read out. */
 function generatePassword(): string {
@@ -17,7 +16,7 @@ function generatePassword(): string {
     return Array.from(bytes, (b) => chars[b % chars.length]).join("");
 }
 
-export default function AddMemberForm() {
+export default function AddMemberForm({ roles }: { roles: string[] }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [pending, start] = useTransition();
@@ -95,7 +94,7 @@ export default function AddMemberForm() {
                         <label style={field}>
                             <span style={label}>Role</span>
                             <select value={role} onChange={(e) => setRole(e.target.value)} style={input}>
-                                {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                                {roles.map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
                         </label>
                         <label style={field}>

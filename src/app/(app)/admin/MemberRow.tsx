@@ -23,13 +23,13 @@ export type Member = {
     botSignals: string[];
 };
 
-const ROLES = ["MEMBER", "STAFF", "MEDIA", "MODERATOR", "ADMIN"];
 
 function roleColor(role: string): string {
     if (role === "ADMIN") return "#c2603a";
     if (role === "MODERATOR") return "#c79a3c";
     if (role === "STAFF") return "#3f6b6b";
     if (role === "MEDIA") return "#5a5f8c";
+    if (role !== "MEMBER") return "#7a5c8c"; // custom roles (Admin → Roles)
     return "#5b6b3f";
 }
 
@@ -39,7 +39,9 @@ export default function MemberRow({
     selectable = false,
     selected = false,
     onToggle,
+    roles,
 }: {
+    roles: string[];
     member: Member;
     isMe: boolean;
     selectable?: boolean;
@@ -173,7 +175,7 @@ export default function MemberRow({
                         <label style={field}>
                             <span style={label}>Role {isMe ? "(can't change your own)" : ""}</span>
                             <select value={role} onChange={(e) => setRole(e.target.value)} disabled={isMe} style={input}>
-                                {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                                {(roles.includes(role) ? roles : [...roles, role]).map((r) => <option key={r} value={r}>{r}</option>)}
                             </select>
                         </label>
                         <label style={{ ...field, flexDirection: "row", alignItems: "center", gap: 8 }}>

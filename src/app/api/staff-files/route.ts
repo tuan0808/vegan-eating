@@ -3,14 +3,14 @@
 // The row starts PENDING and only shows in Downloads once /complete verifies it.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { MAX_STAFF_FILE_BYTES, staffFileKey, staffUser, UPLOAD_ROLES, storageAvailable, UPLOAD_HEADERS, uploadUrl } from "@/lib/staff-files";
+import { MAX_STAFF_FILE_BYTES, staffFileKey, staffUser, storageAvailable, UPLOAD_HEADERS, uploadUrl } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 
 const MIME_RE = /^[\w.+-]+\/[\w.+-]+$/;
 
 export async function POST(req: NextRequest) {
-    const user = await staffUser(UPLOAD_ROLES);
+    const user = await staffUser("files.upload");
     if (!user) return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     if (!storageAvailable) return NextResponse.json({ error: "File storage isn't configured." }, { status: 503 });
 

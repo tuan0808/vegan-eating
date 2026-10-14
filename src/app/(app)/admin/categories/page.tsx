@@ -1,13 +1,13 @@
 // src/app/(app)/admin/categories/page.tsx
 import type { Metadata } from "next";
-import { requireRole } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import CategoriesSection from "@/components/admin/CategoriesSection";
 
 export const metadata: Metadata = { title: "Categories — vegan eating" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminCategoriesPage() {
-    await requireRole(["ADMIN"]);
+    await requirePermission("categories");
 
     return (
         <div style={{ maxWidth: "none", paddingRight: 40 }}>

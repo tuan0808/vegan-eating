@@ -4,11 +4,16 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 import AppSidebar from "@/components/AppSidebar";
+import { permissionsFor } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
 import { MobileNavProvider, MobileNavToggle } from "@/components/MobileNav";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
     const user = await currentUser();
     if (!user) redirect("/login"); // middleware also guards; this is belt-and-suspenders
+    // The JWT's role is frozen at sign-in; read the live one so a role change shows
+    // up in the sidebar straight away (the page guards read the DB too).
+    const role = (await prisma.user.findUnique({ where: { id: user.id }, select: { role: true } }))?.role ?? user.role;
 
     return (
         <div
@@ -94,7 +99,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 {/* body: sidebar + content. On mobile the sidebar is a fixed drawer
                     (see app-sidebar.css), so it leaves the flow and the content fills. */}
                 <div className="app-shell-body" style={{ flex: 1, display: "flex" }}>
-                    <AppSidebar role={user.role} />
+                    <AppSidebar role={role} perms={await permissionsFor(role)} />
                     {/* padding lives in .app-shell-main so the mobile breakpoint can shrink it */}
                     <div className="app-shell-main" style={{ flex: 1, minWidth: 0 }}>{children}</div>
                 </div>

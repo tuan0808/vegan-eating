@@ -2,7 +2,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -44,8 +44,7 @@ function splitImages(v: FormDataEntryValue | null): { hero: string | null; galle
 }
 
 export async function updateArticle(formData: FormData): Promise<void> {
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("articles");
 
     const slug = str(formData.get("slug"));
     if (!slug) return;

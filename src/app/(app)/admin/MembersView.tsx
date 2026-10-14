@@ -24,7 +24,9 @@ export default function MembersView({
     tab,
     counts,
     selectable,
+    roles,
 }: {
+    roles: string[];
     members: Member[];
     meId: string;
     tab: TabKey;
@@ -135,6 +137,7 @@ export default function MembersView({
                             key={m.id}
                             member={m}
                             isMe={m.id === meId}
+                            roles={roles}
                             selectable={selectable && m.id !== meId}
                             selected={sel.has(m.id)}
                             onToggle={(on) => toggle(m.id, on)}

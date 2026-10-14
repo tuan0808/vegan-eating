@@ -1,8 +1,8 @@
 // src/app/(app)/admin/recipes/[slug]/edit/page.tsx
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requirePermission } from "@/lib/permissions";
 import { updateRecipe } from "./actions";
 import RecipeListField from "./RecipeListField";
 import CookAlongField from "./CookAlongField";
@@ -61,8 +61,7 @@ export default async function EditRecipePage({
 }) {
     const params = await paramsP;
     const searchParams = await searchParamsP;
-    const user = await requireUser();
-    if (user.role !== "ADMIN") redirect("/dashboard");
+    const user = await requirePermission("recipes");
 
     const recipe = await prisma.recipe.findUnique({ where: { slug: params.slug } });
     if (!recipe) notFound();

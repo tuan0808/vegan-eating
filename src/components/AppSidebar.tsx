@@ -7,9 +7,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useMobileNav } from "@/components/MobileNav";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
+import type { Permission } from "@/lib/permissions";
 import "./app-sidebar.css";
 
-type Item = { href?: string; label: string; soon?: boolean; icon: ReactNode };
+// `perm`: non-admins see the item when their role holds it (Admin → Roles).
+// Admin items without one are admin-only.
+type Item = { href?: string; label: string; soon?: boolean; icon: ReactNode; perm?: Permission };
 
 /* — single-stroke line icons. Self-sizing (width/height on the svg) so they never
      balloon, even before CSS loads. — */
@@ -39,6 +42,7 @@ const icoVeganize = I(<><path d="M11 21c-4.4 0-7-3-7-8 0-6 5-9 16-9 0 9.4-4 17-9
 const icoAnalytics = I(<><path d="M4 20V4" /><path d="M4 20h16" /><path d="M8 17v-5M12 17V8M16 17v-7" /></>);
 const icoUpload = I(<><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 const icoSocials = <FontAwesomeIcon icon={faShareNodes} style={{ width: 18, height: 18 }} />;
+const icoRoles = I(<><circle cx="8" cy="8" r="3" /><path d="M2.5 19c0-3 2.5-5.5 5.5-5.5 1.6 0 3 .6 4 1.6" /><circle cx="17.5" cy="16.5" r="2.3" /><path d="M17.5 12.2v1.9M17.5 18.9v1.9M21.8 16.5h-1.9M15.1 16.5h-1.9" /></>);
 const icoDownload = I(<><path d="M12 4v12M7 11l5 5 5-5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 
 
@@ -52,28 +56,29 @@ const ACCOUNT: Item[] = [
 
 const ADMIN: Item[] = [
     { href: "/admin", label: "Members", icon: icoMembers },
-    { href: "/admin/analytics", label: "Analytics", icon: icoAnalytics },
-    { href: "/admin/recipes", label: "Recipes", icon: icoRecipes },
-    { href: "/admin/categories", label: "Categories", icon: icoCategories },
-    { href: "/admin/articles", label: "Articles", icon: icoArticles },
-    { href: "/admin/news", label: "News", icon: icoNews },
-    { href: "/admin/forums", label: "Forums", icon: icoForums },
+    { href: "/admin/analytics", label: "Analytics", icon: icoAnalytics, perm: "analytics" },
+    { href: "/admin/recipes", label: "Recipes", icon: icoRecipes, perm: "recipes" },
+    { href: "/admin/categories", label: "Categories", icon: icoCategories, perm: "categories" },
+    { href: "/admin/articles", label: "Articles", icon: icoArticles, perm: "articles" },
+    { href: "/admin/news", label: "News", icon: icoNews, perm: "news" },
+    { href: "/admin/forums", label: "Forums", icon: icoForums, perm: "forums" },
     { href: "/admin/comments", label: "Moderation", icon: icoModeration },
-    { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize },
-    { href: "/admin/socials", label: "Socials", icon: icoSocials },
+    { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize, perm: "veganize" },
+    { href: "/admin/socials", label: "Socials", icon: icoSocials, perm: "socials" },
+    { href: "/admin/roles", label: "Roles", icon: icoRoles },
     { href: "/admin/security", label: "Security", icon: icoSecurity },
     { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
 ];
 
-// Shared staff file repository — the ONLY admin-section items STAFF see.
-// MEDIA (third party) is download-only, so they get just Downloads.
-const UPLOAD: Item = { href: "/admin/files/upload", label: "Upload", icon: icoUpload };
-const DOWNLOADS: Item = { href: "/admin/files", label: "Downloads", icon: icoDownload };
-const FILES: Item[] = [UPLOAD, DOWNLOADS];
+// Shared staff file repository.
+const FILES: Item[] = [
+    { href: "/admin/files/upload", label: "Upload", icon: icoUpload, perm: "files.upload" },
+    { href: "/admin/files", label: "Downloads", icon: icoDownload, perm: "files.download" },
+];
 
-export default function AppSidebar({ role }: { role: string }) {
+export default function AppSidebar({ role, perms }: { role: string; perms: Permission[] }) {
     const isAdmin = role === "ADMIN";
-    const fileItems = role === "STAFF" ? FILES : role === "MEDIA" ? [DOWNLOADS] : null;
+    const adminItems = [...ADMIN, ...FILES].filter((it) => isAdmin || (it.perm && perms.includes(it.perm)));
     const path = usePathname();
     const { open: mobileOpen, close } = useMobileNav();
     const [collapsed, setCollapsed] = useState(false);
@@ -177,18 +182,12 @@ export default function AppSidebar({ role }: { role: string }) {
                 <p className="sec">Account</p>
                 {ACCOUNT.map(renderItem)}
 
-                {isAdmin ? (
+                {adminItems.length > 0 && (
                     <>
                         <p className="sec" style={{ marginTop: 22 }}>Admin</p>
-                        {ADMIN.map(renderItem)}
-                        {FILES.map(renderItem)}
+                        {adminItems.map(renderItem)}
                     </>
-                ) : fileItems ? (
-                    <>
-                        <p className="sec" style={{ marginTop: 22 }}>Admin</p>
-                        {fileItems.map(renderItem)}
-                    </>
-                ) : null}
+                )}
 
                 <div className="foot">
                     <Link href="/" className="back" onClick={close} title="Back to site">

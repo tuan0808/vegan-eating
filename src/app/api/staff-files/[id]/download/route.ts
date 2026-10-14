@@ -3,13 +3,13 @@
 // multi-GB) bytes stream from Spaces, not through the app server.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { DOWNLOAD_ROLES, downloadUrl, staffUser } from "@/lib/staff-files";
+import { downloadUrl, staffUser } from "@/lib/staff-files";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-    const user = await staffUser(DOWNLOAD_ROLES);
+    const user = await staffUser("files.download");
     if (!user) return new Response("Not found", { status: 404 });
     const { id } = await params;
 

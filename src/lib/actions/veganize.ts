@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { userWith } from "@/lib/permissions";
 import {
     checkEligibility,
     checkRate,
@@ -102,7 +103,8 @@ export async function veganizeRecipe(rawInput: string): Promise<VeganizeResponse
 }
 
 // One-click save: turn a logged generation into a private, pending submission.
-// Allowed for the request's owner or any admin (admins can promote from the log).
+// Allowed for the request's owner or anyone with the Veganizer permission (they can
+// promote from the admin log).
 // Idempotent — saving twice returns the same submission.
 export async function saveVeganizedRecipe(
     requestId: string
@@ -115,8 +117,7 @@ export async function saveVeganizedRecipe(
     });
     if (!req) return { ok: false, error: "That recipe is no longer available." };
 
-    const isAdmin = me.role === "ADMIN";
-    if (!isAdmin && req.userId !== me.id) {
+    if (req.userId !== me.id && !(await userWith("veganize"))) {
         return { ok: false, error: "You can't save this recipe." };
     }
 

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
     return handleXlsxImport<RecipeData>(req, {
+        permission: "recipes",
         columns: COLUMNS,
         cellValue,
         rowToData,

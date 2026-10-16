@@ -29,8 +29,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 of its own, so it can't create a containing block that would break the
                 drawer's position:fixed. */}
             <MobileNavProvider>
-                {/* top bar — plain div, not <header> */}
+                {/* top bar — plain div, not <header>. Mobile padding/hiding lives in
+                    app-sidebar.css (.app-topbar). */}
                 <div
+                    className="app-topbar"
                     style={{
                         display: "flex",
                         alignItems: "center",
@@ -64,11 +66,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                     <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
                         <Link
                             href="/"
+                            className="app-topbar-back"
                             style={{ fontSize: 13.5, color: "var(--muted,#6b7264)", textDecoration: "none" }}
                         >
                             ← Back to site
                         </Link>
-                        <span style={{ fontSize: 13.5, color: "var(--ink,#1c2317)" }}>
+                        <span className="app-topbar-name" style={{ fontSize: 13.5, color: "var(--ink,#1c2317)" }}>
               {user.name ?? user.username}
             </span>
                         <form
@@ -88,6 +91,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                                     fontSize: 13,
                                     fontWeight: 600,
                                     cursor: "pointer",
+                                    whiteSpace: "nowrap",
                                 }}
                             >
                                 Sign out

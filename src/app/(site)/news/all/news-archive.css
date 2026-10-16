@@ -89,6 +89,8 @@
 }
 @media (max-width: 600px) {
     .nwsa-grid { grid-template-columns: 1fr; }
-    .nwsa-bar { flex-direction: column; align-items: stretch; }
+    /* nowrap: in a wrapping column each item gets its own line sized to its
+       content, so stretch can't hold the pills/search to the bar's width. */
+    .nwsa-bar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
     .nwsa-search input { min-width: 0; flex: 1; }
 }

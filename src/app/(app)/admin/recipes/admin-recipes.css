@@ -74,6 +74,7 @@
 .ar-search { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
 .ar-search input[type="search"] {
     flex: 1;
+    min-width: 0; /* search inputs have an intrinsic width that pushes the button off small phones */
     max-width: 420px;
     padding: 10px 14px;
     border: 1px solid var(--ar-field-border);
@@ -313,6 +314,9 @@
     background: var(--ar-card);
     box-shadow: 0 1px 2px rgba(35, 41, 29, 0.04);
     padding: 20px 22px 24px;
+    /* fieldsets default to min-width: min-content, which lets a wide child
+       (photo grid, toolbar, row controls) push the card past a phone screen. */
+    min-width: 0;
 }
 .ar-card legend {
     font-family: var(--ar-display);
@@ -350,6 +354,7 @@
     box-shadow: var(--ar-field-shadow), 0 0 0 3px color-mix(in srgb, var(--ar-green) 16%, transparent);
 }
 .ar-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ar-row > * { min-width: 0; } /* grid items default to min-width:auto; let long lists shrink on phones */
 .ar-row-4 { grid-template-columns: repeat(4, 1fr); }
 .ar-preview {
     display: block;

@@ -7,6 +7,7 @@ const bar: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: "wrap",
     gap: 16,
     margin: "4px 0 14px",
     padding: "10px 14px",
@@ -46,7 +47,7 @@ export default function BulkBar({ children }: { children?: React.ReactNode }) {
                 Select all ({allIds.length})
             </label>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                 {count > 0 && (
                     <span style={{ fontSize: 13, color: "var(--muted,#6b7264)" }}>{count} selected</span>
                 )}

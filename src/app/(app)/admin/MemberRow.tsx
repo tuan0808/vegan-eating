@@ -104,7 +104,7 @@ export default function MemberRow({
 
     return (
         <div className="am-row" style={row}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div className="am-head" style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 {selectable ? (
                     <input
                         type="checkbox"
@@ -142,7 +142,7 @@ export default function MemberRow({
 
                 <span style={{ ...pill, color: roleColor(member.role), borderColor: roleColor(member.role) }}>{member.role}</span>
 
-                <div style={{ display: "flex", gap: 8, minWidth: 180, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                <div className="am-actions" style={{ display: "flex", gap: 8, minWidth: 180, justifyContent: "flex-end", flexWrap: "wrap" }}>
                     <button type="button" onClick={() => (editing ? cancel() : setEditing(true))} style={ghostBtn} disabled={pending}>
                         {editing ? "Close" : "Edit"}
                     </button>

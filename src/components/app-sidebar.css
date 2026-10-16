@@ -154,6 +154,12 @@
 @media (max-width: 760px) {
     .app-shell-main { padding: 24px 18px 64px; }
 
+    /* Top bar: tighter gutter, and drop "Back to site" (the drawer has it) and
+       the username so the wordmark + Sign out fit on one line. */
+    .app-topbar { padding: 12px 16px !important; }
+    .app-topbar .app-topbar-back,
+    .app-topbar .app-topbar-name { display: none; }
+
     /* Hamburger appears and sits above the drawer + backdrop, so the X icon
        stays bright and tappable while the drawer is open. */
     .mnav-burger {

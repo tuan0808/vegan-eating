@@ -286,6 +286,10 @@
 
 @media (max-width: 640px) {
     .art-floatgroup .art-img { width: 100%; float: none; margin: 0 0 16px; }
+    /* Two nowrap tab labels don't fit side by side on small phones — let the
+       pill group span the row and wrap a tab onto its own line if needed. */
+    .art-other-tabs { display: flex; flex-wrap: wrap; width: 100%; border-radius: 18px; }
+    .art-other-tabs button { flex: 1 1 auto; }
     .art-pair { grid-template-columns: 1fr; }
     .art-quote { font-size: 21px; }
 }

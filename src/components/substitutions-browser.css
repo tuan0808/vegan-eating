@@ -25,6 +25,7 @@
 }
 .subs-search {
     flex: 1;
+    min-width: 0; /* inputs have an intrinsic width; without this the count spills off small phones */
     border: none;
     background: transparent;
     outline: none;

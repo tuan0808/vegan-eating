@@ -108,6 +108,7 @@
     font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
+    max-width: 100%;
 }
 
 /* the image — given real presence */
@@ -268,4 +269,8 @@
     .ms-lb-nav {
         display: none;
     }
+}
+/* Long ingredient names wrap inside the chip instead of running off narrow phones. */
+@media (max-width: 480px) {
+    .ms-chip { white-space: normal; }
 }

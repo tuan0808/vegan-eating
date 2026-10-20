@@ -7,6 +7,8 @@ import { maskEmail } from "@/lib/email-mask";
 import NameForm from "./name-form";
 import AccountForm from "./account-form";
 import PasswordSection from "./PasswordSection";
+import NewsletterForm from "./newsletter-form";
+import { getSuppressed } from "@/lib/newsletter-settings";
 import "@/styles/community.css";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,7 @@ export default async function SettingsPage() {
     const session = await requireUser();
     const me = await myProfileRecord(session.id);
     if (!me) return null;
+    const subscribed = !(await getSuppressed()).has(me.email.toLowerCase());
 
     const nameParts = (me.name ?? "").trim().split(/\s+/).filter(Boolean);
     const firstName = nameParts[0] ?? "";
@@ -47,6 +50,11 @@ export default async function SettingsPage() {
                 <h2>Password</h2>
             </div>
             <PasswordSection />
+
+            <div className="cm-sec" id="newsletter">
+                <h2>Newsletter</h2>
+            </div>
+            <NewsletterForm subscribed={subscribed} />
         </div>
     );
 }

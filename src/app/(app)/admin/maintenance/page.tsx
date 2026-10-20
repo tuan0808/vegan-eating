@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import MaintenanceSection from "@/components/admin/MaintenanceSection";
 import WelcomeEmailSection from "@/components/admin/WelcomeEmailSection";
 import NewsletterSection from "@/components/admin/NewsletterSection";
+import NewsletterSubscribers from "@/components/admin/NewsletterSubscribers";
 import NewsletterVideosSection from "@/components/admin/NewsletterVideosSection";
 import SettingsTabs from "@/components/admin/SettingsTabs";
 import {
@@ -13,7 +14,7 @@ import {
     DEFAULT_WELCOME_SUBJECT,
     DEFAULT_WELCOME_HTML,
 } from "@/lib/newsletter-settings";
-import { recipientCount } from "@/lib/actions/newsletter-admin";
+import { recipientCount, listSubscribers } from "@/lib/actions/newsletter-admin";
 import { getBandConfig } from "@/lib/band-config";
 import "@/components/admin/settings.css";
 import "@/components/admin/newsletter-admin.css";
@@ -24,12 +25,13 @@ export const dynamic = "force-dynamic";
 export default async function AdminMaintenancePage() {
     await requireRole(["ADMIN"]);
 
-    const [welcome, welcomeEmail, nl, count, band] = await Promise.all([
+    const [welcome, welcomeEmail, nl, count, band, subs] = await Promise.all([
         getWelcomeConfig(),
         getWelcomeEmail(),
         getNewsletter(),
         recipientCount().catch(() => 0),
         getBandConfig(),
+        listSubscribers().catch(() => []),
     ]);
 
     return (
@@ -70,6 +72,7 @@ export default async function AdminMaintenancePage() {
                         <p>Compose an update, preview it live, send yourself a test, then broadcast to your members.</p>
                     </div>
                     <NewsletterSection subject={nl.subject} html={nl.html} recipientCount={count} />
+                    <NewsletterSubscribers subscribers={subs} />
                 </section>
 
                 <NewsletterVideosSection band={band} />

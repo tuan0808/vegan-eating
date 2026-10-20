@@ -5,7 +5,7 @@ import { registerAction } from "./actions";
 
 export const metadata: Metadata = { title: "Create an account — vegan eating" };
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string; email?: string }> }) {
     const sp = await searchParams;
-    return <AuthForm mode="register" action={registerAction} error={sp?.error} />;
+    return <AuthForm mode="register" action={registerAction} error={sp?.error} defaultEmail={sp?.email} />;
 }

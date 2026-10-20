@@ -101,18 +101,41 @@ async function audienceContacts(): Promise<{ email: string; name: string | null 
     }
 }
 
-/** The deduped recipient set with names: verified users ∪ subscribers − suppressed. */
-async function recipients(): Promise<{ email: string; name: string | null }[]> {
+export type Subscriber = {
+    email: string;
+    name: string | null;
+    username: string | null; // null = email-only subscriber (legacy newsletter form)
+    joinedAt: string | null;
+};
+
+/** The deduped recipient set: verified users ∪ subscribers − suppressed. */
+async function subscribers(): Promise<Subscriber[]> {
     const [users, subs, suppressed] = await Promise.all([
-        prisma.user.findMany({ where: { emailVerified: { not: null } }, select: { email: true, name: true } }),
+        prisma.user.findMany({
+            where: { emailVerified: { not: null } },
+            select: { email: true, name: true, username: true, createdAt: true },
+            orderBy: { createdAt: "desc" },
+        }),
         audienceContacts(),
         getSuppressed(),
     ]);
-    const map = new Map<string, string | null>();
-    for (const u of users) if (u.email) map.set(u.email.toLowerCase(), u.name ?? null);
-    for (const c of subs) if (!map.has(c.email)) map.set(c.email, c.name);
+    const map = new Map<string, Subscriber>();
+    for (const u of users) {
+        if (u.email) map.set(u.email.toLowerCase(), { email: u.email.toLowerCase(), name: u.name ?? null, username: u.username, joinedAt: u.createdAt.toISOString() });
+    }
+    for (const c of subs) if (!map.has(c.email)) map.set(c.email, { email: c.email, name: c.name, username: null, joinedAt: null });
     for (const s of suppressed) map.delete(s);
-    return Array.from(map, ([email, name]) => ({ email, name }));
+    return Array.from(map.values());
+}
+
+async function recipients(): Promise<{ email: string; name: string | null }[]> {
+    return (await subscribers()).map(({ email, name }) => ({ email, name }));
+}
+
+/** Everyone currently subscribed, for the admin list. */
+export async function listSubscribers(): Promise<Subscriber[]> {
+    await requireRole(["ADMIN"]);
+    return subscribers();
 }
 
 /** Read-only count for the UI (so the admin sees the reach before sending). */

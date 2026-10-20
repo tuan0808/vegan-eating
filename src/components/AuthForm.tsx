@@ -12,6 +12,8 @@ type Props = {
     notice?: string;
     /** Server action for re-sending a verification link. Passed by the login page. */
     resendAction?: (formData: FormData) => void | Promise<void>;
+    /** Prefills the email field — the home "Subscribe" box hands its email over. */
+    defaultEmail?: string;
 };
 
 const MESSAGES: Record<string, string> = {
@@ -30,7 +32,7 @@ const NOTICES: Record<string, string> = {
     resent: "If that account still needs verifying, we've sent a fresh link. Check your inbox.",
 };
 
-export default function AuthForm({ mode, action, error, notice, resendAction }: Props) {
+export default function AuthForm({ mode, action, error, notice, resendAction, defaultEmail }: Props) {
     const isRegister = mode === "register";
 
     // Offer the resend button when someone's clearly mid-verification: either they
@@ -45,7 +47,7 @@ export default function AuthForm({ mode, action, error, notice, resendAction }: 
                 <h1>{isRegister ? "Create your account" : "Welcome back"}</h1>
                 <p className="sub">
                     {isRegister
-                        ? "Join the community to post, reply, and save recipes."
+                        ? "Join the community to post, reply, save recipes, and get the newsletter."
                         : "Log in to pick up where you left off."}
                 </p>
 
@@ -74,7 +76,7 @@ export default function AuthForm({ mode, action, error, notice, resendAction }: 
 
                     <label>
                         <span>Email</span>
-                        <input name="email" type="email" autoComplete="email" required />
+                        <input name="email" type="email" autoComplete="email" required defaultValue={defaultEmail} />
                     </label>
 
                     <label>
@@ -91,6 +93,12 @@ export default function AuthForm({ mode, action, error, notice, resendAction }: 
                     {/* Cloudflare Turnstile — register only. Renders nothing until a
                         site key is configured; the action verifies the token server-side. */}
                     {isRegister ? <TurnstileWidget className="captcha" /> : null}
+
+                    {isRegister ? (
+                        <small className="hint">
+                            Your account includes our newsletter — one tested recipe each Sunday. Opt out anytime in Settings.
+                        </small>
+                    ) : null}
 
                     <button type="submit">{isRegister ? "Create account" : "Log in"}</button>
 

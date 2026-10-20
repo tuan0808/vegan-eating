@@ -1,6 +1,5 @@
 // src/components/Sections.tsx
 import Link from "next/link";
-import NewsletterModal from "./NewsletterModal";
 import { promise } from "@/data/site";
 import HeroTitle from "./HeroTitle";
 import RecipeViews from "./RecipeViews";
@@ -178,7 +177,6 @@ export async function Footer() {
                         <h4>About</h4>
                         <Link href="/about">Our story</Link>
                         <Link href="/contact">Contact</Link>
-                        <NewsletterModal />
                     </div>
                 </div>
                 <div className="foot-bot">

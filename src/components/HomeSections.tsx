@@ -214,12 +214,9 @@ export async function JoinBand() {
                     <h2>{band.heading}</h2>
                     <p>{band.body}</p>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 22 }}>
-                        <Link href="/register" className="btn-primary">
-                            Create a free account <Arrow />
-                        </Link>
                         <Link href="/forum" className="pill" style={{ padding: "15px 24px", background: "transparent", color: "var(--paper)", borderColor: "rgba(244,243,234,.4)" }}>Browse the forum</Link>
                     </div>
-                    <BandNewsletter placeholder={band.placeholder} button={band.button} success={band.success} />
+                    <BandNewsletter placeholder={band.placeholder} button={band.button} />
                 </div>
                 <div className="band-img">
                     <div className="photo">

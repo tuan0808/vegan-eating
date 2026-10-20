@@ -185,3 +185,12 @@ export async function addSuppressed(email: string): Promise<void> {
     const value = JSON.stringify(Array.from(set));
     await prisma.setting.upsert({ where: { key: K_SUPPRESSED }, update: { value }, create: { key: K_SUPPRESSED, value } });
 }
+
+// Opt back in (the Settings toggle). Unsubscribe links and the toggle share this
+// one list, so either way of opting out is undone by the same call.
+export async function removeSuppressed(email: string): Promise<void> {
+    const set = await getSuppressed();
+    if (!set.delete(email.trim().toLowerCase())) return;
+    const value = JSON.stringify(Array.from(set));
+    await prisma.setting.upsert({ where: { key: K_SUPPRESSED }, update: { value }, create: { key: K_SUPPRESSED, value } });
+}

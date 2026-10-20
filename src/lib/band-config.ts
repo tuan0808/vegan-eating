@@ -16,8 +16,8 @@ const K_VIDEOS = "band.videos"; // JSON-encoded string[]
 export const BAND_DEFAULTS = {
     heading: "A kitchen full of people, not a wall of instructions.",
     body: "Create a free account to save recipes, rate what you cook, swap tips in the forum, and follow your favourite contributors. Plus one tested recipe in your inbox each Sunday.",
-    placeholder: "Just want the newsletter? Drop your email",
-    button: "Sign up",
+    placeholder: "Subscribe. Drop your email",
+    button: "Subscribe",
     success: "Thanks — you're on the list. A tested recipe lands each Sunday.",
     videos: ["/media/veganeating.mp4"],
 };

@@ -6,7 +6,6 @@
 import Link from "next/link";
 import "./links.css";
 import PageTracker from "@/components/analytics/PageTracker";
-import NewsletterModal from "@/components/NewsletterModal";
 import SocialIcon from "@/components/SocialIcon";
 import { getSocials } from "@/lib/socials";
 import { detectPlatform } from "@/lib/social-platforms";
@@ -61,7 +60,7 @@ export default async function LinksPage() {
                     {site.map((s) => (
                         <li key={s.href}><Link className="links-btn" href={s.href}>{s.label}</Link></li>
                     ))}
-                    <li className="links-btn links-btn--news"><NewsletterModal label="Get the newsletter" /></li>
+                    <li className="links-btn links-btn--news"><Link href="/register">Get the newsletter</Link></li>
                 </ul>
 
                 <Link href="/" className="links-home">veganeating.com</Link>

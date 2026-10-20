@@ -10,6 +10,7 @@ import {
     consumePasswordResetToken,
 } from "@/lib/password-reset";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { addSuppressed, removeSuppressed } from "@/lib/newsletter-settings";
 
 export type PwResult = { ok: boolean; error?: string };
 
@@ -82,5 +83,17 @@ export async function resetPassword(_prev: PwResult, formData: FormData): Promis
     if (status !== "valid") {
         return { ok: false, error: "That link is no longer valid. Request a new one." };
     }
+    return { ok: true };
+}
+
+// Newsletter opt-out. Every verified member is on the list by default (see
+// recipients() in newsletter-admin); opting out puts their email on the same
+// suppression list the email unsubscribe link uses.
+export async function setNewsletterOptIn(subscribed: boolean): Promise<{ ok: boolean }> {
+    const me = await requireUser();
+    const row = await prisma.user.findUnique({ where: { id: me.id }, select: { email: true } });
+    if (!row?.email) return { ok: false };
+    if (subscribed) await removeSuppressed(row.email);
+    else await addSuppressed(row.email);
     return { ok: true };
 }

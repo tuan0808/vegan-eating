@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import SubscribeModal from "./SubscribeModal";
 import "./header-nav.css";
 
 // Logo kept as before (uses your global .brand/.logo-* styles) so the footer's
@@ -160,9 +159,6 @@ export default function Header() {
 
     const SEARCH_CHIPS = ["chickpeas", "spinach", "tofu", "sweet potato", "lentils", "coconut milk", "mushrooms"];
 
-    // Subscribe (the modal owns email/success/error state; we just toggle it)
-    const [subOpen, setSubOpen] = useState(false);
-
     useEffect(() => {
         if (searchOpen) searchRef.current?.focus();
     }, [searchOpen]);
@@ -202,7 +198,9 @@ export default function Header() {
     const submitSearch = (e: React.FormEvent) => { e.preventDefault(); doSearch(); };
     const surprise = () => { router.push("/recipes/random"); setSearchOpen(false); };
 
-    const openSubscribe = () => { setSubOpen(true); setMobileOpen(false); };
+    // Subscribe = sign up: guests go create an account (which auto-joins the
+    // newsletter); members already get it, so it points at their opt-out setting.
+    const subscribeHref = authUser ? "/settings#newsletter" : "/register";
 
     useEffect(() => {
         const onScroll = () => setLifted(window.scrollY > 4);
@@ -222,7 +220,7 @@ export default function Header() {
     }, [mobileOpen, searchOpen]);
 
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpenKey(null); setMobileOpen(false); setSearchOpen(false); setSubOpen(false); } };
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpenKey(null); setMobileOpen(false); setSearchOpen(false); } };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
     }, []);
@@ -383,7 +381,7 @@ export default function Header() {
                             ) : (
                                 <Link href="/login" className="vn-signin">Sign in</Link>
                             )}
-                            <button type="button" className="vn-sub" onClick={openSubscribe}>Subscribe</button>
+                            <Link href={subscribeHref} className="vn-sub">Subscribe</Link>
                             <button className="vn-burger" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((v) => !v)}>
                                 <span /><span /><span />
                             </button>
@@ -471,7 +469,7 @@ export default function Header() {
                         </div>
                     </>
                 )}
-                <button type="button" className="vn-sub vn-sub-drawer" onClick={openSubscribe}>Subscribe</button>
+                <Link href={subscribeHref} className="vn-sub vn-sub-drawer" onClick={() => setMobileOpen(false)}>Subscribe</Link>
             </div>
 
             {searchOpen && (
@@ -504,8 +502,6 @@ export default function Header() {
                     </div>
                 </div>
             )}
-
-            <SubscribeModal open={subOpen} onClose={() => setSubOpen(false)} />
         </>
     );
 }

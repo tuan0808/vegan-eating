@@ -14,6 +14,12 @@ type Props = {
     resendAction?: (formData: FormData) => void | Promise<void>;
     /** Prefills the email field — the home "Subscribe" box hands its email over. */
     defaultEmail?: string;
+    /** Register only. The QR giveaway form makes IG + ZIP required and tags the campaign. */
+    local?: { campaign: string };
+    heading?: string;
+    subheading?: string;
+    /** Login: same-site path to return to afterwards. Register: passed on to the "Log in" link. */
+    next?: string;
 };
 
 const MESSAGES: Record<string, string> = {
@@ -22,6 +28,8 @@ const MESSAGES: Record<string, string> = {
     captcha: "Please complete the verification check and try again.",
     blocked: "We couldn't create an account from this connection. If you believe this is a mistake, please contact us.",
     iplimit: "An account has already been created from this network. If you need another, please contact us.",
+    ig: "That Instagram handle doesn't look right — use just your @name (letters, numbers, dots, underscores).",
+    zip: "Enter a 5-digit ZIP code.",
     unverified:
         "Almost there — please verify your email before logging in. We emailed you a link when you signed up; check your inbox and spam. Need a fresh one? Resend it below.",
 };
@@ -32,7 +40,7 @@ const NOTICES: Record<string, string> = {
     resent: "If that account still needs verifying, we've sent a fresh link. Check your inbox.",
 };
 
-export default function AuthForm({ mode, action, error, notice, resendAction, defaultEmail }: Props) {
+export default function AuthForm({ mode, action, error, notice, resendAction, defaultEmail, local, heading, subheading, next }: Props) {
     const isRegister = mode === "register";
 
     // Offer the resend button when someone's clearly mid-verification: either they
@@ -44,17 +52,19 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
     return (
         <div className="auth-wrap">
             <div className="card">
-                <h1>{isRegister ? "Create your account" : "Welcome back"}</h1>
+                <h1>{heading ?? (isRegister ? "Create your account" : "Welcome back")}</h1>
                 <p className="sub">
-                    {isRegister
-                        ? "Join the community to post, reply, save recipes, and get the newsletter."
-                        : "Log in to pick up where you left off."}
+                    {subheading ??
+                        (isRegister
+                            ? "Join the community to post, reply, save recipes, and get the newsletter."
+                            : "Log in to pick up where you left off.")}
                 </p>
 
                 {notice ? <p className="notice">{NOTICES[notice] ?? null}</p> : null}
                 {error ? <p className="err">{MESSAGES[error] ?? "Something went wrong. Try again."}</p> : null}
 
                 <form action={action} className="form">
+                    {!isRegister && next ? <input type="hidden" name="next" value={next} /> : null}
                     {isRegister ? (
                         <label>
                             <span>Username</span>
@@ -90,6 +100,46 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
                         />
                     </label>
 
+                    {isRegister ? (
+                        <>
+                            {local ? <input type="hidden" name="campaign" value={local.campaign} /> : null}
+                            <label>
+                                <span>Instagram handle{local ? "" : " (optional)"}</span>
+                                <input
+                                    name="igHandle"
+                                    type="text"
+                                    placeholder="@yourname"
+                                    autoComplete="off"
+                                    autoCapitalize="none"
+                                    spellCheck={false}
+                                    maxLength={60}
+                                    required={!!local}
+                                />
+                                {local ? (
+                                    <small className="hint">
+                                        We use this to confirm you follow us when we draw the winner.
+                                    </small>
+                                ) : null}
+                            </label>
+                            <label>
+                                <span>ZIP code{local ? "" : " (optional)"}</span>
+                                <input
+                                    name="zipCode"
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="postal-code"
+                                    pattern="\d{5}(-\d{4})?"
+                                    title="5-digit ZIP code"
+                                    maxLength={10}
+                                    required={!!local}
+                                />
+                                {local ? null : (
+                                    <small className="hint">Helps us share local events and spots near you.</small>
+                                )}
+                            </label>
+                        </>
+                    ) : null}
+
                     {/* Cloudflare Turnstile — register only. Renders nothing until a
                         site key is configured; the action verifies the token server-side. */}
                     {isRegister ? <TurnstileWidget className="captcha" /> : null}
@@ -118,7 +168,7 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
 
                 <p className="foot">
                     {isRegister ? (
-                        <>Already have an account? <Link href="/login">Log in</Link></>
+                        <>Already have an account? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Log in</Link></>
                     ) : (
                         <>New here? <Link href="/register">Create an account</Link></>
                     )}

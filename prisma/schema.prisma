@@ -107,6 +107,14 @@ model User {
   createdAt       DateTime  @default(now())
   onboardedAt     DateTime? // set when they read the welcome thread; gates posting
 
+  // --- local giveaway / market split (src/lib/local-markets.ts) ---
+  igHandle           String?   // Instagram handle, no "@"; optional on /register, required on /whole-foods
+  zipCode            String?   // 5-digit ZIP; decides localMarket
+  localMarket        String?   // market key (e.g. "boca") from the ZIP; null = not local. Recomputed when markets change
+  signupSource       String?   // null = regular site signup; "local:<campaign>" = the QR giveaway form
+  igFollowVerifiedAt DateTime? // set by staff after checking they follow us on IG
+  giveawayEnteredAt  DateTime? // when they entered the current local giveaway (new signup or existing member)
+
   emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
   comments            Comment[]

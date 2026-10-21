@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Log in — vegan eating" };
 export default async function LoginPage({
                                       searchParams,
                                   }: {
-    searchParams: Promise<{ error?: string; registered?: string; resent?: string; sc?: string }>;
+    searchParams: Promise<{ error?: string; registered?: string; resent?: string; sc?: string; next?: string }>;
 }) {
     const sp = await searchParams;
     const notice =
@@ -35,6 +35,7 @@ export default async function LoginPage({
                 error={sp?.error}
                 notice={notice}
                 resendAction={resendVerificationAction}
+                next={sp?.next}
             />
         </>
     );

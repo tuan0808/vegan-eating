@@ -43,6 +43,7 @@ const icoAnalytics = I(<><path d="M4 20V4" /><path d="M4 20h16" /><path d="M8 17
 const icoUpload = I(<><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 const icoSocials = <FontAwesomeIcon icon={faShareNodes} style={{ width: 18, height: 18 }} />;
 const icoRoles = I(<><circle cx="8" cy="8" r="3" /><path d="M2.5 19c0-3 2.5-5.5 5.5-5.5 1.6 0 3 .6 4 1.6" /><circle cx="17.5" cy="16.5" r="2.3" /><path d="M17.5 12.2v1.9M17.5 18.9v1.9M21.8 16.5h-1.9M15.1 16.5h-1.9" /></>);
+const icoLocal = I(<><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></>);
 const icoDownload = I(<><path d="M12 4v12M7 11l5 5 5-5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 
 
@@ -65,6 +66,7 @@ const ADMIN: Item[] = [
     { href: "/admin/comments", label: "Moderation", icon: icoModeration },
     { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize, perm: "veganize" },
     { href: "/admin/socials", label: "Socials", icon: icoSocials, perm: "socials" },
+    { href: "/admin/local", label: "Local signups", icon: icoLocal, perm: "local" },
     { href: "/admin/roles", label: "Roles", icon: icoRoles },
     { href: "/admin/security", label: "Security", icon: icoSecurity },
     { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },

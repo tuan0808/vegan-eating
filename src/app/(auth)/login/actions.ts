@@ -11,6 +11,10 @@ import { sendVerificationEmail } from "@/lib/email";
 export async function loginAction(formData: FormData) {
     const email = String(formData.get("email") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
+    // Where to land after login (e.g. back to /whole-foods). Same-site paths only,
+    // so it can't be turned into an open redirect.
+    const nextRaw = String(formData.get("next") ?? "");
+    const next = /^\/(?![/\\])/.test(nextRaw) ? nextRaw : "/dashboard";
 
     // Friendly verification gate. authorize() already refuses unverified accounts,
     // but on its own that surfaces as a generic "invalid credentials" message —
@@ -33,7 +37,7 @@ export async function loginAction(formData: FormData) {
     }
 
     try {
-        await signIn("credentials", { email, password, redirectTo: "/dashboard" });
+        await signIn("credentials", { email, password, redirectTo: next });
     } catch (error) {
         // A successful signIn throws a redirect (NOT an AuthError) that must propagate.
         if (error instanceof AuthError) {

@@ -77,8 +77,9 @@ export default async function WholeFoodsRulesPage() {
                     </li>
                 </ol>
                 <p>
-                    Limit one entry per person and per email address. Entries made with multiple or automated accounts
-                    will be disqualified. Creating an account also subscribes you to the vegan eating newsletter; you can
+                    Limit one entry per person, per email address and per Instagram account. Temporary or disposable
+                    email addresses are not accepted. Entries made with multiple, fake or automated accounts (including
+                    scripts, bots or newly created Instagram accounts made only to enter) will be disqualified. Creating an account also subscribes you to the vegan eating newsletter; you can
                     opt out at any time in your account settings without affecting your entry.
                 </p>
 
@@ -99,7 +100,10 @@ export default async function WholeFoodsRulesPage() {
                 </p>
                 <p>
                     The potential winner will be notified by email <Tbd>[and/or Instagram direct message]</Tbd> and must
-                    respond within <Tbd>[7]</Tbd> days, or an alternate winner may be drawn. Sponsor will never ask for
+                    respond within <Tbd>[7]</Tbd> days, or an alternate winner may be drawn. To claim the prize, the
+                    winner must show a valid government-issued photo ID whose name matches the winner&rsquo;s account
+                    and whose address matches the ZIP code entered <Tbd>[at prize pickup / before the prize is sent]</Tbd>.
+                    A winner who can&rsquo;t verify their identity forfeits the prize and an alternate may be drawn. Sponsor will never ask for
                     payment, bank details or passwords to claim a prize.
                 </p>
 

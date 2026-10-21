@@ -1,6 +1,7 @@
 // src/lib/actions/community.ts
 "use server";
 
+import { isDisposableEmail } from "@/lib/disposable-email";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
@@ -140,6 +141,7 @@ export async function updateAccount(
     const confirmCurrent = String(formData.get("confirmCurrent") ?? "").trim().toLowerCase();
 
     if (!EMAIL_RE.test(email)) return { ok: false, error: "Enter a valid new email address." };
+    if (isDisposableEmail(email)) return { ok: false, error: "Please use a permanent email address — temporary inbox services aren't accepted." };
 
     const current = await prisma.user.findUnique({
         where: { id: me.id },

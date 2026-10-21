@@ -12,6 +12,7 @@ import { createVerificationToken } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
 import { sendRedditEvent, redditMatchFromRequest } from "@/lib/reddit-capi";
 import { normalizeEmail } from "@/lib/email-normalize";
+import { isDisposableEmail } from "@/lib/disposable-email";
 import { getLocalConfig, giveawayStatus, marketForZip, normalizeIgHandle, normalizeZip } from "@/lib/local-markets";
 
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
@@ -77,6 +78,7 @@ async function createAccount(formData: FormData, flow: Flow) {
     if (!USERNAME_RE.test(username)) fail("invalid");
     if (!EMAIL_RE.test(email)) fail("invalid");
     if (password.length < 8 || password.length > 100) fail("invalid");
+    if (isDisposableEmail(email)) fail("disposable");
 
     // IG + ZIP: optional on /register, required on the giveaway form. A filled-in
     // but malformed value is rejected either way rather than silently dropped.
@@ -114,6 +116,10 @@ async function createAccount(formData: FormData, flow: Flow) {
         select: { id: true },
     });
     if (existing) fail("taken");
+
+    // One account per Instagram handle, so one real IG account can't back a pile
+    // of giveaway entries. Handles are stored normalised (lowercase, no "@").
+    if (igHandle && (await prisma.user.findFirst({ where: { igHandle }, select: { id: true } }))) fail("igtaken");
 
     const hash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({

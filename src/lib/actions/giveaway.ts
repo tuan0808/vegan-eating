@@ -13,6 +13,9 @@ export async function enterGiveawayAction(formData: FormData) {
     const zipCode = normalizeZip(String(formData.get("zipCode") ?? ""));
     if (!igHandle) redirect("/whole-foods?error=ig");
     if (!zipCode) redirect("/whole-foods?error=zip");
+    // Same rule as signup: one account per IG handle.
+    const clash = await prisma.user.findFirst({ where: { igHandle, id: { not: me.id } }, select: { id: true } });
+    if (clash) redirect("/whole-foods?error=igtaken");
 
     const cfg = await getLocalConfig();
     const row = await prisma.user.findUnique({ where: { id: me.id }, select: { giveawayEnteredAt: true } });

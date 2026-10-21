@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/lib/permissions";
 import { formatDay, getLocalConfig, giveawayStatus } from "@/lib/local-markets";
-import { isView, localMembers, localStats, VIEWS, type View } from "@/lib/local-members";
+import { entryBursts, isView, localMembers, localStats, VIEWS, type View } from "@/lib/local-members";
 import LocalDraw from "@/components/admin/LocalDraw";
 import LocalConfigEditor from "@/components/admin/LocalConfigEditor";
 import IgVerifyToggle from "@/components/admin/IgVerifyToggle";
@@ -13,6 +13,7 @@ import "@/components/admin/local-admin.css";
 export const metadata: Metadata = { title: "Local signups — vegan eating" };
 export const dynamic = "force-dynamic";
 
+const time = (d: Date) => d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
 const day = (d: Date | null) => (d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" }) : "—");
 
 export default async function AdminLocalPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
@@ -20,7 +21,7 @@ export default async function AdminLocalPage({ searchParams }: { searchParams: P
     const sp = await searchParams;
     const view: View = isView(sp?.view) ? sp.view : "entries";
     const cfg = await getLocalConfig();
-    const [rows, stats] = await Promise.all([localMembers(view, cfg.giveaway), localStats(cfg.markets)]);
+    const [rows, stats, bursts] = await Promise.all([localMembers(view, cfg.giveaway), localStats(cfg.markets), entryBursts()]);
     const marketName = (k: string | null) => (k ? cfg.markets.find((m) => m.key === k)?.name ?? k : null);
     const g = cfg.giveaway;
     const status = giveawayStatus(g);
@@ -39,6 +40,20 @@ export default async function AdminLocalPage({ searchParams }: { searchParams: P
                         <Link href="/whole-foods/rules" target="_blank">official rules</Link>. A member is local when their ZIP is in a market below.
                     </p>
                 </div>
+
+                {bursts.length > 0 && (
+                    <div className="la-alert">
+                        <b>⚠ Signup spike{bursts.length === 1 ? "" : "s"} — possible automated entries</b>
+                        <ul>
+                            {bursts.slice(0, 5).map((b) => (
+                                <li key={b.start.toISOString()}>
+                                    {b.count} entries between {time(b.start)} and {time(b.end)} ET
+                                </li>
+                            ))}
+                        </ul>
+                        <span>Normal in-store traffic trickles in. Check those entries&rsquo; usernames, emails and IG accounts below, and ban any fakes in Members before the draw.</span>
+                    </div>
+                )}
 
                 <div className="la-stats">
                     {cfg.markets.map((m, i) => (

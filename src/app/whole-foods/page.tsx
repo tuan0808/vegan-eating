@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 const ERRORS: Record<string, string> = {
     ig: "That Instagram handle doesn't look right — use just your @name.",
     zip: "Enter a 5-digit ZIP code.",
+    igtaken: "That Instagram handle is already linked to another account. If it's yours, contact us.",
 };
 
 export default async function WholeFoodsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {

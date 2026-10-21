@@ -40,3 +40,34 @@ export async function localStats(markets: { key: string }[]) {
     const counts = Object.fromEntries(byMarket.map((r) => [r.localMarket as string, r._count]));
     return { perMarket: markets.map((m) => counts[m.key] ?? 0), notLocal, fromQr };
 }
+
+// Spike detection: a run of giveaway entries far faster than shoppers trickle in
+// is the signature of a script. Flags any 10-minute stretch with BURST_MIN+
+// entries; overlapping stretches merge into one burst.
+const BURST_WINDOW_MS = 10 * 60 * 1000;
+const BURST_MIN = 10;
+
+export type Burst = { start: Date; end: Date; count: number };
+
+export async function entryBursts(): Promise<Burst[]> {
+    const rows = await prisma.user.findMany({
+        where: { giveawayEnteredAt: { not: null } },
+        select: { giveawayEnteredAt: true },
+        orderBy: { giveawayEnteredAt: "asc" },
+    });
+    const t = rows.map((r) => r.giveawayEnteredAt!.getTime());
+    const bursts: Burst[] = [];
+    let lo = 0;
+    for (let hi = 0; hi < t.length; hi++) {
+        while (t[hi] - t[lo] > BURST_WINDOW_MS) lo++;
+        if (hi - lo + 1 < BURST_MIN) continue;
+        const last = bursts[bursts.length - 1];
+        if (last && t[lo] <= last.end.getTime()) {
+            last.end = new Date(t[hi]);
+            last.count = t.filter((x) => x >= last.start.getTime() && x <= t[hi]).length;
+        } else {
+            bursts.push({ start: new Date(t[lo]), end: new Date(t[hi]), count: hi - lo + 1 });
+        }
+    }
+    return bursts.reverse(); // newest first
+}

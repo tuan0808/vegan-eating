@@ -30,6 +30,8 @@ const MESSAGES: Record<string, string> = {
     iplimit: "An account has already been created from this network. If you need another, please contact us.",
     ig: "That Instagram handle doesn't look right — use just your @name (letters, numbers, dots, underscores).",
     zip: "Enter a 5-digit ZIP code.",
+    igtaken: "That Instagram handle is already linked to another account. If it's yours, contact us.",
+    disposable: "Please use a permanent email address — temporary inbox services aren't accepted.",
     unverified:
         "Almost there — please verify your email before logging in. We emailed you a link when you signed up; check your inbox and spam. Need a fresh one? Resend it below.",
 };

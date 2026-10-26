@@ -85,18 +85,18 @@ const ADMIN_GROUPS: { label: string; items: Item[] }[] = [
         label: "Admin",
         items: [
             { href: "/admin/socials", label: "Socials", icon: icoSocials, perm: "socials" },
-            { href: "/admin/local", label: "Local signups", icon: icoLocal, perm: "local" },
             { href: "/admin/roles", label: "Roles", icon: icoRoles },
             { href: "/admin/security", label: "Security", icon: icoSecurity },
             { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
         ],
     },
     {
-        // The Whole Foods advert's pages — wording editable without a deploy.
+        // The Whole Foods advert: page wording (no deploy needed) + its signups, dates and markets.
         label: "Campaign",
         items: [
             { href: "/admin/campaign/whole-foods", label: "Whole Foods", icon: icoGiveaway, perm: "giveaway" },
             { href: "/admin/campaign/whole-foods/rules", label: "Official Rules", icon: icoArticles, perm: "giveaway" },
+            { href: "/admin/local", label: "Local signups", icon: icoLocal, perm: "local" },
         ],
     },
 ];

@@ -31,7 +31,7 @@ export default function GiveawayContentEditor({ section, initial }: { section: "
             <input type="hidden" name="section" value={section} />
             <div className="la-alert" style={{ margin: 0, background: "#f7f5ee", borderColor: "var(--line, #e6e3d8)", color: "var(--ink)" }}>
                 <b>Shortcuts you can type anywhere:</b>{" "}
-                <code>{"{start}"}</code> <code>{"{end}"}</code> <code>{"{draw}"}</code> dates ·{" "}
+                <code>{"{start}"}</code> <code>{"{end}"}</code> <code>{"{draw}"}</code> dates (set under Campaign → Local signups) ·{" "}
                 <code>{"{prize}"}</code> · <code>{"{partner}"}</code> · <code>{"{ig}"}</code> our Instagram ·{" "}
                 <code>{"{rules}"}</code> link to the rules · <code>*word*</code> orange italic (headlines) ·{" "}
                 <code>[text]</code> yellow highlight for anything not confirmed yet.

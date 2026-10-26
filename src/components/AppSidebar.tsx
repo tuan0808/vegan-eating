@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { useMobileNav } from "@/components/MobileNav";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
@@ -44,6 +44,7 @@ const icoUpload = I(<><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a1 1 0 0 
 const icoSocials = <FontAwesomeIcon icon={faShareNodes} style={{ width: 18, height: 18 }} />;
 const icoRoles = I(<><circle cx="8" cy="8" r="3" /><path d="M2.5 19c0-3 2.5-5.5 5.5-5.5 1.6 0 3 .6 4 1.6" /><circle cx="17.5" cy="16.5" r="2.3" /><path d="M17.5 12.2v1.9M17.5 18.9v1.9M21.8 16.5h-1.9M15.1 16.5h-1.9" /></>);
 const icoLocal = I(<><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></>);
+const icoGiveaway = I(<><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8" /><path d="M12 8c-1.5-3-5-3.5-5-1.5S10 8 12 8Zm0 0c1.5-3 5-3.5 5-1.5S14 8 12 8Z" /></>);
 const icoDownload = I(<><path d="M12 4v12M7 11l5 5 5-5" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></>);
 
 
@@ -55,32 +56,56 @@ const ACCOUNT: Item[] = [
     { href: "/settings", label: "Settings", icon: icoSettings },
 ];
 
-const ADMIN: Item[] = [
-    { href: "/admin", label: "Members", icon: icoMembers },
-    { href: "/admin/analytics", label: "Analytics", icon: icoAnalytics, perm: "analytics" },
-    { href: "/admin/recipes", label: "Recipes", icon: icoRecipes, perm: "recipes" },
-    { href: "/admin/categories", label: "Categories", icon: icoCategories, perm: "categories" },
-    { href: "/admin/articles", label: "Articles", icon: icoArticles, perm: "articles" },
-    { href: "/admin/news", label: "News", icon: icoNews, perm: "news" },
-    { href: "/admin/forums", label: "Forums", icon: icoForums, perm: "forums" },
-    { href: "/admin/comments", label: "Moderation", icon: icoModeration },
-    { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize, perm: "veganize" },
-    { href: "/admin/socials", label: "Socials", icon: icoSocials, perm: "socials" },
-    { href: "/admin/local", label: "Local signups", icon: icoLocal, perm: "local" },
-    { href: "/admin/roles", label: "Roles", icon: icoRoles },
-    { href: "/admin/security", label: "Security", icon: icoSecurity },
-    { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
-];
-
-// Shared staff file repository.
-const FILES: Item[] = [
-    { href: "/admin/files/upload", label: "Upload", icon: icoUpload, perm: "files.upload" },
-    { href: "/admin/files", label: "Downloads", icon: icoDownload, perm: "files.download" },
+// Admin groups, in sidebar order. Each item shows to admins, or to a role
+// holding its `perm`; a group with nothing visible is hidden entirely.
+const ADMIN_GROUPS: { label: string; items: Item[] }[] = [
+    {
+        label: "Admin – Website",
+        items: [
+            { href: "/admin/recipes", label: "Recipes", icon: icoRecipes, perm: "recipes" },
+            { href: "/admin/categories", label: "Categories", icon: icoCategories, perm: "categories" },
+            { href: "/admin/articles", label: "Articles", icon: icoArticles, perm: "articles" },
+            { href: "/admin/news", label: "News", icon: icoNews, perm: "news" },
+            { href: "/admin/forums", label: "Forums", icon: icoForums, perm: "forums" },
+            { href: "/admin/comments", label: "Moderation", icon: icoModeration },
+        ],
+    },
+    {
+        label: "Admin – Tools",
+        items: [
+            { href: "/admin", label: "Members", icon: icoMembers },
+            { href: "/admin/analytics", label: "Analytics", icon: icoAnalytics, perm: "analytics" },
+            { href: "/admin/veganize", label: "Veganizer", icon: icoVeganize, perm: "veganize" },
+            // Shared staff file repository.
+            { href: "/admin/files/upload", label: "Upload", icon: icoUpload, perm: "files.upload" },
+            { href: "/admin/files", label: "Downloads", icon: icoDownload, perm: "files.download" },
+        ],
+    },
+    {
+        label: "Admin",
+        items: [
+            { href: "/admin/socials", label: "Socials", icon: icoSocials, perm: "socials" },
+            { href: "/admin/local", label: "Local signups", icon: icoLocal, perm: "local" },
+            { href: "/admin/roles", label: "Roles", icon: icoRoles },
+            { href: "/admin/security", label: "Security", icon: icoSecurity },
+            { href: "/admin/maintenance", label: "Site settings", icon: icoMaintenance },
+        ],
+    },
+    {
+        // The Whole Foods advert's pages — wording editable without a deploy.
+        label: "Campaign",
+        items: [
+            { href: "/admin/campaign/whole-foods", label: "Whole Foods", icon: icoGiveaway, perm: "giveaway" },
+            { href: "/admin/campaign/whole-foods/rules", label: "Official Rules", icon: icoArticles, perm: "giveaway" },
+        ],
+    },
 ];
 
 export default function AppSidebar({ role, perms }: { role: string; perms: Permission[] }) {
     const isAdmin = role === "ADMIN";
-    const adminItems = [...ADMIN, ...FILES].filter((it) => isAdmin || (it.perm && perms.includes(it.perm)));
+    const adminGroups = ADMIN_GROUPS
+        .map((g) => ({ ...g, items: g.items.filter((it) => isAdmin || (it.perm && perms.includes(it.perm))) }))
+        .filter((g) => g.items.length > 0);
     const path = usePathname();
     const { open: mobileOpen, close } = useMobileNav();
     const [collapsed, setCollapsed] = useState(false);
@@ -127,7 +152,7 @@ export default function AppSidebar({ role, perms }: { role: string; perms: Permi
     // deeper routes prefix-match so /admin/recipes/[slug]/edit still counts.
     const isActive = (href?: string) => {
         if (!href) return false;
-        if (href === "/dashboard" || href === "/admin" || href === "/admin/files") return path === href;
+        if (href === "/dashboard" || href === "/admin" || href === "/admin/files" || href === "/admin/campaign/whole-foods") return path === href;
         return path === href || path.startsWith(href + "/");
     };
 
@@ -184,12 +209,12 @@ export default function AppSidebar({ role, perms }: { role: string; perms: Permi
                 <p className="sec">Account</p>
                 {ACCOUNT.map(renderItem)}
 
-                {adminItems.length > 0 && (
-                    <>
-                        <p className="sec" style={{ marginTop: 22 }}>Admin</p>
-                        {adminItems.map(renderItem)}
-                    </>
-                )}
+                {adminGroups.map((g) => (
+                    <Fragment key={g.label}>
+                        <p className="sec" style={{ marginTop: 22 }}>{g.label}</p>
+                        {g.items.map(renderItem)}
+                    </Fragment>
+                ))}
 
                 <div className="foot">
                     <Link href="/" className="back" onClick={close} title="Back to site">

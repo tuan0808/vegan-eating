@@ -37,7 +37,7 @@ export default async function AdminLocalPage({ searchParams }: { searchParams: P
                     <p>
                         {status === "open" ? "Open" : status === "upcoming" ? "Not open yet" : "Closed"} · entries {formatDay(g.start)} – {formatDay(g.end)} · drawing {formatDay(g.drawDate)}.
                         QR code → <Link href="/whole-foods?src=qr" target="_blank">/whole-foods?src=qr</Link> ·{" "}
-                        <Link href="/whole-foods/rules" target="_blank">official rules</Link>. A member is local when their ZIP is in a market below.
+                        <Link href="/whole-foods/rules" target="_blank">official rules</Link> (wording: <Link href="/admin/campaign/whole-foods">Campaign</Link>). A member is local when their ZIP is in a market below.
                     </p>
                 </div>
 

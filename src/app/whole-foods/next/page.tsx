@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import RedditEvent from "@/components/analytics/RedditEvent";
 import { formatDay, getLocalConfig, IG_HANDLE, IG_URL } from "@/lib/local-markets";
+import { getGiveawayContent, giveawayVars } from "@/lib/giveaway-content";
+import { Copy } from "../campaign";
 import "../whole-foods.css";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +15,8 @@ export const metadata: Metadata = { title: "You're almost in — vegan eating", 
 export default async function WholeFoodsNextPage({ searchParams }: { searchParams: Promise<{ sc?: string; member?: string }> }) {
     const sp = await searchParams;
     const member = sp?.member === "1";
-    const g = (await getLocalConfig()).giveaway;
+    const [{ giveaway: g }, c] = await Promise.all([getLocalConfig(), getGiveawayContent()]);
+    const vars = giveawayVars(c, g);
 
     return (
         <div className="wf">
@@ -26,18 +29,18 @@ export default async function WholeFoodsNextPage({ searchParams }: { searchParam
                 <ol className="wf-steps">
                     <li className="wf-step is-done">
                         <span className="wf-num">✓</span>
-                        <div><b>Create your free account</b><span>Done — welcome to the table.</span></div>
+                        <div><b><Copy text={c.steps[0].title} vars={vars} /></b><span>Done — welcome to the table.</span></div>
                     </li>
                     <li className={`wf-step ${member ? "is-done" : "is-now"}`}>
                         <span className="wf-num">{member ? "✓" : 2}</span>
                         <div>
-                            <b>Verify your email</b>
+                            <b><Copy text={c.steps[1].title} vars={vars} /></b>
                             <span>{member ? "Done." : "Check your inbox (and spam) for our link — your entry counts once you've verified."}</span>
                         </div>
                     </li>
                     <li className={`wf-step ${member ? "is-now" : ""}`}>
                         <span className="wf-num">3</span>
-                        <div><b>Follow @{IG_HANDLE} on Instagram</b><span>We check this before announcing the winner.</span></div>
+                        <div><b><Copy text={c.steps[2].title} vars={vars} /></b><span><Copy text={c.steps[2].text} vars={vars} /></span></div>
                     </li>
                 </ol>
 

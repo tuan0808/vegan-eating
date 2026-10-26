@@ -23,6 +23,7 @@ export const PERMISSIONS = [
     { key: "analytics", label: "Analytics", hint: "View site traffic and page analytics" },
     { key: "socials", label: "Socials", hint: "Edit the social links on /links and the footer" },
     { key: "local", label: "Local signups", hint: "See local members + giveaway entries (emails, IG handles), verify IG follows, draw winners" },
+    { key: "giveaway", label: "Campaign pages", hint: "Edit the Whole Foods campaign page and its official rules (live immediately)" },
     { key: "recipes", label: "Recipes", hint: "Create, edit, import/export recipes; upload images" },
     { key: "categories", label: "Categories", hint: "Manage recipe categories" },
     { key: "articles", label: "Articles", hint: "Create, edit, import/export articles; upload images" },

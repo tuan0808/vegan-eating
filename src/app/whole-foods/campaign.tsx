@@ -1,20 +1,29 @@
 // src/app/whole-foods/campaign.tsx
 //
-// Copy for the Whole Foods QR giveaway, in one place. Anything in [brackets] is
-// a placeholder still to be confirmed — <Tbd> renders it highlighted so it can't
-// slip onto a printed QR card unnoticed. Dates come from Admin → Local signups
-// (src/lib/local-markets.ts), not from here.
+// The page copy itself lives in the DB (src/lib/giveaway-content.ts, edited at
+// Admin → Campaign). This renders one of its short text fields: {tokens}
+// filled in, *word* in the italic accent, {rules} as a link to the official
+// rules, and "[placeholder]" highlighted so it can't slip onto a printed QR card
+// unnoticed.
+import Link from "next/link";
 
 export const CAMPAIGN = "whole-foods";
-export const PARTNER = "Whole Foods Market";
-export const STORE = "[Store name / location, e.g. Whole Foods Market Boca Raton]";
-export const PRIZE = "a free Whole Foods shopping spree — 20 minutes to spend $250";
-export const PRIZE_VALUE = "Approximate retail value: $250";
-export const WINNERS = "[Number of winners: 1]";
-export const SPONSOR_ADDRESS = "[vegan eating mailing address]";
-export const CONTACT_EMAIL = "[contact email for giveaway questions]";
 
-/** Highlights a "[placeholder]" string; renders normal text unchanged. */
-export function Tbd({ children }: { children: string }) {
-    return children.startsWith("[") ? <mark className="wf-tbd">{children}</mark> : <>{children}</>;
+export function Copy({ text, vars }: { text: string; vars: Record<string, string> }) {
+    return (
+        <>
+            {text.split(/(\{\w+\}|\*[^*]+\*|\[[^\]]+\])/).map((part, i) => {
+                if (i % 2 === 0) return part;
+                if (part === "{rules}") return <Link key={i} href="/whole-foods/rules">official rules</Link>;
+                if (part.startsWith("{")) return vars[part.slice(1, -1)] ?? part;
+                if (part.startsWith("*")) return <em key={i}>{part.slice(1, -1)}</em>;
+                return <mark key={i} className="wf-tbd">{part}</mark>;
+            })}
+        </>
+    );
+}
+
+/** Plain string version, for <title> and form props. */
+export function copyText(text: string, vars: Record<string, string>): string {
+    return text.replace(/\{(\w+)\}/g, (m, k: string) => (k === "rules" ? "official rules" : vars[k] ?? m)).replace(/\*([^*]+)\*/g, "$1");
 }

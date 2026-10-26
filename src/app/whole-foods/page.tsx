@@ -13,15 +13,19 @@ import { localRegisterAction } from "@/app/(auth)/register/actions";
 import { enterGiveawayAction } from "@/lib/actions/giveaway";
 import { currentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { formatDay, getLocalConfig, giveawayStatus, IG_HANDLE } from "@/lib/local-markets";
-import { CAMPAIGN, PARTNER, PRIZE, Tbd } from "./campaign";
+import { formatDay, getLocalConfig, giveawayStatus } from "@/lib/local-markets";
+import { getGiveawayContent, giveawayVars } from "@/lib/giveaway-content";
+import { CAMPAIGN, Copy, copyText } from "./campaign";
 import "./whole-foods.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
-    title: `${PARTNER} × vegan eating giveaway`,
-    robots: { index: false }, // QR-only landing page
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const c = await getGiveawayContent();
+    return {
+        title: `${c.partner} × vegan eating giveaway`,
+        robots: { index: false }, // QR-only landing page
+    };
+}
 
 const ERRORS: Record<string, string> = {
     ig: "That Instagram handle doesn't look right — use just your @name.",
@@ -31,8 +35,9 @@ const ERRORS: Record<string, string> = {
 
 export default async function WholeFoodsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
     const sp = await searchParams;
-    const [cfg, session] = await Promise.all([getLocalConfig(), currentUser()]);
+    const [cfg, c, session] = await Promise.all([getLocalConfig(), getGiveawayContent(), currentUser()]);
     const g = cfg.giveaway;
+    const vars = giveawayVars(c, g);
     const status = giveawayStatus(g);
     const me = session?.id
         ? await prisma.user.findUnique({ where: { id: session.id }, select: { igHandle: true, zipCode: true, giveawayEnteredAt: true } })
@@ -45,11 +50,9 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
                 <Link href="/" aria-label="vegan eating home">
                     <img src="/logo/logo-ink.svg" alt="vegan eating" width={150} height={38} className="wf-logo" />
                 </Link>
-                <div className="wf-kicker">{PARTNER} × vegan eating</div>
-                <h1 className="wf-h1">Join us. <em>Win.</em></h1>
-                <p className="wf-dek">
-                    Create a free vegan eating account and follow us on Instagram for a chance to win <Tbd>{PRIZE}</Tbd>.
-                </p>
+                <div className="wf-kicker">{c.partner} × vegan eating</div>
+                <h1 className="wf-h1"><Copy text={c.headline} vars={vars} /></h1>
+                <p className="wf-dek"><Copy text={c.dek} vars={vars} /></p>
 
                 {status === "closed" ? (
                     <p className="wf-closed">
@@ -64,15 +67,15 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
                 <ol className="wf-steps">
                     <li className={`wf-step ${me ? "is-done" : "is-now"}`}>
                         <span className="wf-num">{me ? "✓" : 1}</span>
-                        <div><b>Create your free account</b><span>Takes under a minute.</span></div>
+                        <div><b><Copy text={c.steps[0].title} vars={vars} /></b><span><Copy text={c.steps[0].text} vars={vars} /></span></div>
                     </li>
                     <li className={`wf-step ${me ? "is-done" : ""}`}>
                         <span className="wf-num">{me ? "✓" : 2}</span>
-                        <div><b>Verify your email</b><span>Tap the link we send you.</span></div>
+                        <div><b><Copy text={c.steps[1].title} vars={vars} /></b><span><Copy text={c.steps[1].text} vars={vars} /></span></div>
                     </li>
                     <li className={`wf-step ${me ? "is-now" : ""}`}>
                         <span className="wf-num">3</span>
-                        <div><b>Follow @{IG_HANDLE}</b><span>We check this before announcing the winner.</span></div>
+                        <div><b><Copy text={c.steps[2].title} vars={vars} /></b><span><Copy text={c.steps[2].text} vars={vars} /></span></div>
                     </li>
                 </ol>
 
@@ -104,15 +107,12 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
                         error={sp?.error}
                         local={{ campaign: CAMPAIGN }}
                         next="/whole-foods"
-                        heading="Create your account"
-                        subheading="Free, no spam. Includes our newsletter — one tested recipe each Sunday. Opt out anytime."
+                        heading={copyText(c.formHeading, vars)}
+                        subheading={copyText(c.formSubheading, vars)}
                     />
                 )}
 
-                <p className="wf-foot">
-                    No purchase necessary. 18+. See the <Link href="/whole-foods/rules">official rules</Link>. This
-                    promotion is not sponsored, endorsed or administered by, or associated with, Instagram.
-                </p>
+                <p className="wf-foot"><Copy text={c.footer} vars={vars} /></p>
             </div>
         </div>
     );

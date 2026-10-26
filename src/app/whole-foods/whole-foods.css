@@ -35,13 +35,13 @@
 .wf-err { background: rgba(194,96,58,.1); border: 1px solid rgba(194,96,58,.35); color: #9a3f1f; font-size: 14px; border-radius: 10px; padding: 10px 14px; }
 
 /* Official rules — light, readable, still on-brand. */
-.wf-rules { min-height: 100dvh; background: var(--paper); color: var(--ink); padding: 0 0 64px; }
-.wf-rules-hero { background: var(--ink); color: var(--paper); padding: 40px 16px 44px; text-align: center; }
-.wf-rules-hero .wf-h1 { font-size: clamp(34px, 8vw, 52px); }
+.wf-rules { background: var(--paper); color: var(--ink); }
 .wf-rules-body { max-width: 720px; margin: 0 auto; padding: 32px 16px 0; }
 .wf-rules-body h2 { font-size: 21px; margin: 32px 0 10px; color: var(--olive); }
 .wf-rules-body p, .wf-rules-body li { font-size: 15.5px; line-height: 1.65; color: #2f3a2c; }
 .wf-rules-body ol, .wf-rules-body ul { padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.wf-rules-body p { margin: 0 0 12px; }
+.wf-rules-body li p { margin: 0; }
 .wf-rules-lead { font-weight: 700; text-transform: uppercase; letter-spacing: .02em; font-size: 14.5px !important; }
-.wf-rules-back { display: inline-block; margin-top: 36px; color: var(--terra); font-weight: 700; text-decoration: none; }
+.wf-rules-back { display: inline-block; margin: 36px 0 64px; color: var(--terra); font-weight: 700; text-decoration: none; }
 .wf-tbd { background: #ffe58a; color: #3a2e00; padding: 0 4px; border-radius: 4px; }

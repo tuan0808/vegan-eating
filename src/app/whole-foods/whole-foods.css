@@ -13,7 +13,7 @@
 .wf-step { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: rgba(244,243,234,.06); border: 1px solid rgba(244,243,234,.12); }
 .wf-step b { display: block; font-size: 15px; color: #fff; }
 .wf-step span { display: block; font-size: 13.5px; color: rgba(244,243,234,.7); margin-top: 2px; }
-.wf-num { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; background: rgba(244,243,234,.12); color: var(--paper); }
+.wf-num { flex: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; font-weight: 700; font-size: 14px; background: rgba(244,243,234,.12); color: var(--paper); }
 .wf-step.is-done .wf-num { background: var(--terra); color: #fff; }
 .wf-step.is-now { border-color: var(--carrot); background: rgba(225,90,34,.1); }
 .wf-step.is-now .wf-num { background: var(--carrot); color: #fff; }

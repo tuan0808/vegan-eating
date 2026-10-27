@@ -39,7 +39,12 @@
 .wf-rules-body { max-width: 720px; margin: 0 auto; padding: 32px 16px 0; }
 .wf-rules-body h2 { font-size: 21px; margin: 32px 0 10px; color: var(--olive); }
 .wf-rules-body p, .wf-rules-body li { font-size: 15.5px; line-height: 1.65; color: #2f3a2c; }
-.wf-rules-body ol, .wf-rules-body ul { padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.wf-rules-body ol, .wf-rules-body ul { padding-left: 22px; margin: 0 0 12px; }
+/* Tailwind's preflight strips list markers; the rules editor's bullets/numbers need them back. */
+.wf-rules-body ul { list-style: disc; }
+.wf-rules-body ol { list-style: decimal; }
+.wf-rules-body ul ul { list-style: circle; }
+.wf-rules-body li + li { margin-top: 6px; }
 .wf-rules-body p { margin: 0 0 12px; }
 .wf-rules-body li p { margin: 0; }
 .wf-rules-lead { font-weight: 700; text-transform: uppercase; letter-spacing: .02em; font-size: 14.5px !important; }

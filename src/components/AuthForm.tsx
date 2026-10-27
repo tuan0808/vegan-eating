@@ -14,7 +14,7 @@ type Props = {
     resendAction?: (formData: FormData) => void | Promise<void>;
     /** Prefills the email field — the home "Subscribe" box hands its email over. */
     defaultEmail?: string;
-    /** Register only. The QR giveaway form makes IG + ZIP required and tags the campaign. */
+    /** Register only. The QR giveaway form makes ZIP required (IG stays optional) and tags the campaign. */
     local?: { campaign: string };
     heading?: string;
     subheading?: string;
@@ -106,7 +106,7 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
                         <>
                             {local ? <input type="hidden" name="campaign" value={local.campaign} /> : null}
                             <label>
-                                <span>Instagram handle{local ? "" : " (optional)"}</span>
+                                <span>Instagram handle (optional)</span>
                                 <input
                                     name="igHandle"
                                     type="text"
@@ -115,7 +115,6 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
                                     autoCapitalize="none"
                                     spellCheck={false}
                                     maxLength={60}
-                                    required={!!local}
                                 />
                                 {local ? (
                                     <small className="hint">

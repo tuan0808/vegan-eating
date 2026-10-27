@@ -86,7 +86,7 @@ async function createAccount(formData: FormData, flow: Flow) {
     const zipRaw = String(formData.get("zipCode") ?? "").trim();
     const igHandle = normalizeIgHandle(igRaw);
     const zipCode = normalizeZip(zipRaw);
-    if ((igRaw && !igHandle) || (flow.local && !igHandle)) fail("ig");
+    if (igRaw && !igHandle) fail("ig");
     if ((zipRaw && !zipCode) || (flow.local && !zipCode)) fail("zip");
     const localCfg = await getLocalConfig();
     const localMarket = marketForZip(localCfg.markets, zipCode);

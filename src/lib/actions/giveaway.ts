@@ -1,7 +1,7 @@
 "use server";
 // src/lib/actions/giveaway.ts — existing members entering the /whole-foods giveaway.
 // New people go through localRegisterAction (account + entry in one step); a
-// signed-in member only adds their IG handle + ZIP here.
+// signed-in member only adds their ZIP (+ optional IG handle) here.
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
@@ -9,12 +9,13 @@ import { getLocalConfig, giveawayStatus, marketForZip, normalizeIgHandle, normal
 
 export async function enterGiveawayAction(formData: FormData) {
     const me = await requireUser();
-    const igHandle = normalizeIgHandle(String(formData.get("igHandle") ?? ""));
+    const igRaw = String(formData.get("igHandle") ?? "").trim();
+    const igHandle = normalizeIgHandle(igRaw);
     const zipCode = normalizeZip(String(formData.get("zipCode") ?? ""));
-    if (!igHandle) redirect("/whole-foods?error=ig");
+    if (igRaw && !igHandle) redirect("/whole-foods?error=ig");
     if (!zipCode) redirect("/whole-foods?error=zip");
     // Same rule as signup: one account per IG handle.
-    const clash = await prisma.user.findFirst({ where: { igHandle, id: { not: me.id } }, select: { id: true } });
+    const clash = igHandle && (await prisma.user.findFirst({ where: { igHandle, id: { not: me.id } }, select: { id: true } }));
     if (clash) redirect("/whole-foods?error=igtaken");
 
     const cfg = await getLocalConfig();

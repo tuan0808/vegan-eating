@@ -46,7 +46,7 @@ export default function LocalDraw({ markets }: { markets: { key: string; name: s
                     <h3>@{winner.username}</h3>
                     <p>{winner.email}</p>
                     <p>
-                        IG: <a href={`https://www.instagram.com/${winner.igHandle}/`} target="_blank" rel="noopener noreferrer"><b>@{winner.igHandle}</b></a>
+                        IG: {winner.igHandle ? <a href={`https://www.instagram.com/${winner.igHandle}/`} target="_blank" rel="noopener noreferrer"><b>@{winner.igHandle}</b></a> : "none given"}
                         {" · "}ZIP {winner.zipCode ?? "—"} · {winner.market ? markets.find((m) => m.key === winner.market)?.name ?? winner.market : "not local"}
                     </p>
                     <p style={{ color: "var(--muted)", fontSize: 13 }}>

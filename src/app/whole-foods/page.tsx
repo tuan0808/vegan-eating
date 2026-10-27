@@ -2,8 +2,8 @@
 //
 // The QR-code destination for the Whole Foods giveaway. Stands alone (outside
 // the (site) group — no header/footer) so the only thing to do here is enter.
-// New visitors create an account (IG + ZIP required → tagged local by ZIP);
-// signed-in members just add their IG + ZIP. Print the QR as
+// New visitors create an account (ZIP required → tagged local by ZIP; IG optional);
+// signed-in members just add their ZIP + optional IG. Print the QR as
 // /whole-foods?src=qr so scans show up as their own row in analytics.
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -84,14 +84,14 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
                         <h2>{me.giveawayEnteredAt ? "You're entered" : "You're already a member"}</h2>
                         <p>
                             {me.giveawayEnteredAt
-                                ? "Update your Instagram handle or ZIP below if anything changed."
-                                : "Add your Instagram handle and ZIP to enter."}
+                                ? "Update your ZIP or Instagram handle below if anything changed."
+                                : "Add your ZIP to enter."}
                         </p>
                         {sp?.error && ERRORS[sp.error] ? <p className="wf-err">{ERRORS[sp.error]}</p> : null}
                         <form action={enterGiveawayAction}>
                             <label>
-                                Instagram handle
-                                <input name="igHandle" defaultValue={me.igHandle ?? ""} placeholder="@yourname" autoCapitalize="none" spellCheck={false} maxLength={60} required />
+                                Instagram handle (optional)
+                                <input name="igHandle" defaultValue={me.igHandle ?? ""} placeholder="@yourname" autoCapitalize="none" spellCheck={false} maxLength={60} />
                             </label>
                             <label>
                                 ZIP code

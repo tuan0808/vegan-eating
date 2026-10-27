@@ -46,12 +46,12 @@ export async function setIgVerifiedAction(userId: string, verified: boolean): Pr
 }
 
 export type DrawResult =
-    | { ok: true; pool: number; winner: { id: string; username: string; email: string; igHandle: string; zipCode: string | null; market: string | null } }
+    | { ok: true; pool: number; winner: { id: string; username: string; email: string; igHandle: string | null; zipCode: string | null; market: string | null } }
     | { ok: false; message: string };
 
 /**
  * Uniform random pick (crypto RNG) from eligible entries: entered during the
- * window, email verified, has an IG handle, not banned, and — when `market` is
+ * window, email verified, not banned (IG handle optional), and — when `market` is
  * set — in that market ("local" = any market). `exclude` = people already drawn
  * this session who failed the IG check.
  */
@@ -62,7 +62,6 @@ export async function drawWinnerAction(market: string, exclude: string[]): Promi
         where: {
             giveawayEnteredAt: { not: null },
             emailVerified: { not: null },
-            igHandle: { not: null },
             banned: false,
             ...(market === "local" ? { localMarket: { not: null } } : market !== "all" ? { localMarket: market } : {}),
             ...(exclude.length ? { id: { notIn: exclude } } : {}),
@@ -72,5 +71,5 @@ export async function drawWinnerAction(market: string, exclude: string[]): Promi
     const pool = rows.filter((r) => enteredInWindow(giveaway, r.giveawayEnteredAt));
     if (pool.length === 0) return { ok: false, message: "No eligible entries left for that filter." };
     const w = pool[randomInt(pool.length)];
-    return { ok: true, pool: pool.length, winner: { id: w.id, username: w.username, email: w.email, igHandle: w.igHandle!, zipCode: w.zipCode, market: w.localMarket } };
+    return { ok: true, pool: pool.length, winner: { id: w.id, username: w.username, email: w.email, igHandle: w.igHandle, zipCode: w.zipCode, market: w.localMarket } };
 }

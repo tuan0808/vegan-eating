@@ -49,6 +49,7 @@ const Icon = {
 export default function ThreadView({
                                        view,
                                        loggedIn,
+                                       replyNotice,
                                        currentUserId,
                                        canModerate,
                                        replyAction,
@@ -62,6 +63,8 @@ export default function ThreadView({
                                    }: {
     view: ThreadViewType;
     loggedIn: boolean;
+    /** Why this member can't reply here; replaces the reply form when set. */
+    replyNotice?: { text: string; href?: string; linkLabel?: string } | null;
     currentUserId: string | null;
     canModerate: boolean;
     replyAction: Action;
@@ -194,6 +197,18 @@ export default function ThreadView({
             {view.locked ? (
                 <div className="reply-stub">
                     <p>This thread is locked. No new replies can be added.</p>
+                </div>
+            ) : loggedIn && replyNotice ? (
+                <div className="reply-stub">
+                    <p>
+                        {replyNotice.text}
+                        {replyNotice.href ? (
+                            <>
+                                {" "}
+                                <a href={replyNotice.href}>{replyNotice.linkLabel ?? "Go"} →</a>
+                            </>
+                        ) : null}
+                    </p>
                 </div>
             ) : loggedIn ? (
                 <form className="reply-box" action={replyAction}>
@@ -385,7 +400,7 @@ export default function ThreadView({
                 .save-btn {
                     color: #fff;
                     border: none;
-                    border-radius: 999px;
+                    border-radius: 11px;
                     padding: 10px 22px;
                     font-size: 14px;
                     font-weight: 600;
@@ -395,7 +410,7 @@ export default function ThreadView({
                     background: #fff;
                     border: 1px solid var(--line, #dee3cf);
                     color: var(--ink, #1c2317);
-                    border-radius: 999px;
+                    border-radius: 11px;
                     padding: 10px 22px;
                     font-size: 14px;
                     font-weight: 600;
@@ -426,7 +441,7 @@ export default function ThreadView({
                 .reply-btn {
                     color: #fff;
                     border: none;
-                    border-radius: 999px;
+                    border-radius: 11px;
                     padding: 11px 24px;
                     font-size: 14.5px;
                     font-weight: 600;

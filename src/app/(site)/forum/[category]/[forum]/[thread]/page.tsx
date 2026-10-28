@@ -6,6 +6,7 @@ import { getThreadView } from "@/lib/forum";
 import { currentUser } from "@/lib/auth-helpers";
 import ThreadView from "@/components/ThreadView";
 import PageHero from "@/components/PageHero";
+import { canPostInBoard, postGateNotice } from "@/lib/forum-perms";
 import { createReply } from "../../../actions";
 import { updatePost, deletePost, togglePin, toggleLock } from "../../../moderation-actions";
 
@@ -29,6 +30,10 @@ export default async function ThreadPage(
     if (!view) notFound();
 
     const user = await currentUser();
+    // Members who can't reply here (staff-only board, intro gate) see why instead of the form.
+    const replyNotice = user?.id
+        ? postGateNotice(await canPostInBoard({ id: user.id, role: user.role }, view.forum))
+        : null;
 
     return (
         <>
@@ -57,6 +62,7 @@ export default async function ThreadPage(
             <ThreadView
                 view={view}
                 loggedIn={!!user}
+                replyNotice={replyNotice}
                 currentUserId={user?.id ?? null}
                 canModerate={user?.role === "ADMIN" || user?.role === "MODERATOR"}
                 replyAction={createReply}

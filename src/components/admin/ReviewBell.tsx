@@ -129,7 +129,7 @@ export default function ReviewBell({ count }: { count: number }) {
           background: var(--green);
           color: var(--paper);
           border: none;
-          border-radius: 999px;
+          border-radius: 11px;
           padding: 0.5rem 1rem;
           font-size: 0.85rem;
           font-weight: 600;

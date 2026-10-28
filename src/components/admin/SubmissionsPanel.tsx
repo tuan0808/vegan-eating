@@ -19,7 +19,7 @@ export default async function SubmissionsPanel() {
         display: "inline-flex",
         alignItems: "center",
         padding: "9px 18px",
-        borderRadius: 999,
+        borderRadius: 11,
         fontWeight: 700,
         fontSize: 14,
         textDecoration: "none",

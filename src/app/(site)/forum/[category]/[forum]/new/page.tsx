@@ -9,6 +9,7 @@ import RichEditor from "@/components/RichEditor";
 import PageHero from "@/components/PageHero";
 import SubmitTimer from "@/components/SubmitTimer";
 import { createThread } from "../../../actions";
+import { canPostInBoard, postGateNotice } from "@/lib/forum-perms";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "New thread — Forums — vegan eating" };
@@ -22,6 +23,9 @@ const ERR: Record<string, string> = {
     blocked: "Unable to post from this connection.",
     banned: "Your account is not able to post.",
     unverified: "Please verify your email before posting — check your inbox for the link, or resend it from your dashboard.",
+    forbidden: "Only staff, moderators and admins can post in this board.",
+    intro_required: "Introduce yourself in Introductions first — 12 hours later you can post in the other boards.",
+    intro_wait: "Thanks for introducing yourself! Posting here unlocks 12 hours after your introduction.",
     too_fast: "That was quick — take a moment and try again.",
     links: "New accounts can’t post links yet, and established accounts are capped — remove some links and try again.",
     duplicate: "That looks almost identical to something you just posted.",
@@ -52,7 +56,7 @@ const btnStyle: CSSProperties = {
     background: "var(--terra, #c2603a)",
     color: "#fff",
     border: "none",
-    borderRadius: 999,
+    borderRadius: 11,
     padding: "12px 26px",
     fontSize: 15,
     fontWeight: 600,
@@ -73,6 +77,8 @@ export default async function NewThreadPage({
 
     const view = await getForumView(params.category, params.forum);
     if (!view) notFound();
+
+    const notice = postGateNotice(await canPostInBoard({ id: user.id, role: user.role }, view.forum));
 
     const errorMsg = searchParams.error
         ? ERR[searchParams.error] ?? "Something went wrong. Please try again."
@@ -118,6 +124,17 @@ export default async function NewThreadPage({
                     </p>
                 ) : null}
 
+                {notice ? (
+                    <p style={{ fontSize: 16, color: "var(--ink, #1c2317)" }}>
+                        {notice.text}
+                        {notice.href ? (
+                            <>
+                                {" "}
+                                <Link href={notice.href}>{notice.linkLabel ?? "Go"} →</Link>
+                            </>
+                        ) : null}
+                    </p>
+                ) : (
                 <form action={createThread}>
                     <input type="hidden" name="categorySlug" value={view.category.slug} />
                     <input type="hidden" name="forumSlug" value={view.forum.slug} />
@@ -154,6 +171,7 @@ export default async function NewThreadPage({
                         </Link>
                     </div>
                 </form>
+                )}
             </div>
         </>
     );

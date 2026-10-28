@@ -155,7 +155,7 @@ const tabsBar: React.CSSProperties = {
 };
 const tabStyle: React.CSSProperties = {
     display: "inline-flex", alignItems: "center", gap: 7,
-    padding: "7px 14px", borderRadius: 999, fontSize: 14, fontWeight: 600,
+    padding: "7px 14px", borderRadius: 11, fontSize: 14, fontWeight: 600,
     color: "var(--muted, #6b7264)", background: "transparent", textDecoration: "none",
     border: "1px solid var(--line, #e6e3da)",
 };
@@ -173,15 +173,15 @@ const toolbar: React.CSSProperties = {
     background: "#faf8f1", border: "1px solid var(--line, #e6e3da)", borderRadius: 12,
 };
 const bulkBtn: React.CSSProperties = {
-    border: "none", borderRadius: 999, padding: "8px 16px",
+    border: "none", borderRadius: 11, padding: "8px 16px",
     fontSize: 13.5, fontWeight: 700, background: "#8a5a12", color: "#fff",
     cursor: "pointer", opacity: 1,
 };
 const banBtn: React.CSSProperties = {
-    border: "none", borderRadius: 999, padding: "8px 16px",
+    border: "none", borderRadius: 11, padding: "8px 16px",
     fontSize: 13.5, fontWeight: 700, background: "#b23b2e", color: "#fff", cursor: "pointer",
 };
 const unbanBtn: React.CSSProperties = {
-    border: "none", borderRadius: 999, padding: "8px 16px",
+    border: "none", borderRadius: 11, padding: "8px 16px",
     fontSize: 13.5, fontWeight: 700, background: "#3f6b45", color: "#fff", cursor: "pointer",
 };

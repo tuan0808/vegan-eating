@@ -9,18 +9,46 @@ export default function ThreadList({
                                        accent,
                                        categorySlug,
                                        forumSlug,
+                                       newHref,
+                                       notice,
                                    }: {
     threads: ThreadRow[];
     accent: string;
     categorySlug: string;
     forumSlug: string;
+    /** Where "New thread" goes — the composer when signed in, /login otherwise; null hides it. */
+    newHref: string | null;
+    /** Why this user can't start a thread here (staff-only board, intro gate). */
+    notice?: { text: string; href?: string; linkLabel?: string } | null;
 }) {
     return (
         <div className="thread-wrap">
+            <div className="toolbar">
+                <span className="toolbar-count">
+                    {threads.length} {threads.length === 1 ? "thread" : "threads"}
+                </span>
+                {newHref ? <Link href={newHref} className="new-btn">+ New thread</Link> : null}
+            </div>
+
+            {notice ? (
+                <p className="notice">
+                    {notice.text}
+                    {notice.href ? (
+                        <>
+                            {" "}
+                            <Link href={notice.href}>{notice.linkLabel ?? "Go"} →</Link>
+                        </>
+                    ) : null}
+                </p>
+            ) : null}
+
             {threads.length === 0 ? (
                 <div className="empty">
                     <p className="empty-title">No threads here yet.</p>
-                    <p className="empty-sub">Once accounts are live, this is where new topics will start.</p>
+                    <p className="empty-sub">Be the first to start a conversation in this board.</p>
+                    {newHref ? (
+                        <Link href={newHref} className="new-btn" style={{ marginTop: 18 }}>+ Start a thread</Link>
+                    ) : null}
                 </div>
             ) : (
                 <div className="thread-list">
@@ -72,6 +100,42 @@ export default function ThreadList({
                     max-width: var(--maxw);
                     margin: 0 auto;
                     padding: 8px 28px 90px;
+                }
+                .toolbar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                    padding: 16px 16px 8px;
+                }
+                .toolbar-count {
+                    font-size: 13px;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    color: var(--muted, #6b7264);
+                }
+                .thread-wrap :global(.new-btn) {
+                    display: inline-block;
+                    background: var(--terra, #c2603a);
+                    color: #fff;
+                    border-radius: 11px;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-decoration: none;
+                }
+                .thread-wrap :global(.new-btn:hover) {
+                    filter: brightness(0.96);
+                }
+                .notice {
+                    margin: 4px 16px 12px;
+                    background: #f3efe2;
+                    border: 1px solid var(--line, #e6e3da);
+                    border-radius: 10px;
+                    padding: 10px 14px;
+                    font-size: 14px;
+                    color: var(--ink, #1c2317);
                 }
                 .thread-list {
                     display: flex;

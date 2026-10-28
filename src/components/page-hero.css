@@ -17,6 +17,13 @@
 }
 
 /* darken the left so white text reads; let the right of the photo shine through */
+/* Optional separate phone art (PageHero mobileImage). */
+.phero-img-mobile { display: none; }
+@media (max-width: 980px) {
+    .phero-img-wide { display: none; }
+    .phero-img-mobile { display: block; }
+}
+
 .phero-scrim {
     position: absolute;
     inset: 0;
@@ -104,7 +111,7 @@
     font-size: 15px;
     font-weight: 600;
     padding: 14px 26px;
-    border-radius: 999px;
+    border-radius: 11px;
     text-decoration: none;
     transition: filter 0.15s ease, transform 0.15s ease;
 }

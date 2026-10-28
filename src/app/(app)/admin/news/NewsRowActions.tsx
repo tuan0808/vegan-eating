@@ -36,7 +36,7 @@ export default function NewsRowActions({
                     style={
                         published
                             ? undefined
-                            : { background: "#2f9e63", color: "#fff", border: "none", borderRadius: 999, padding: "4px 12px", fontWeight: 600 }
+                            : { background: "#2f9e63", color: "#fff", border: "none", borderRadius: 11, padding: "4px 12px", fontWeight: 600 }
                     }
                 >
                     {published ? "Unpublish" : "Publish"}

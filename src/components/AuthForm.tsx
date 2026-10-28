@@ -252,15 +252,28 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
                 input:focus {
                     border-color: var(--terra, #c2603a);
                 }
-                .captcha {
+                /* Turnstile renders a fixed 300px iframe; on narrow cards scale it to
+                   fit instead of letting it poke out past the card edge. :global
+                   because the class lands on TurnstileWidget's own div. */
+                :global(.captcha) {
                     min-height: 65px;
+                    container-type: inline-size;
+                }
+                @container (max-width: 299px) {
+                    :global(.cf-turnstile) { transform: scale(0.9); transform-origin: left top; }
+                }
+                @container (max-width: 270px) {
+                    :global(.cf-turnstile) { transform: scale(0.82); }
+                }
+                @container (max-width: 246px) {
+                    :global(.cf-turnstile) { transform: scale(0.74); }
                 }
                 button {
                     margin-top: 6px;
                     background: var(--terra, #c2603a);
                     color: #fff;
                     border: none;
-                    border-radius: 999px;
+                    border-radius: 11px;
                     padding: 13px 20px;
                     font-size: 15px;
                     font-weight: 600;

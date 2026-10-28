@@ -131,7 +131,7 @@ export type ThreadRow = {
 
 export type ForumView = {
     category: { name: string; slug: string };
-    forum: { id: string; name: string; slug: string; description: string | null };
+    forum: { id: string; name: string; slug: string; description: string | null; postMinRole: string };
     accent: string;
     threads: ThreadRow[];
 };
@@ -156,7 +156,7 @@ export async function getForumView(categorySlug: string, forumSlug: string): Pro
 
     return {
         category: { name: forum.category.name, slug: forum.category.slug },
-        forum: { id: forum.id, name: forum.name, slug: forum.slug, description: forum.description },
+        forum: { id: forum.id, name: forum.name, slug: forum.slug, description: forum.description, postMinRole: forum.postMinRole },
         accent: accentFor(forum.category.position),
         threads: forum.threads.map((t) => {
             const starter = displayName(t.author);
@@ -194,7 +194,7 @@ export type PostView = {
 
 export type ThreadView = {
     category: { name: string; slug: string };
-    forum: { name: string; slug: string };
+    forum: { name: string; slug: string; postMinRole: string };
     accent: string;
     title: string;
     pinned: boolean;
@@ -222,7 +222,7 @@ export async function getThreadView(
 
     return {
         category: { name: thread.forum.category.name, slug: thread.forum.category.slug },
-        forum: { name: thread.forum.name, slug: thread.forum.slug },
+        forum: { name: thread.forum.name, slug: thread.forum.slug, postMinRole: thread.forum.postMinRole },
         accent: accentFor(thread.forum.category.position),
         title: thread.title,
         pinned: thread.pinned,

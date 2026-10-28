@@ -29,7 +29,7 @@
 
 .roles-foot { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
 .roles-foot .as-save {
-    background: var(--green, #5b6b3f); color: #fff; border: none; border-radius: 999px;
+    background: var(--green, #5b6b3f); color: #fff; border: none; border-radius: 11px;
     padding: 0.55rem 1.4rem; font-size: 0.9rem; font-weight: 600; cursor: pointer;
 }
 .roles-foot .as-flash { font-size: 0.88rem; font-weight: 600; }

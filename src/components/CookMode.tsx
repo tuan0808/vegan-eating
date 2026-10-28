@@ -272,11 +272,11 @@ export default function CookMode({
                 .cm-timing { font-size: 12.5px; color: #9bb295; }
                 .cm-top-btns { display: flex; gap: 10px; align-items: center; }
                 .cm-mic { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.1);
-                    color: #fff; border: 0; border-radius: 999px; padding: 9px 14px; font-weight: 600; font-size: 13.5px; cursor: pointer; }
+                    color: #fff; border: 0; border-radius: 11px; padding: 9px 14px; font-weight: 600; font-size: 13.5px; cursor: pointer; }
                 .cm-mic.on { background: #E15A22; }
                 .cm-mic.on svg { animation: cm-pulse 1.2s ease-in-out infinite; }
                 @keyframes cm-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-                .cm-x { background: rgba(255,255,255,.1); color: #fff; border: 0; border-radius: 999px;
+                .cm-x { background: rgba(255,255,255,.1); color: #fff; border: 0; border-radius: 11px;
                     padding: 9px 16px; font-weight: 600; cursor: pointer; font-size: 14px; }
                 .cm-progress { display: flex; gap: 5px; padding: 16px 22px 0; flex-wrap: wrap; }
                 .cm-dot { height: 4px; flex: 1; min-width: 6px; border-radius: 2px; background: rgba(255,255,255,.16); transition: background .2s; }
@@ -293,7 +293,7 @@ export default function CookMode({
                 .cm-uses-lbl { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #9bb295; font-weight: 700; }
                 .cm-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
                 .cm-chip { background: rgba(91,179,95,.16); color: #cdeccd; border: 1px solid rgba(91,179,95,.35);
-                    border-radius: 999px; padding: 7px 14px; font-size: 14px; font-weight: 500; }
+                    border-radius: 11px; padding: 7px 14px; font-size: 14px; font-weight: 500; }
                 .cm-tap { display: block; margin-top: 30px; font-size: 13px; color: rgba(255,255,255,.4); letter-spacing: .04em; }
                 .cm-timer { margin-top: 30px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
                 .cm-time { font-family: "Fraunces", serif; font-size: clamp(40px, 8vw, 64px);

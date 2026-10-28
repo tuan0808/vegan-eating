@@ -107,6 +107,7 @@ export default async function ForumAdminPage({
                                             <span style={{ opacity: 0.7 }}>Post:</span>
                                             <select name="postMinRole" defaultValue={f.postMinRole} style={select}>
                                                 <option value="MEMBER">Everyone</option>
+                                                <option value="STAFF">Staff, mods &amp; admins</option>
                                                 <option value="MODERATOR">Mods &amp; admins</option>
                                                 <option value="ADMIN">Admins only</option>
                                             </select>
@@ -137,6 +138,7 @@ export default async function ForumAdminPage({
                                     <span style={{ opacity: 0.7 }}>Post:</span>
                                     <select name="postMinRole" defaultValue="MEMBER" style={select}>
                                         <option value="MEMBER">Everyone</option>
+                                        <option value="STAFF">Staff, mods &amp; admins</option>
                                         <option value="MODERATOR">Mods &amp; admins</option>
                                         <option value="ADMIN">Admins only</option>
                                     </select>
@@ -176,9 +178,9 @@ const card: React.CSSProperties = { background: "#faf8f1", border: "1px solid va
 const boardRow: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid var(--line,#e6e3da)", borderRadius: 10, padding: "8px 10px" };
 const input: React.CSSProperties = { flex: 1, minWidth: 0, border: "1px solid var(--line,#d9d5c8)", borderRadius: 8, padding: "8px 10px", fontSize: 14, background: "#fff", color: "var(--ink,#1c2317)" };
 const countTag: React.CSSProperties = { fontSize: 12, color: "var(--muted,#6b7264)", whiteSpace: "nowrap" };
-const btnPrimary: React.CSSProperties = { border: "none", borderRadius: 999, padding: "8px 16px", fontSize: 13.5, fontWeight: 600, background: "var(--terra,#c2603a)", color: "#fff", cursor: "pointer", whiteSpace: "nowrap" };
-const btnGhost: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 999, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: "transparent", color: "var(--ink,#1c2317)", cursor: "pointer" };
-const btnDanger: React.CSSProperties = { border: "1px solid rgba(194,96,58,0.4)", borderRadius: 999, padding: "8px 12px", fontSize: 13, fontWeight: 600, background: "transparent", color: "#9a3f1f", cursor: "pointer" };
+const btnPrimary: React.CSSProperties = { border: "none", borderRadius: 11, padding: "8px 16px", fontSize: 13.5, fontWeight: 600, background: "var(--terra,#c2603a)", color: "#fff", cursor: "pointer", whiteSpace: "nowrap" };
+const btnGhost: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 11, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: "transparent", color: "var(--ink,#1c2317)", cursor: "pointer" };
+const btnDanger: React.CSSProperties = { border: "1px solid rgba(194,96,58,0.4)", borderRadius: 11, padding: "8px 12px", fontSize: 13, fontWeight: 600, background: "transparent", color: "#9a3f1f", cursor: "pointer" };
 const btnArrow: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 8, width: 30, height: 30, fontSize: 14, background: "#fff", color: "var(--ink,#1c2317)", cursor: "pointer" };
 const select: React.CSSProperties = { border: "1px solid var(--line,#d9d5c8)", borderRadius: 8, padding: "7px 8px", fontSize: 13, background: "#fff", color: "var(--ink,#1c2317)", cursor: "pointer" };
 const permLabel: React.CSSProperties = { display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--muted,#6b7264)", whiteSpace: "nowrap" };

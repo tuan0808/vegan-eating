@@ -14,6 +14,9 @@ const ERR: Record<string, string> = {
     too_fast: "That was quick — take a moment and try again.",
     links: "New accounts can’t post links yet — that unlocks once your account is established.",
     duplicate: "That looks almost identical to your last post.",
+    forbidden: "Only staff, moderators and admins can post in this board.",
+    intro_required: "Introduce yourself in Introductions first — 12 hours later you can post in the other boards.",
+    intro_wait: "Thanks for introducing yourself! Posting here unlocks 12 hours after your introduction.",
 };
 
 export default function ReplyError() {

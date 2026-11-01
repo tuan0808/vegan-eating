@@ -32,7 +32,7 @@ export default async function WholeFoodsRulesPage() {
             <ClientEffects />
             <main className="wf-rules">
                 <PageHero
-                    image="/header/recipes.jpg"
+                    image="/header/whole-foods-header.webp"
                     kicker={`${c.partner} × vegan eating`}
                     title={copyText(c.rulesHeadline, vars)}
                     dek={`Entries ${vars.start} – ${vars.end} · Winner drawn ${vars.draw}`}

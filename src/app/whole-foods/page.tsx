@@ -8,6 +8,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AuthForm from "@/components/AuthForm";
+import PageHero from "@/components/PageHero";
 import PageTracker from "@/components/analytics/PageTracker";
 import { localRegisterAction } from "@/app/(auth)/register/actions";
 import { enterGiveawayAction } from "@/lib/actions/giveaway";
@@ -46,14 +47,21 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
     return (
         <div className="wf">
             <PageTracker />
+            <PageHero
+                image="/header/whole-foods-header.webp"
+                imageAlt={`${c.partner} × vegan eating`}
+                breadcrumb={
+                    <Link href="/" aria-label="vegan eating home">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo/logo-ink.svg" alt="vegan eating" width={140} height={36} className="wf-logo" />
+                    </Link>
+                }
+                kicker={`${c.partner} × vegan eating`}
+                title={copyText(c.headline, vars)}
+                dek={copyText(c.dek, vars)}
+                minHeight={420}
+            />
             <div className="wf-inner">
-                <Link href="/" aria-label="vegan eating home">
-                    <img src="/logo/logo-ink.svg" alt="vegan eating" width={150} height={38} className="wf-logo" />
-                </Link>
-                <div className="wf-kicker">{c.partner} × vegan eating</div>
-                <h1 className="wf-h1"><Copy text={c.headline} vars={vars} /></h1>
-                <p className="wf-dek"><Copy text={c.dek} vars={vars} /></p>
-
                 {status === "closed" ? (
                     <p className="wf-closed">
                         Entries closed {formatDay(g.end)} — the winner is drawn {formatDay(g.drawDate)}. You&rsquo;re still welcome to join!

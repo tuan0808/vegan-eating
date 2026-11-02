@@ -53,8 +53,8 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
             <ClientEffects />
             <main className="wf-main">
                 <PageHero
-                    image="/header/whole-foods-header.png"
-                mobileImage="/header/whole-foods-header-mobile.png"
+                    image="/header/whole-foods-header.webp"
+                    mobileImage="/header/whole-foods-header-mobile.png"
                     className="wf-hero"
                     kicker={`${c.partner} × vegan eating`}
                     title={<Copy text={c.headline} vars={vars} />}

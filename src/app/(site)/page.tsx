@@ -1,12 +1,12 @@
 // src/app/page.tsx
-import { Hero } from "@/components/Sections";
 import { Collections, ForumSection, JoinBand } from "@/components/HomeSections";
+import SocialCarousel from "@/components/SocialCarousel";
+import { buildSocialFeed } from "@/lib/social-feed";
 import Meditation from "@/components/Meditation";
 import HomeSearch from "@/components/HomeSearch";
 import HomeNearby from "@/components/HomeNearby";
 import RecipeCard from "@/components/RecipeCard";
 import CitiesRail from "@/components/CitiesRail";
-import InstagramSection from "@/components/InstagramSection";
 import { latestRecipes, randomRecipes } from "@/lib/recipes";
 import { popularCities } from "@/lib/actions/places";
 import { distanceKm } from "@/lib/places";
@@ -19,6 +19,8 @@ import Link from "next/link";
 import { pageMetadata } from "@/lib/seo";
 
 const RAIL_CITIES = 12;
+// Pull a long slice of IG history for the lead carousel (recipes are woven in).
+const FEED_POSTS = 60;
 
 // random picks differ per visit, so render on each request
 export const dynamic = "force-dynamic";
@@ -41,13 +43,17 @@ export default async function Home({
 }) {
     const sp = await searchParams;
 
-    const [hero, latest, picks, topCities, ig] = await Promise.all([
-        randomRecipes(1),
+    const [latest, picks, topCities, ig, feedRecipes] = await Promise.all([
         latestRecipes(6),
         randomRecipes(4),
         popularCities(TOP_CITIES),
-        recentInstagram(),
+        recentInstagram(FEED_POSTS),
+        randomRecipes(12),
     ]);
+
+    // Lead the page with a social wall: full IG history with a recipe slipped in
+    // every few posts (see buildSocialFeed), replacing the old featured Hero.
+    const socialFeed = buildSocialFeed(ig, feedRecipes);
 
     // Seed the "near me" area from the visitor's IP so it renders local on first
     // paint. `?nlat&nlng` overrides it (handy on localhost, where there's no IP).
@@ -71,7 +77,7 @@ export default async function Home({
 
     return (
         <>
-            <Hero recipe={hero[0]} />
+            <SocialCarousel items={socialFeed} />
 
             <HomeSearch />
 
@@ -114,8 +120,6 @@ export default async function Home({
             {cities.length > 0 && <CitiesRail cities={cities} />}
 
             <JoinBand />
-
-            <InstagramSection posts={ig} />
         </>
     );
 }

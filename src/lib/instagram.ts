@@ -58,10 +58,12 @@ export const IG_HASHTAG = process.env.NEXT_PUBLIC_IG_HASHTAG || "VeganEating";
 const GRAPH = "https://graph.instagram.com";
 const FACEBOOK_GRAPH = "https://graph.facebook.com/v21.0";
 const CACHE_TTL_MS = 5 * 60 * 1000;
-// The home strip is a 4-column grid: never more than two full rows.
-export const IG_MAX_POSTS = 8;
+// The home SocialCarousel scrolls through our post history, so we keep a deep
+// slice rather than the old two-row strip's 8. Graph fetches are a single page,
+// so this is effectively "as much recent history as one request returns".
+export const IG_MAX_POSTS = 24;
 // Over-fetch so posts we can't render (no image url, e.g. a flagged video) don't
-// leave the strip short of IG_MAX_POSTS.
+// leave the carousel short of IG_MAX_POSTS.
 const FETCH_COUNT = IG_MAX_POSTS * 2;
 const FETCH_TIMEOUT_MS = 3500;
 // The media fetch gets a longer budget than the token refresh: the first
@@ -85,6 +87,10 @@ export type IgPost = {
  */
 export function proxiedIgImage(url: string): string {
     if (!url) return url;
+    // Same-origin/relative assets (e.g. local /public images used by the demo
+    // seed) don't need the CDN proxy — only Instagram's absolute scontent URLs
+    // 403 when hotlinked. Pass local paths through untouched.
+    if (url.startsWith("/")) return url;
     return `/api/instagram/image?u=${encodeURIComponent(url)}`;
 }
 

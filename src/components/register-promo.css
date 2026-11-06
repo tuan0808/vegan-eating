@@ -1,0 +1,69 @@
+/* src/components/register-promo.css — timed "register for free" promo modal for
+   logged-out visitors. Shares the design language of the nav modal (.vn-modal)
+   but leads with a warm gradient banner so it reads as an invitation, not a
+   system dialog. z-index sits above the nav modals (70). */
+.rp-back {
+    position: fixed; inset: 0; z-index: 80;
+    background: rgba(20,30,20,.55);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    display: grid; place-items: center; padding: 20px;
+    animation: vn-fade .22s ease;
+}
+.rp-modal {
+    position: relative; overflow: hidden;
+    width: 100%; max-width: 460px;
+    background: var(--card, #fffdf7);
+    border: 1px solid var(--line, rgba(27,42,29,.12));
+    border-radius: 20px;
+    box-shadow: 0 44px 90px -34px rgba(27,42,29,.6);
+    animation: vn-pop .26s cubic-bezier(.2,.8,.3,1);
+}
+/* Warm gradient banner with a soft carrot glow + leaf motif. */
+.rp-banner {
+    position: relative; padding: 30px 30px 24px; color: #fff;
+    background:
+        radial-gradient(420px 160px at 85% -20%, rgba(255,255,255,.22), transparent 70%),
+        linear-gradient(135deg, var(--carrot, #E15A22) 0%, #c44d18 46%, var(--olive, #225F27) 130%);
+}
+.rp-banner-leaf { position: absolute; right: 18px; bottom: -10px; opacity: .22; color: #fff; pointer-events: none; }
+.rp-kicker { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 700; opacity: .92; }
+.rp-title {
+    font-family: "Fraunces", serif; font-weight: 500;
+    font-size: 27px; line-height: 1.12; margin: 9px 0 0;
+    text-shadow: 0 1px 12px rgba(0,0,0,.18);
+}
+.rp-body { padding: 22px 30px 26px; }
+.rp-sub { font-size: 14.5px; line-height: 1.55; color: var(--muted, #6f7468); margin: 0 0 16px; }
+.rp-perks { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.rp-perk { display: flex; align-items: flex-start; gap: 11px; font-size: 14.5px; color: var(--ink, #1b2a1d); }
+.rp-perk svg { flex: none; margin-top: 1px; color: var(--carrot, #E15A22); }
+.rp-perk b { font-weight: 600; }
+.rp-cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; box-sizing: border-box;
+    background: var(--carrot, #E15A22); color: #fff; text-decoration: none;
+    font-family: inherit; font-weight: 600; font-size: 15.5px;
+    padding: 14px 22px; border-radius: 11px; border: 0; cursor: pointer;
+    box-shadow: 0 16px 34px -14px rgba(225,90,34,.8);
+    transition: background .18s, transform .18s;
+}
+.rp-cta:hover { background: #c44d18; transform: translateY(-1px); }
+.rp-later {
+    display: block; width: 100%; margin: 12px 0 0;
+    background: none; border: 0; cursor: pointer;
+    font-family: inherit; font-size: 13.5px; font-weight: 600;
+    color: var(--muted, #6f7468); transition: color .15s;
+}
+.rp-later:hover { color: var(--ink, #1b2a1d); }
+.rp-fine { text-align: center; font-size: 13px; color: var(--muted, #6f7468); margin: 16px 0 0; }
+.rp-fine a { color: var(--olive, #225F27); font-weight: 600; text-decoration: none; }
+.rp-fine a:hover { text-decoration: underline; }
+.rp-x {
+    position: absolute; top: 12px; right: 14px; z-index: 2;
+    background: rgba(255,255,255,.18); border: 0; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 9px;
+    color: #fff; font-size: 20px; line-height: 1;
+    display: grid; place-items: center;
+    transition: background .15s;
+}
+.rp-x:hover { background: rgba(255,255,255,.3); }

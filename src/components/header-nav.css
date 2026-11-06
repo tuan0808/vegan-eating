@@ -2,17 +2,17 @@
 
 .vn-hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
 .vn-bar { position: relative; transition: background .28s ease, box-shadow .28s ease;
-    background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,0)); }
-.vn-hdr.lifted .vn-bar { background: var(--olive, #5c6e3f); box-shadow: 0 10px 30px -22px rgba(0,0,0,.6); }
+    background: linear-gradient(180deg, var(--olive, #225F27), #1d5221); }
+.vn-hdr.lifted .vn-bar { background: var(--olive, #225F27); box-shadow: 0 10px 30px -22px rgba(0,0,0,.6); }
 .vn-wrap { max-width: var(--maxw, 1200px); margin: 0 auto; padding: 0 28px; }
-.vn-nav { display: flex; align-items: center; gap: 30px; height: 74px; }
+.vn-nav { display: flex; align-items: center; gap: 30px; height: 74px; flex-wrap: nowrap; }
 
 /* white branding + links over the hero/olive */
 .vn-nav .logo-wm, .vn-nav .logo-wm em { color: #fff; }
 
 .vn-menu { display: flex; align-items: center; gap: 24px; height: 100%; }
 .vn-item { position: relative; height: 100%; display: flex; align-items: center; }
-.vn-item a { font-size: 14.5px; font-weight: 600; color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; height: 100%; border-bottom: 2px solid transparent; transition: border-color .18s, opacity .18s; }
+.vn-item a { font-size: 14.5px; font-weight: 600; color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; height: 100%; white-space: nowrap; border-bottom: 2px solid transparent; transition: border-color .18s, opacity .18s; }
 .vn-item .vn-chev { opacity: .7; transition: transform .25s; }
 .vn-item:hover a { opacity: .82; }
 .vn-item.open a { border-color: #fff; opacity: 1; }
@@ -21,7 +21,7 @@
 .vn-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 .vn-icon { width: 38px; height: 38px; border-radius: 10px; border: 1px solid rgba(255,255,255,.45); display: grid; place-items: center; color: #fff; transition: .18s; }
 .vn-icon:hover { background: rgba(255,255,255,.14); }
-.vn-sub { background: var(--carrot, #E15A22); color: #fff; text-decoration: none; font-weight: 600; font-size: 14.5px; padding: 11px 20px; border-radius: 11px; transition: .18s; }
+.vn-sub { background: var(--carrot, #E15A22); color: #fff; text-decoration: none; font-weight: 600; font-size: 14.5px; padding: 11px 20px; border-radius: 11px; white-space: nowrap; flex: none; transition: .18s; }
 .vn-sub:hover { background: #c44d18; }
 .vn-burger { display: none; flex-direction: column; gap: 4px; background: none; border: 0; cursor: pointer; padding: 8px; }
 .vn-burger span { width: 22px; height: 2px; background: #fff; border-radius: 2px; }

@@ -8,7 +8,7 @@ import "./header-nav.css";
 
 // Logo kept as before (uses your global .brand/.logo-* styles) so the footer's
 // `import { Logo } from "./Header"` keeps working. In the nav it's forced white.
-export function Logo({ height = 42 }: { height?: number }) {
+export function Logo({ height = 56 }: { height?: number }) {
     const ratio = 444.769 / 117.885; // native aspect ratio of the SVG
     return (
         <img
@@ -381,7 +381,7 @@ export default function Header() {
                             ) : (
                                 <Link href="/login" className="vn-signin">Sign in</Link>
                             )}
-                            <Link href={subscribeHref} className="vn-sub">Subscribe</Link>
+                            <Link href={subscribeHref} className="vn-sub">Register for free</Link>
                             <button className="vn-burger" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((v) => !v)}>
                                 <span /><span /><span />
                             </button>
@@ -469,7 +469,7 @@ export default function Header() {
                         </div>
                     </>
                 )}
-                <Link href={subscribeHref} className="vn-sub vn-sub-drawer" onClick={() => setMobileOpen(false)}>Subscribe</Link>
+                <Link href={subscribeHref} className="vn-sub vn-sub-drawer" onClick={() => setMobileOpen(false)}>Register for free</Link>
             </div>
 
             {searchOpen && (

@@ -4,6 +4,7 @@ import ClientEffects from "@/components/ClientEffects";
 import PageTracker from "@/components/analytics/PageTracker";
 import RedditRouteTracker from "@/components/analytics/RedditRouteTracker";
 import { Footer } from "@/components/Sections";
+import RegisterPromoModal from "@/components/RegisterPromoModal";
 
 export const dynamic = "force-dynamic";
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
             <ClientEffects />
             <main>{children}</main>
             <Footer />
+            <RegisterPromoModal />
         </>
     );
 }

@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import VendorMenu from "./VendorMenu";
 import "./header-nav.css";
 
 // Logo kept as before (uses your global .brand/.logo-* styles) so the footer's
@@ -44,7 +45,7 @@ const MENU: Item[] = [
         ],
         feature: { kicker: "Featured recipe", title: "From the kitchen", href: "/recipes" }, // fallback; replaced live
     },
-    { label: "Forum", href: "/forum" },
+    { label: "Forum", href: "/forum", key: "forum" },
     {
         label: "Submit recipe", href: "/submit", key: "submit",
         cols: [
@@ -288,7 +289,7 @@ export default function Header() {
     const scheduleHide = () => { hideTimer.current = setTimeout(() => setOpenKey(null), 130); };
     const clearHide = () => { if (hideTimer.current) clearTimeout(hideTimer.current); };
 
-    const panelItems = MENU.filter((it) => it.cols);
+    const panelItems = MENU.filter((it) => it.cols || it.key === "forum");
 
     const renderFeature = (it: Item) => {
         // Recipes uses the live recipe; others use their static feature/blurb.
@@ -351,7 +352,7 @@ export default function Header() {
 
                         <nav className="vn-menu" onMouseLeave={scheduleHide}>
                             {MENU.map((it) =>
-                                it.cols ? (
+                                it.cols || it.key === "forum" ? (
                                     <div key={it.label} className={`vn-item${openKey === it.key ? " open" : ""}`} onMouseEnter={() => show(it.key!)}>
                                         <Link href={it.href} onClick={(e) => { e.preventDefault(); setOpenKey(openKey === it.key ? null : it.key!); }}>
                                             {it.label} <Chevron />
@@ -381,7 +382,9 @@ export default function Header() {
                             ) : (
                                 <Link href="/login" className="vn-signin">Sign in</Link>
                             )}
-                            <Link href={subscribeHref} className="vn-sub">Register for free</Link>
+                            {authReady && !authUser && (
+                                <Link href={subscribeHref} className="vn-sub">Register for free</Link>
+                            )}
                             <button className="vn-burger" aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((v) => !v)}>
                                 <span /><span /><span />
                             </button>
@@ -391,6 +394,17 @@ export default function Header() {
                     <div className="vn-panels">
                         <div className="vn-wrap" style={{ position: "relative" }}>
                             {panelItems.map((it) => {
+                                // Forum opens a live vendor-deals menu instead of static columns.
+                                if (it.key === "forum") {
+                                    return (
+                                        <div key="forum" className={`vn-panel${openKey === "forum" ? " open" : ""}`} onMouseEnter={clearHide} onMouseLeave={scheduleHide}>
+                                            <div className="vn-panel-inner">
+                                                <Leaf />
+                                                <VendorMenu loggedIn={!!authUser} authReady={authReady} onNavigate={() => setOpenKey(null)} />
+                                            </div>
+                                        </div>
+                                    );
+                                }
                                 const cols = it.cols!;
                                 const hasRail = !!it.feature || !!it.blurb || it.key === "recipes";
                                 const gtc = cols.map(() => "1fr").join(" ") + (hasRail ? " 1.3fr" : "");
@@ -469,7 +483,9 @@ export default function Header() {
                         </div>
                     </>
                 )}
-                <Link href={subscribeHref} className="vn-sub vn-sub-drawer" onClick={() => setMobileOpen(false)}>Register for free</Link>
+                {authReady && !authUser && (
+                    <Link href={subscribeHref} className="vn-sub vn-sub-drawer" onClick={() => setMobileOpen(false)}>Register for free</Link>
+                )}
             </div>
 
             {searchOpen && (

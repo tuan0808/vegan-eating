@@ -7,8 +7,10 @@ import Link from "next/link";
 import "./links.css";
 import PageTracker from "@/components/analytics/PageTracker";
 import SocialIcon from "@/components/SocialIcon";
+import RegisterDisclosure from "@/components/RegisterDisclosure";
 import { getSocials } from "@/lib/socials";
 import { detectPlatform } from "@/lib/social-platforms";
+import { currentUser } from "@/lib/auth-helpers";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -28,16 +30,21 @@ const site = [
 ];
 
 export default async function LinksPage() {
-    const socials = (await getSocials()).map((href) => ({ href, ...detectPlatform(href) }));
+    const [socialsRaw, user] = await Promise.all([getSocials(), currentUser()]);
+    const socials = socialsRaw.map((href) => ({ href, ...detectPlatform(href) }));
 
     return (
         <div className="links-page">
             <PageTracker />
             <div className="links-card">
                 <Link href="/" aria-label="vegan eating home">
-                    <img src="/logo/logo-ink.svg" alt="vegan eating" width={166} height={44} className="links-logo" />
+                    <img src="/logo/logo-ink.svg" alt="vegan eating" width={211} height={56} className="links-logo" />
                 </Link>
                 <p className="links-dek">Eat green, feel green.</p>
+
+                {/* QR scans land new visitors here — give logged-out folks a one-tap
+                    way to create an account right on the page. */}
+                {!user && <RegisterDisclosure />}
 
                 {socials.length > 0 && (
                     <>

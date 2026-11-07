@@ -67,6 +67,7 @@ const ADMIN_GROUPS: { label: string; items: Item[] }[] = [
             { href: "/admin/articles", label: "Articles", icon: icoArticles, perm: "articles" },
             { href: "/admin/news", label: "News", icon: icoNews, perm: "news" },
             { href: "/admin/forums", label: "Forums", icon: icoForums, perm: "forums" },
+            { href: "/admin/vendors", label: "Vendor deals", icon: icoGiveaway, perm: "vendors" },
             { href: "/admin/comments", label: "Moderation", icon: icoModeration },
         ],
     },

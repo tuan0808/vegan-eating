@@ -8,7 +8,9 @@
 .wf-h1 { margin: 12px 0 0; font-size: clamp(38px, 11vw, 56px); line-height: .98; color: #fff; }
 .wf-h1 em { font-style: italic; color: var(--carrot); }
 .wf-dek { margin: 14px 0 0; font-size: 16px; line-height: 1.5; color: rgba(244,243,234,.78); max-width: 400px; }
-.wf-date { display: inline-block; margin-top: 18px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(244,243,234,.28); font-size: 13.5px; font-weight: 600; color: var(--paper); }
+.wf-date { display: inline-block; margin-top: 18px; padding: 8px 16px; border-radius: 11px; border: 1px solid rgba(244,243,234,.28); font-size: 13.5px; font-weight: 600; color: var(--paper); }
+/* Small italic reassurance under the hero dek (future-drawings eligibility). */
+.wf-hero-note { margin: -14px 0 0; font-style: italic; font-size: 14.5px; line-height: 1.5; color: rgba(244,243,234,.82); max-width: 480px; }
 .wf-closed { margin-top: 18px; padding: 12px 16px; border-radius: 12px; background: rgba(225,90,34,.16); border: 1px solid rgba(225,90,34,.5); font-size: 14px; line-height: 1.5; }
 
 .wf-steps { list-style: none; margin: 30px 0 26px; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 10px; text-align: left; }

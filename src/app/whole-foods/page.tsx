@@ -6,8 +6,9 @@
 // signed-in members just add their ZIP + optional IG. Print the QR as
 // /whole-foods?src=qr so scans show up as their own row in analytics.
 import type { Metadata } from "next";
-import Link from "next/link";
 import AuthForm from "@/components/AuthForm";
+import Header from "@/components/Header";
+import ClientEffects from "@/components/ClientEffects";
 import PageHero from "@/components/PageHero";
 import PageTracker from "@/components/analytics/PageTracker";
 import { localRegisterAction } from "@/app/(auth)/register/actions";
@@ -46,21 +47,19 @@ export default async function WholeFoodsPage({ searchParams }: { searchParams: P
 
     return (
         <div className="wf">
+            <Header />
+            <ClientEffects />
             <PageTracker />
             <PageHero
                 image="/header/whole-foods-header.webp"
                 imageAlt={`${c.partner} × vegan eating`}
-                breadcrumb={
-                    <Link href="/" aria-label="vegan eating home">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo/logo-ink.svg" alt="vegan eating" width={140} height={36} className="wf-logo" />
-                    </Link>
-                }
                 kicker={`${c.partner} × vegan eating`}
                 title={copyText(c.headline, vars)}
                 dek={copyText(c.dek, vars)}
                 minHeight={420}
-            />
+            >
+                <p className="wf-hero-note">Once you register you&apos;re eligible for all future drawings.</p>
+            </PageHero>
             <div className="wf-inner">
                 {status === "closed" ? (
                     <p className="wf-closed">

@@ -85,6 +85,7 @@ export default function ThreadView({
     );
 
     return (
+        <div className="forum-band">
         <div className="thread-view">
             <div className="posts">
                 {view.posts.map((p) => {
@@ -93,7 +94,7 @@ export default function ThreadView({
                     const editing = editingId === p.id;
 
                     return (
-                        <article key={p.id} className="post">
+                        <article key={p.id} className={`post${p.isOriginal ? " is-op" : ""}`} style={{ borderLeftColor: view.accent }}>
                             <div className="post-head">
                 <span className="avatar" style={{ background: view.accent }} aria-hidden>
                   {p.authorInitial}
@@ -105,7 +106,7 @@ export default function ThreadView({
                   </span>
                                 </div>
                                 {p.isOriginal ? (
-                                    <span className="op" style={{ color: view.accent, borderColor: view.accent }}>
+                                    <span className="op" style={{ background: view.accent, borderColor: view.accent }}>
                     Original poster
                   </span>
                                 ) : null}
@@ -234,10 +235,18 @@ export default function ThreadView({
                     gap: 16px;
                 }
                 .post {
-                    background: #faf8f1;
-                    border: 1px solid var(--line, #e6e3da);
+                    background: #fff;
+                    border: 1px solid rgba(28, 42, 26, 0.16);
+                    border-left-width: 5px;
                     border-radius: 16px;
                     padding: 22px 24px;
+                    box-shadow: 0 8px 20px -10px rgba(28, 35, 23, 0.16), 0 2px 5px -3px rgba(28, 35, 23, 0.1);
+                }
+                /* The opening post leads the thread — tint it so it reads as the
+                   anchor the replies hang off. */
+                .post.is-op {
+                    background: linear-gradient(180deg, var(--green-soft, #dfe7da), #fff 120px);
+                    box-shadow: 0 16px 34px -18px rgba(28, 35, 23, 0.28);
                 }
                 .post-head {
                     display: flex;
@@ -277,13 +286,14 @@ export default function ThreadView({
                 }
                 .op {
                     flex-shrink: 0;
-                    font-size: 11.5px;
+                    font-size: 11px;
                     font-weight: 700;
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
+                    color: #fff;
                     border: 1px solid;
-                    border-radius: 999px;
-                    padding: 3px 10px;
+                    border-radius: 8px;
+                    padding: 4px 11px;
                 }
 
                 .body {
@@ -461,6 +471,7 @@ export default function ThreadView({
                     }
                 }
             `}</style>
+        </div>
         </div>
     );
 }

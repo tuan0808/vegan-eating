@@ -16,6 +16,7 @@ export default function ThreadList({
     forumSlug: string;
 }) {
     return (
+        <div className="forum-band">
         <div className="thread-wrap">
             {threads.length === 0 ? (
                 <div className="empty">
@@ -30,7 +31,8 @@ export default function ThreadList({
                             <Link
                                 key={t.id}
                                 href={`/forum/${categorySlug}/${forumSlug}/${t.slug}`}
-                                className="thread-row"
+                                className={`thread-row${t.pinned ? " is-pinned" : ""}`}
+                                style={{ borderLeftColor: accent }}
                             >
                                 {/* layout on the div, not the <a>, so global link styles can't break it */}
                                 <div className="row-inner">
@@ -76,20 +78,30 @@ export default function ThreadList({
                 .thread-list {
                     display: flex;
                     flex-direction: column;
+                    gap: 12px;
                 }
+                /* Each thread is now a distinct card — background, border, and a
+                   board-accent left stripe (colour set inline) — so rows read as
+                   their own objects instead of melting into the page. hover/lift +
+                   green title live in globals.css (.thread-row). */
                 .thread-row {
                     display: block;
                     text-decoration: none;
                     color: inherit;
+                    background: #fff;
+                    border: 1px solid rgba(28, 42, 26, 0.16);
+                    border-left-width: 5px;
                     border-radius: 14px;
+                    box-shadow: 0 8px 20px -10px rgba(28, 35, 23, 0.18), 0 2px 5px -3px rgba(28, 35, 23, 0.1);
                 }
-                /* hover/lift + green title live in globals.css (.thread-row), so a
-                   scoped :hover here can't out-specify and override them. */
+                .thread-row.is-pinned {
+                    background: linear-gradient(180deg, var(--green-soft, #dfe7da), #fff 64%);
+                }
                 .row-inner {
                     display: flex;
-                    align-items: flex-start;
-                    gap: 20px;
-                    padding: 24px 16px;
+                    align-items: center;
+                    gap: 18px;
+                    padding: 20px 20px;
                 }
                 .avatar {
                     flex-shrink: 0;
@@ -152,20 +164,28 @@ export default function ThreadList({
                     margin-left: 16px;
                     display: flex;
                     flex-direction: column;
-                    align-items: flex-end;
-                    gap: 1px;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 2px;
                     white-space: nowrap;
-                    min-width: 64px;
+                    min-width: 72px;
+                    padding: 10px 6px;
+                    border-radius: 12px;
+                    background: var(--paper-2, #fcfbf4);
+                    border: 1px solid var(--line, #dee3cf);
                 }
                 .count b {
                     font-family: var(--display, "Fraunces", serif);
-                    font-size: 32px;
+                    font-size: 28px;
                     font-weight: 700;
                     color: var(--ink, #1c2317);
                     line-height: 1;
                 }
                 .count span {
-                    font-size: 12.5px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
                     color: var(--muted, #6b7264);
                 }
                 .empty {
@@ -204,6 +224,7 @@ export default function ThreadList({
                     }
                 }
             `}</style>
+        </div>
         </div>
     );
 }

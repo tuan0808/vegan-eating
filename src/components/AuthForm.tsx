@@ -260,7 +260,7 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
                     background: var(--terra, #c2603a);
                     color: #fff;
                     border: none;
-                    border-radius: 999px;
+                    border-radius: 11px;
                     padding: 13px 20px;
                     font-size: 15px;
                     font-weight: 600;

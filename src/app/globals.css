@@ -270,14 +270,14 @@ section{padding:74px 0}
 /* Forum list wrapper. Kept transparent so it matches the page background around
    it — the white cards stand out on their own via elevation (shadow), not a
    contrasting band. */
-.forum-band{background:transparent}
+.forum-band{background:transparent;padding-top:28px}
 
 /* board thread rows (ThreadList) — distinct cards; the base look (bg, border,
    accent stripe) lives in ThreadList's styled-jsx. Hover just lifts so a pinned
    row's tint survives. */
-.thread-row{transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease}
-.thread-row .title{transition:color .16s ease}
-.thread-row:hover{box-shadow:0 22px 44px -18px rgba(28,35,23,.32);transform:translateY(-2px);border-color:var(--terra)}
+.thread-row{transition:filter .15s ease}
+.thread-row .title{transition:color .15s ease}
+.thread-row:hover{filter:brightness(.965)}
 .thread-row:hover .title{color:var(--terra)}
 
 /* CONTRIBUTORS */

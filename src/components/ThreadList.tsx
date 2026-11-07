@@ -4,6 +4,10 @@
 import Link from "next/link";
 import type { ThreadRow } from "@/lib/forum";
 
+// Alternating warm tones so the thread list reads as a distinct block that
+// offsets from the page (matches the forum hub). Pinned rows get a green tint.
+const ROW_BG = ["#faf8f1", "#ebe8dc"];
+
 export default function ThreadList({
                                        threads,
                                        accent,
@@ -25,14 +29,14 @@ export default function ThreadList({
                 </div>
             ) : (
                 <div className="thread-list">
-                    {threads.map((t) => {
+                    {threads.map((t, i) => {
                         const flair = t.pinned ? (t.tag ? `Pinned · ${t.tag}` : "Pinned") : t.tag;
                         return (
                             <Link
                                 key={t.id}
                                 href={`/forum/${categorySlug}/${forumSlug}/${t.slug}`}
                                 className={`thread-row${t.pinned ? " is-pinned" : ""}`}
-                                style={{ borderLeftColor: accent }}
+                                style={{ background: t.pinned ? "#e4ecdd" : ROW_BG[i % 2] }}
                             >
                                 {/* layout on the div, not the <a>, so global link styles can't break it */}
                                 <div className="row-inner">
@@ -75,33 +79,24 @@ export default function ThreadList({
                     margin: 0 auto;
                     padding: 8px 28px 90px;
                 }
+                /* Contiguous alternating bands (see ROW_BG) — the offset tones
+                   define the block against the page, matching the forum hub.
+                   Hover (subtle darken) + green title live in globals.css. */
                 .thread-list {
                     display: flex;
                     flex-direction: column;
-                    gap: 12px;
                 }
-                /* Each thread is now a distinct card — background, border, and a
-                   board-accent left stripe (colour set inline) — so rows read as
-                   their own objects instead of melting into the page. hover/lift +
-                   green title live in globals.css (.thread-row). */
                 .thread-row {
                     display: block;
                     text-decoration: none;
                     color: inherit;
-                    background: #fff;
-                    border: 1px solid rgba(28, 42, 26, 0.16);
-                    border-left-width: 5px;
-                    border-radius: 14px;
-                    box-shadow: 0 8px 20px -10px rgba(28, 35, 23, 0.18), 0 2px 5px -3px rgba(28, 35, 23, 0.1);
-                }
-                .thread-row.is-pinned {
-                    background: linear-gradient(180deg, var(--green-soft, #dfe7da), #fff 64%);
+                    /* background set inline (alternating ROW_BG / pinned tint) */
                 }
                 .row-inner {
                     display: flex;
                     align-items: center;
                     gap: 18px;
-                    padding: 20px 20px;
+                    padding: 22px 22px;
                 }
                 .avatar {
                     flex-shrink: 0;
@@ -164,28 +159,20 @@ export default function ThreadList({
                     margin-left: 16px;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 2px;
+                    align-items: flex-end;
+                    gap: 1px;
                     white-space: nowrap;
-                    min-width: 72px;
-                    padding: 10px 6px;
-                    border-radius: 12px;
-                    background: var(--paper-2, #fcfbf4);
-                    border: 1px solid var(--line, #dee3cf);
+                    min-width: 64px;
                 }
                 .count b {
                     font-family: var(--display, "Fraunces", serif);
-                    font-size: 28px;
+                    font-size: 32px;
                     font-weight: 700;
                     color: var(--ink, #1c2317);
                     line-height: 1;
                 }
                 .count span {
-                    font-size: 11px;
-                    font-weight: 600;
-                    letter-spacing: 0.04em;
-                    text-transform: uppercase;
+                    font-size: 12.5px;
                     color: var(--muted, #6b7264);
                 }
                 .empty {

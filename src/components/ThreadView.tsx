@@ -94,7 +94,7 @@ export default function ThreadView({
                     const editing = editingId === p.id;
 
                     return (
-                        <article key={p.id} className={`post${p.isOriginal ? " is-op" : ""}`} style={{ borderLeftColor: view.accent }}>
+                        <article key={p.id} className={`post${p.isOriginal ? " is-op" : ""}`}>
                             <div className="post-head">
                 <span className="avatar" style={{ background: view.accent }} aria-hidden>
                   {p.authorInitial}
@@ -235,18 +235,16 @@ export default function ThreadView({
                     gap: 16px;
                 }
                 .post {
-                    background: #fff;
-                    border: 1px solid rgba(28, 42, 26, 0.16);
-                    border-left-width: 5px;
+                    background: #faf8f1;
+                    border: 1px solid var(--line, #e6e3da);
                     border-radius: 16px;
                     padding: 22px 24px;
-                    box-shadow: 0 8px 20px -10px rgba(28, 35, 23, 0.16), 0 2px 5px -3px rgba(28, 35, 23, 0.1);
                 }
-                /* The opening post leads the thread — tint it so it reads as the
-                   anchor the replies hang off. */
+                /* The opening post leads the thread — a warm green tint so it reads
+                   as the anchor the replies hang off. */
                 .post.is-op {
-                    background: linear-gradient(180deg, var(--green-soft, #dfe7da), #fff 120px);
-                    box-shadow: 0 16px 34px -18px rgba(28, 35, 23, 0.28);
+                    background: #e9efe2;
+                    border-color: #cdd9c3;
                 }
                 .post-head {
                     display: flex;

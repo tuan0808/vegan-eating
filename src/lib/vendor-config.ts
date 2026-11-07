@@ -19,6 +19,7 @@ export type Vendor = {
     code: string; // promo code (members-only)
     blurb?: string; // short offer, e.g. "20% off sitewide"
     prominent: boolean; // highlighted in the nav; others live in the forum
+    threadSlug?: string; // the auto-created forum thread for this code (once created)
 };
 
 export type VendorConfig = {
@@ -57,6 +58,7 @@ function normalizeVendor(r: unknown, i: number): Vendor | null {
         code: clip(o.code),
         blurb: clip(o.blurb) || undefined,
         prominent: !!o.prominent,
+        threadSlug: clip(o.threadSlug) || undefined,
     };
 }
 

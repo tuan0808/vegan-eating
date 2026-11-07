@@ -37,14 +37,14 @@ export default function VendorsEditor({ initial }: { initial: VendorConfig }) {
 
     return (
         <div style={wrap}>
-            <header style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 20 }}>
                 <h1 style={{ margin: 0, fontSize: 24 }}>Vendor deals</h1>
                 <p style={{ margin: "6px 0 0", color: "var(--muted,#6f7468)", fontSize: 14, lineHeight: 1.5 }}>
                     Promo codes shown in the nav <b>Forum</b> menu. The code is members-only — logged-out visitors see the
                     vendor but not the code. Tick <b>Prominent</b> to feature a vendor in the nav ({prominentCount} now);
                     the rest belong in the Vendor Deals forum board.
                 </p>
-            </header>
+            </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {rows.map((r) => (
@@ -88,7 +88,8 @@ export default function VendorsEditor({ initial }: { initial: VendorConfig }) {
                     <input style={input} value={dealsHref} onChange={(e) => setDealsHref(e.target.value)} placeholder="/forum/general/vendor-deals" maxLength={200} />
                 </label>
                 <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--muted,#6f7468)" }}>
-                    Create a “Vendor Deals” board in Admin → Forums, then paste its URL here. Defaults to <code>/forum</code>.
+                    Paste the URL of your Vendor Deals board (e.g. <code>/forum/general/veganeating-promo-codes</code>).
+                    Each new code is auto-posted there as its own thread. Defaults to <code>/forum</code> (no auto-posting).
                 </p>
             </div>
 

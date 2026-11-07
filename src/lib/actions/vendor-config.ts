@@ -4,6 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { userWith } from "@/lib/permissions";
 import { getVendorConfig, saveVendorConfig, MAX_VENDORS, MAX_FIELD, type Vendor } from "@/lib/vendor-config";
+import { syncVendorThreads } from "@/lib/vendor-threads";
 
 export type SaveState = { ok: boolean; message: string | null; key?: number };
 
@@ -41,6 +42,7 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
                 code,
                 blurb: clip(o.blurb) || undefined,
                 prominent,
+                threadSlug: clip(o.threadSlug) || undefined, // keep an existing thread link
             });
         });
     } catch (e) {
@@ -50,8 +52,15 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
     const current = await getVendorConfig();
     const dealsHref = clip(parsed.dealsHref) || current.dealsHref || "/forum";
 
-    await saveVendorConfig({
+    // Auto-create a forum thread for each new code in the Vendor Deals board.
+    const synced = await syncVendorThreads(vendors, dealsHref, u.id).catch(() => ({
         vendors,
+        created: 0,
+        boardPath: null as string | null,
+    }));
+
+    await saveVendorConfig({
+        vendors: synced.vendors,
         dealsHref,
         updatedAt: new Date().toISOString(),
         updatedBy: u.username ?? u.email ?? undefined,
@@ -59,12 +68,15 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
 
     // The nav reads /api/vendors (dynamic), but revalidate the pages that embed
     // vendor data so any cached shells refresh too.
-    ["/", "/forum", "/admin/vendors"].forEach((p) => revalidatePath(p));
+    const paths = ["/", "/forum", "/admin/vendors"];
+    if (synced.boardPath) paths.push(synced.boardPath);
+    paths.forEach((p) => revalidatePath(p));
 
-    const prominent = vendors.filter((v) => v.prominent).length;
+    const prominent = synced.vendors.filter((v) => v.prominent).length;
+    const threadNote = synced.created > 0 ? ` ${synced.created} new forum thread${synced.created === 1 ? "" : "s"} posted.` : "";
     return {
         ok: true,
-        message: `Saved — ${vendors.length} vendor${vendors.length === 1 ? "" : "s"} (${prominent} in the nav).`,
+        message: `Saved — ${synced.vendors.length} vendor${synced.vendors.length === 1 ? "" : "s"} (${prominent} in the nav).${threadNote}`,
         key: Date.now(),
     };
 }

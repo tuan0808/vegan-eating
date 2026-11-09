@@ -33,6 +33,17 @@ const Arrow = () => (
 );
 
 function Card({ item }: { item: FeedItem }) {
+    // Promo poster — clean image tile linking to the Whole Foods giveaway.
+    if (item.kind === "poster") {
+        return (
+            <a className="sc-card is-poster" href={item.href} title="Enter the Whole Foods giveaway">
+                <div className="sc-media">
+                    <Image src={item.image} alt="Enter the Whole Foods giveaway" fill sizes="(max-width:600px) 72vw, 300px" style={{ objectFit: "cover" }} />
+                </div>
+            </a>
+        );
+    }
+
     const isRecipe = item.kind === "recipe";
     const label = isRecipe ? item.title : item.caption || `@${IG_HANDLE} on Instagram`;
     return (

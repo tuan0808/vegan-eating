@@ -28,10 +28,27 @@ export type FeedItem =
           ph: string;
           title: string;
           tag: string;
+      }
+    | {
+          // Promo poster slipped in after each recipe; links to the giveaway.
+          kind: "poster";
+          id: string;
+          href: string;
+          image: string;
       };
 
 /** How many IG posts to show before slipping in a recipe card. */
 export const RECIPE_EVERY = 3;
+
+/** Promo poster shown after every recipe card (links to the Whole Foods page).
+ *  Web-sized webp (237KB) generated from the 22MB source posternew.png. */
+const POSTER_IMAGE = "/header/posternew-web.webp";
+const posterItem = (key: string | number): FeedItem => ({
+    kind: "poster",
+    id: `poster-${key}`,
+    href: "/whole-foods",
+    image: POSTER_IMAGE,
+});
 
 function igItem(p: IgPost): FeedItem {
     return {
@@ -70,6 +87,7 @@ export function buildSocialFeed(posts: IgPost[], recipes: Recipe[], every = RECI
         const isLast = i === posts.length - 1;
         if (!isLast && every > 0 && (i + 1) % every === 0 && recipes.length) {
             out.push(recipeItem(recipes[r % recipes.length]));
+            out.push(posterItem(i)); // giveaway poster right after each recipe
             r += 1;
         }
     });

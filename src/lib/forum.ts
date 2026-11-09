@@ -61,7 +61,9 @@ export type CategoryBlock = {
     forums: ForumRow[];
 };
 
-export async function getForumIndex(): Promise<CategoryBlock[]> {
+// `includeMembersOnly` is true for logged-in visitors; logged-out visitors never
+// see members-only boards (or their last-post previews) on the hub.
+export async function getForumIndex(includeMembersOnly = false): Promise<CategoryBlock[]> {
     const categories = await prisma.category.findMany({
         orderBy: { position: "asc" },
         include: {
@@ -76,6 +78,7 @@ export async function getForumIndex(): Promise<CategoryBlock[]> {
     for (const cat of categories) {
         const forums: ForumRow[] = [];
         for (const f of cat.forums) {
+            if (f.membersOnly && !includeMembersOnly) continue; // hide gated boards from guests
             const postCount = await prisma.post.count({ where: { thread: { forumId: f.id }, ...PUBLIC_POST } });
             const last = await prisma.post.findFirst({
                 where: { thread: { forumId: f.id }, ...PUBLIC_POST },
@@ -99,6 +102,7 @@ export async function getForumIndex(): Promise<CategoryBlock[]> {
                     : null,
             });
         }
+        if (forums.length === 0) continue; // nothing visible in this category
         blocks.push({
             id: cat.id,
             name: cat.name,
@@ -131,7 +135,7 @@ export type ThreadRow = {
 
 export type ForumView = {
     category: { name: string; slug: string };
-    forum: { id: string; name: string; slug: string; description: string | null };
+    forum: { id: string; name: string; slug: string; description: string | null; membersOnly: boolean };
     accent: string;
     threads: ThreadRow[];
 };
@@ -156,7 +160,7 @@ export async function getForumView(categorySlug: string, forumSlug: string): Pro
 
     return {
         category: { name: forum.category.name, slug: forum.category.slug },
-        forum: { id: forum.id, name: forum.name, slug: forum.slug, description: forum.description },
+        forum: { id: forum.id, name: forum.name, slug: forum.slug, description: forum.description, membersOnly: forum.membersOnly },
         accent: accentFor(forum.category.position),
         threads: forum.threads.map((t) => {
             const starter = displayName(t.author);
@@ -194,7 +198,7 @@ export type PostView = {
 
 export type ThreadView = {
     category: { name: string; slug: string };
-    forum: { name: string; slug: string };
+    forum: { name: string; slug: string; membersOnly: boolean };
     accent: string;
     title: string;
     pinned: boolean;
@@ -222,7 +226,7 @@ export async function getThreadView(
 
     return {
         category: { name: thread.forum.category.name, slug: thread.forum.category.slug },
-        forum: { name: thread.forum.name, slug: thread.forum.slug },
+        forum: { name: thread.forum.name, slug: thread.forum.slug, membersOnly: thread.forum.membersOnly },
         accent: accentFor(thread.forum.category.position),
         title: thread.title,
         pinned: thread.pinned,

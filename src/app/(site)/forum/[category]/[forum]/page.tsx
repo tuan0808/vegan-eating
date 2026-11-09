@@ -6,6 +6,7 @@ import { getForumView } from "@/lib/forum";
 import { currentUser } from "@/lib/auth-helpers";
 import ThreadList from "@/components/ThreadList";
 import PageHero from "@/components/PageHero";
+import ForumMembersGate from "@/components/ForumMembersGate";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -30,6 +31,12 @@ export default async function ForumViewPage(
     if (!view) notFound();
 
     const user = await currentUser();
+
+    // Members-only board: hide the thread list from logged-out visitors.
+    if (view.forum.membersOnly && !user) {
+        return <ForumMembersGate categoryName={view.category.name} forumName={view.forum.name} />;
+    }
+
     const newHref = `/forum/${view.category.slug}/${view.forum.slug}/new`;
 
     return (

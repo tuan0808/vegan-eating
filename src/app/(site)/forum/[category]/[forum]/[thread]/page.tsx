@@ -6,6 +6,7 @@ import { getThreadView } from "@/lib/forum";
 import { currentUser } from "@/lib/auth-helpers";
 import ThreadView from "@/components/ThreadView";
 import PageHero from "@/components/PageHero";
+import ForumMembersGate from "@/components/ForumMembersGate";
 import { createReply } from "../../../actions";
 import { updatePost, deletePost, togglePin, toggleLock } from "../../../moderation-actions";
 
@@ -29,6 +30,12 @@ export default async function ThreadPage(
     if (!view) notFound();
 
     const user = await currentUser();
+
+    // Members-only board: the promo code lives in the post body, so hide the
+    // whole thread from logged-out visitors.
+    if (view.forum.membersOnly && !user) {
+        return <ForumMembersGate categoryName={view.category.name} forumName={view.forum.name} />;
+    }
 
     return (
         <>

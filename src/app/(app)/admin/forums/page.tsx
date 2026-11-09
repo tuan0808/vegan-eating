@@ -111,6 +111,10 @@ export default async function ForumAdminPage({
                                                 <option value="ADMIN">Admins only</option>
                                             </select>
                                         </label>
+                                        <label style={permLabel} title="Only logged-in members can view this board">
+                                            <input type="checkbox" name="membersOnly" defaultChecked={f.membersOnly} />
+                                            <span style={{ opacity: 0.7 }}>Members only</span>
+                                        </label>
                                         <button style={btnGhost}>Save</button>
                                     </form>
                                     <span style={countTag}>{f._count.threads} threads</span>
@@ -140,6 +144,10 @@ export default async function ForumAdminPage({
                                         <option value="MODERATOR">Mods &amp; admins</option>
                                         <option value="ADMIN">Admins only</option>
                                     </select>
+                                </label>
+                                <label style={permLabel} title="Only logged-in members can view this board">
+                                    <input type="checkbox" name="membersOnly" />
+                                    <span style={{ opacity: 0.7 }}>Members only</span>
                                 </label>
                                 <button style={btnPrimary}>Add board</button>
                             </form>

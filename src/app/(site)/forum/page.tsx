@@ -1,6 +1,7 @@
 // src/app/(site)/forum/page.tsx
 import type { Metadata } from "next";
 import { getForumIndex, getForumStats, getRecentMembers } from "@/lib/forum";
+import { currentUser } from "@/lib/auth-helpers";
 import ForumIndex from "@/components/ForumIndex";
 import ForumAdminPanel from "@/components/ForumAdminPanel";
 import PageHero from "@/components/PageHero";
@@ -26,8 +27,9 @@ const postIcon = (
 );
 
 export default async function ForumPage() {
+    const user = await currentUser();
     const [categories, stats, members] = await Promise.all([
-        getForumIndex(),
+        getForumIndex(!!user),
         getForumStats(),
         getRecentMembers(4),
     ]);

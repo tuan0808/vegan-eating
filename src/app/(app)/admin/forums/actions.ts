@@ -102,6 +102,7 @@ export async function createForum(formData: FormData) {
     const categoryId = String(formData.get("categoryId") ?? "");
     const name = String(formData.get("name") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim() || null;
+    const membersOnly = formData.get("membersOnly") != null; // checkbox present only when ticked
     if (!categoryId || !name) done("name");
     const max = await prisma.forum.aggregate({ where: { categoryId }, _max: { position: true } });
     await prisma.forum.create({
@@ -111,6 +112,7 @@ export async function createForum(formData: FormData) {
             slug: await uniqueForumSlug(categoryId, slugify(name)),
             description,
             postMinRole: normRole(formData.get("postMinRole")),
+            membersOnly,
             position: (max._max.position ?? -1) + 1,
         },
     });
@@ -122,10 +124,11 @@ export async function updateForum(formData: FormData) {
     const id = String(formData.get("id") ?? "");
     const name = String(formData.get("name") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim() || null;
+    const membersOnly = formData.get("membersOnly") != null; // checkbox present only when ticked
     if (!id || !name) done("name");
     await prisma.forum.update({
         where: { id },
-        data: { name, description, postMinRole: normRole(formData.get("postMinRole")) },
+        data: { name, description, postMinRole: normRole(formData.get("postMinRole")), membersOnly },
     });
     done();
 }

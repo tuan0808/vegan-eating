@@ -1,16 +1,14 @@
 "use client";
 
 // Timed "register for free" promo for logged-out visitors. Appears a few seconds
-// after load, is dismissible (×, backdrop, Escape, "Maybe later"), and remembers
-// the dismissal in localStorage so it doesn't nag returning visitors. Never shown
-// to logged-in users (session check) and never re-appears within the cooldown.
+// after load and is dismissible (×, backdrop, Escape, "Maybe later"). Never shown
+// to logged-in users (session check); for anyone logged out it shows on every
+// load (no dismissal memory / cooldown).
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import "./register-promo.css";
 
 const DELAY_MS = 6000; // show ~6s after load — long enough to read the page first
-const DISMISS_KEY = "vn-register-promo-dismissed";
-const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // suppress for 30 days after dismissal
 
 const Check = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -27,17 +25,10 @@ export default function RegisterPromoModal() {
     const [open, setOpen] = useState(false);
 
     const dismiss = useCallback(() => {
-        try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* storage blocked */ }
         setOpen(false);
     }, []);
 
     useEffect(() => {
-        // Don't show if dismissed within the cooldown window.
-        try {
-            const last = Number(localStorage.getItem(DISMISS_KEY) || 0);
-            if (last && Date.now() - last < COOLDOWN_MS) return;
-        } catch { /* storage blocked — fall through and let it show */ }
-
         let timer: ReturnType<typeof setTimeout> | undefined;
         let active = true;
         // Only logged-out visitors get the promo.

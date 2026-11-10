@@ -45,7 +45,7 @@ const MENU: Item[] = [
         ],
         feature: { kicker: "Featured recipe", title: "From the kitchen", href: "/recipes" }, // fallback; replaced live
     },
-    { label: "Forum", href: "/forum", key: "forum" },
+    { label: "Free Promos", href: "/forum", key: "forum" },
     {
         label: "Submit recipe", href: "/submit", key: "submit",
         cols: [

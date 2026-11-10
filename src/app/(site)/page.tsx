@@ -1,6 +1,7 @@
 // src/app/page.tsx
 import { Collections, ForumSection, JoinBand } from "@/components/HomeSections";
 import SocialCarousel from "@/components/SocialCarousel";
+import WholeFoodsBanner from "@/components/WholeFoodsBanner";
 import { buildSocialFeed } from "@/lib/social-feed";
 import Meditation from "@/components/Meditation";
 import HomeSearch from "@/components/HomeSearch";
@@ -77,6 +78,8 @@ export default async function Home({
 
     return (
         <>
+            <WholeFoodsBanner />
+
             <SocialCarousel items={socialFeed} />
 
             <HomeSearch />

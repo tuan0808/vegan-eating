@@ -135,6 +135,10 @@
 .vd-lock { font-size: 12px; color: var(--muted, #6f7468); }
 .vd-lock a { color: var(--carrot, #E15A22); font-weight: 600; text-decoration: none; }
 .vd-lock a:hover { text-decoration: underline; }
+.vd-forum-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; padding: 12px 14px; border-radius: 12px; background: var(--green-soft, #dfe7da); border: 1px solid var(--line, rgba(27,42,29,.1)); text-decoration: none; transition: background .15s, border-color .15s; }
+.vd-forum-link:hover { background: #d3e0cd; border-color: var(--olive, #5c6e3f); }
+.vd-forum-name { font-size: 15px; font-weight: 700; color: var(--green, #1f4a2f); }
+.vd-forum-go { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--olive, #5c6e3f); }
 .vd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .vd-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line, rgba(27,42,29,.08)); }
 .vd-row:last-child { border-bottom: 0; }

@@ -390,6 +390,17 @@ footer{border-top:1px solid var(--line);padding:60px 0 36px;margin-top:30px;back
    top-left, fading to the page colour at the bottom. */
 .sc-band{background:radial-gradient(900px 340px at 18% -8%,rgba(225,90,34,.11),transparent 60%),radial-gradient(760px 300px at 92% 0%,rgba(34,95,39,.10),transparent 58%),linear-gradient(180deg,var(--green-soft) 0%,#e4ebdc 55%,#eef1e6 100%);border-bottom:1px solid var(--line);box-shadow:inset 0 -14px 24px -18px rgba(28,42,26,.18);padding-top:98px}
 .sc-sec{padding-top:6px}
+/* Whole Foods giveaway strip: the full ad artwork under the fixed nav, above the
+   carousel. Clears the 78px fixed header itself, so the carousel below drops its
+   header padding (see the sibling rule) and tucks right beneath. */
+.wf-band{padding-top:78px;background:#00543c;width:100vw;margin-left:calc(50% - 50vw)}
+.wf-banner{position:relative;display:grid;place-items:center;width:100%;height:clamp(150px,19vw,250px);overflow:hidden;text-decoration:none}
+.wf-ad{object-fit:cover;transform:scale(1.02);transition:transform .5s}
+.wf-banner:hover .wf-ad{transform:scale(1.06)}
+.wf-veil{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(6,24,15,.42),rgba(6,24,15,.52))}
+.wf-title{position:relative;z-index:2;margin:0;padding:0 24px;text-align:center;color:#fff;font-family:'Fraunces';font-weight:700;font-size:clamp(23px,4.2vw,48px);line-height:1.08;text-shadow:0 2px 18px rgba(0,0,0,.55)}
+/* Banner already cleared the fixed header, so the carousel loses its big top pad. */
+.wf-band + .sc-band{padding-top:10px}
 /* proximity (not mandatory) snap so the gentle auto-scroll glides instead of
    fighting the snap points; manual swipes still snap. Extra top padding gives
    the hover "pop" room to grow without the rail clipping its top edge. */

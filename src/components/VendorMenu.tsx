@@ -57,6 +57,11 @@ export default function VendorMenu({
                     )}
                 </div>
 
+                <Link className="vd-forum-link" href={dealsHref} onClick={onNavigate}>
+                    <span className="vd-forum-name">Visit the forum</span>
+                    <span className="vd-forum-go">Open →</span>
+                </Link>
+
                 {failed ? (
                     <p className="vd-empty">
                         Couldn’t load deals right now. <Link href={dealsHref} onClick={onNavigate}>Visit the forum →</Link>

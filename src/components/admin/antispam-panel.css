@@ -91,7 +91,7 @@
     background: var(--green, #5b6b3f);
     color: var(--paper, #fff);
     border: none;
-    border-radius: 999px;
+    border-radius: 11px;
     padding: 0.55rem 1.4rem;
     font-size: 0.9rem;
     font-weight: 600;

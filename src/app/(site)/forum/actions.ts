@@ -7,6 +7,7 @@ import sanitizeHtml from "sanitize-html";
 import { prisma } from "@/lib/prisma";
 import { guardCommunityPost, type GuardFail } from "@/lib/anti-spam";
 import { getAntiSpamConfig } from "@/lib/antispam-config";
+import { canPostInBoard } from "@/lib/forum-perms";
 
 
 // "new" is a real route segment (the New-thread page), so a thread can't own it
@@ -108,6 +109,11 @@ export async function createThread(formData: FormData) {
     });
     if (!forum) redirect("/forum");
 
+    // Board role gate (News/Rules are staff-only) + members' introduction gate.
+    const author = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    const gate = await canPostInBoard({ id: userId, role: author?.role }, forum);
+    if (!gate.ok) redirect(`/forum/${categorySlug}/${forumSlug}/new?error=${gate.reason}`);
+
     if (title.length < 3 || empty) {
         redirect(`/forum/${categorySlug}/${forumSlug}/new?error=missing`);
     }
@@ -154,6 +160,14 @@ export async function createReply(formData: FormData) {
     const thread = await prisma.thread.findUnique({ where: { slug: threadSlug } });
     if (!thread) redirect("/forum");
     if (thread.locked) redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}`);
+
+    // Same board role + introduction gate as starting a thread.
+    const [author, forum] = await Promise.all([
+        prisma.user.findUnique({ where: { id: userId }, select: { role: true } }),
+        prisma.forum.findUnique({ where: { id: thread.forumId }, select: { slug: true, postMinRole: true } }),
+    ]);
+    const gate = forum ? await canPostInBoard({ id: userId, role: author?.role }, forum) : ({ ok: true } as const);
+    if (!gate.ok) redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}?error=${gate.reason}`);
     if (empty) redirect(`/forum/${categorySlug}/${forumSlug}/${threadSlug}?error=empty`);
 
     const base = `/forum/${categorySlug}/${forumSlug}/${threadSlug}`;

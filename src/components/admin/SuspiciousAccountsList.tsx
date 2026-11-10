@@ -100,7 +100,7 @@ const bar: React.CSSProperties = {
     padding: "10px 0 14px", borderBottom: "1px solid #e6e3da", marginBottom: 12,
 };
 const btn = (bg: string): React.CSSProperties => ({
-    background: bg, color: "#fff", border: "none", borderRadius: 999,
+    background: bg, color: "#fff", border: "none", borderRadius: 11,
     padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
 });
 const row = (checked: boolean, banned: boolean): React.CSSProperties => ({

@@ -296,7 +296,7 @@ export default function HomeSearch() {
                 .hs-chip {
                     border: 1px solid var(--line, rgba(27, 42, 29, 0.12));
                     background: transparent;
-                    border-radius: 999px;
+                    border-radius: 11px;
                     padding: 8px 15px;
                     font-family: "Hanken Grotesk", sans-serif;
                     font-size: 13.5px;

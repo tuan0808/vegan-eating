@@ -86,7 +86,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                                     border: "1px solid var(--line,#d9d5c8)",
                                     background: "transparent",
                                     color: "var(--muted,#6b7264)",
-                                    borderRadius: 999,
+                                    borderRadius: 11,
                                     padding: "6px 14px",
                                     fontSize: 13,
                                     fontWeight: 600,

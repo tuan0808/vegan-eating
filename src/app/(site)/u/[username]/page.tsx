@@ -33,7 +33,7 @@ const greenBtn: React.CSSProperties = {
     fontSize: 15,
     fontWeight: 600,
     padding: "13px 24px",
-    borderRadius: 999,
+    borderRadius: 11,
     textDecoration: "none",
 };
 

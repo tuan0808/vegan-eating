@@ -47,7 +47,7 @@
 
 .ns-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
 .ns-btn {
-    background: var(--green, #5b6b3f); color: #fff; border: none; border-radius: 999px; padding: 9px 20px;
+    background: var(--green, #5b6b3f); color: #fff; border: none; border-radius: 11px; padding: 9px 20px;
     font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s ease;
 }
 .ns-btn:hover { opacity: 0.9; }

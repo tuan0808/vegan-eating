@@ -15,6 +15,7 @@ export type HeroMeta = { icon?: ReactNode; value: string; label: string };
  */
 export default function PageHero({
                                      image,
+                                     mobileImage,
                                      imageAlt = "",
                                      breadcrumb,
                                      kicker,
@@ -24,26 +25,41 @@ export default function PageHero({
                                      cta,
                                      meta,
                                      minHeight,
+                                     className,
                                      children,
                                  }: {
     image: string;
+    /** Optional art for screens ≤980px (e.g. a 16:9 crop of a very wide image). */
+    mobileImage?: string;
     imageAlt?: string;
     breadcrumb?: ReactNode;
     kicker?: string;
-    title: string;
+    /** A string, or rich copy (e.g. campaign text with an italic accent). */
+    title: ReactNode;
     /** Render the title with the editorial HeroTitle treatment ("and"/"with" ->
      *  "&" + orange word emphasis) so content titles match recipes/articles. */
     emphasizeTitle?: boolean;
-    dek?: string;
+    dek?: ReactNode;
     cta?: { label: string; href: string };
     meta?: HeroMeta[];
     minHeight?: number;
+    /** Extra class on the section, for page-scoped tweaks. */
+    className?: string;
     children?: ReactNode;
 }) {
     return (
-        <section className="phero" style={minHeight ? { minHeight } : undefined}>
+        <section className={className ? `phero ${className}` : "phero"} style={minHeight ? { minHeight } : undefined}>
             <div className="phero-bg">
-                <Image src={image} alt={imageAlt} fill priority sizes="100vw" style={{ objectFit: "cover" }} />
+                {mobileImage ? (
+                    <>
+                        {/* Both render; CSS shows one. The tiny `sizes` on the hidden
+                            one keeps the browser from fetching a full-size copy. */}
+                        <Image src={image} alt={imageAlt} fill priority sizes="(max-width: 980px) 1px, 100vw" className="phero-img-wide" style={{ objectFit: "cover" }} />
+                        <Image src={mobileImage} alt={imageAlt} fill priority sizes="(max-width: 980px) 100vw, 1px" className="phero-img-mobile" style={{ objectFit: "cover" }} />
+                    </>
+                ) : (
+                    <Image src={image} alt={imageAlt} fill priority sizes="100vw" style={{ objectFit: "cover" }} />
+                )}
             </div>
             <div className="phero-scrim" />
 
@@ -67,7 +83,7 @@ export default function PageHero({
                         </div>
                     ) : null}
 
-                    {emphasizeTitle ? (
+                    {emphasizeTitle && typeof title === "string" ? (
                         <HeroTitle title={title} className="phero-title" />
                     ) : (
                         <h1 className="phero-title">{title}</h1>

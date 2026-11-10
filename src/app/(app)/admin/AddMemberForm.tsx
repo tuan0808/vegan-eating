@@ -153,11 +153,11 @@ const input: React.CSSProperties = {
     fontSize: 14, background: "#fff", color: "var(--ink, #1c2317)",
 };
 const ghostBtn: React.CSSProperties = {
-    border: "1px solid var(--line, #d9d5c8)", borderRadius: 999, padding: "7px 14px",
+    border: "1px solid var(--line, #d9d5c8)", borderRadius: 11, padding: "7px 14px",
     fontSize: 13.5, fontWeight: 600, background: "#fff", color: "var(--ink,#1c2317)", cursor: "pointer",
 };
 const saveBtn: React.CSSProperties = {
-    border: "none", borderRadius: 999, padding: "8px 16px",
+    border: "none", borderRadius: 11, padding: "8px 16px",
     fontSize: 13.5, fontWeight: 600, background: "var(--terra, #c2603a)", color: "#fff", cursor: "pointer",
 };
 const errStyle: React.CSSProperties = {

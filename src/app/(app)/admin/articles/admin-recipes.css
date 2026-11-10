@@ -195,7 +195,7 @@
 .ar-pills-label { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ar-muted); margin-right: 6px; }
 .ar-pill {
     text-decoration: none; cursor: pointer;
-    border: 1px solid var(--ar-line); border-radius: 999px;
+    border: 1px solid var(--ar-line); border-radius: 11px;
     padding: 7px 15px; font-size: 14px; color: var(--ar-ink);
     background: var(--ar-field-bg, #fcf9f2);
     transition: border-color 0.15s, background 0.15s, color 0.15s;
@@ -208,7 +208,7 @@
 .ar-sort-label { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ar-muted); margin-right: 2px; }
 .ar-sortbtn {
     text-decoration: none; cursor: pointer;
-    border: 1px solid var(--ar-line); border-radius: 999px;
+    border: 1px solid var(--ar-line); border-radius: 11px;
     padding: 6px 13px; font-size: 13.5px; color: var(--ar-ink);
     background: var(--ar-field-bg, #fcf9f2);
     transition: border-color 0.15s, background 0.15s, color 0.15s;
@@ -289,7 +289,7 @@
     text-decoration: none;
     padding: 8px 16px;
     border: 1px solid var(--ar-line);
-    border-radius: 999px;
+    border-radius: 11px;
 }
 .ar-pagebtn:hover { border-color: var(--ar-green); color: var(--ar-green); }
 .ar-pagebtn.is-disabled { opacity: 0.35; pointer-events: none; }
@@ -475,7 +475,7 @@
 .ar-save {
     padding: 12px 28px;
     border: none;
-    border-radius: 999px;
+    border-radius: 11px;
     background: var(--ar-green);
     color: #fff;
     font: inherit;

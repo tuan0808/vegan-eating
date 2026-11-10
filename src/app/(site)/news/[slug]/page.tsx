@@ -164,7 +164,7 @@ export default async function NewsArticlePage({ params: paramsP }: { params: Pro
                                     background: "var(--terra, #c2603a)",
                                     color: "#fff",
                                     padding: "12px 20px",
-                                    borderRadius: "999px",
+                                    borderRadius: "11px",
                                     textDecoration: "none",
                                     fontWeight: 600,
                                 }}

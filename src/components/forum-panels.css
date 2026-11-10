@@ -156,7 +156,7 @@
     display: inline-block;
     background: var(--terra, #c2603a);
     color: #fff;
-    border-radius: 999px;
+    border-radius: 11px;
     padding: 10px 18px;
     font-size: 14px;
     font-weight: 600;
@@ -169,7 +169,7 @@
     display: inline-block;
     border: 1px solid var(--line, #d9d5c8);
     background: #fff;
-    border-radius: 999px;
+    border-radius: 11px;
     padding: 10px 16px;
     font-size: 14px;
     color: var(--ink, #1c2317);

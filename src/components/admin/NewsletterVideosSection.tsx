@@ -128,7 +128,7 @@ export default function NewsletterVideosSection({ band }: { band: BandConfig }) 
                     font-size: 14px; font-family: inherit; background: #fff; color: var(--ink, #1c2317); width: 100%;
                 }
                 .nv-actions { display: flex; align-items: center; gap: 12px; margin-top: 2px; }
-                .nv-btn { border: none; border-radius: 999px; padding: 9px 18px; font-size: 13.5px; font-weight: 600; background: var(--terra, #c2603a); color: #fff; cursor: pointer; }
+                .nv-btn { border: none; border-radius: 11px; padding: 9px 18px; font-size: 13.5px; font-weight: 600; background: var(--terra, #c2603a); color: #fff; cursor: pointer; }
                 .nv-btn:disabled { opacity: 0.6; cursor: default; }
                 .nv-flash { font-size: 13px; color: var(--muted, #6b7264); }
                 .nv-flash.err { color: #9a3f1f; }

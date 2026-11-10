@@ -33,7 +33,7 @@
     border: 1px solid var(--line, #e6e3da);
     background: transparent;
     color: var(--muted, #6b7264);
-    border-radius: 999px;
+    border-radius: 11px;
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 600;

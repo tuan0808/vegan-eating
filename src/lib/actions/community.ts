@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { createVerificationToken } from "@/lib/verification";
 import { sendVerificationEmail } from "@/lib/email";
+import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/auth-flags";
 
 const clamp = (s: string, max: number) => s.slice(0, max).trim();
 
@@ -169,14 +170,23 @@ export async function updateAccount(
 
     await prisma.user.update({
         where: { id: me.id },
-        data: { email, emailVerified: null, emailChangedAt: new Date() },
+        data: {
+            email,
+            emailChangedAt: new Date(),
+            // Verification required → the new address must be re-confirmed, so drop
+            // verified status until they click the link. Verification disabled → the
+            // change takes effect immediately and they stay verified (no re-confirm).
+            ...(EMAIL_VERIFICATION_REQUIRED ? { emailVerified: null } : {}),
+        },
     });
 
-    try {
-        const token = await createVerificationToken(me.id);
-        await sendVerificationEmail(email, token);
-    } catch (e) {
-        console.error("verification email failed:", e);
+    if (EMAIL_VERIFICATION_REQUIRED) {
+        try {
+            const token = await createVerificationToken(me.id);
+            await sendVerificationEmail(email, token);
+        } catch (e) {
+            console.error("verification email failed:", e);
+        }
     }
 
     revalidatePath("/settings");

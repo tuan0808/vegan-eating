@@ -4,9 +4,11 @@ import { sendWelcomeEmail } from "./email";
 import { getWelcomeConfig } from "./newsletter-settings";
 import { unsubscribeUrl } from "./unsubscribe";
 
-// Fired after a user verifies their email. Honours the admin's enable + test-mode
-// settings. Never throws — a mail hiccup must not break the verification flow.
-export async function sendWelcomeOnVerify(userId: string): Promise<void> {
+// Sends the one-time welcome email to a new member. Fired at signup when email
+// verification is disabled, or at verify-time when it's enabled (so it lands once
+// per account either way). Honours the admin's enable + test-mode settings. Never
+// throws — a mail hiccup must not break signup or the verification flow.
+export async function sendWelcomeToNewMember(userId: string): Promise<void> {
     try {
         const cfg = await getWelcomeConfig();
         if (!cfg.enabled) return;

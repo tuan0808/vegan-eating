@@ -14,15 +14,11 @@ import { sendRedditEvent, redditMatchFromRequest } from "@/lib/reddit-capi";
 import { normalizeEmail } from "@/lib/email-normalize";
 import { isDisposableEmail } from "@/lib/disposable-email";
 import { getLocalConfig, giveawayStatus, marketForZip, normalizeIgHandle, normalizeZip } from "@/lib/local-markets";
+import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/auth-flags";
+import { sendWelcomeToNewMember } from "@/lib/welcome";
 
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Max accounts allowed to register from a single IP — one, on every form
-// (including the /whole-foods QR form), so nobody can farm extra accounts or
-// giveaway entries. Trade-off: people who share an exit IP (same Wi-Fi, an
-// office, a mobile carrier's CGNAT) get turned away after the first signup.
-const SIGNUP_IP_CAP = 1;
 
 type Flow = {
     /** Where validation errors redirect back to. */
@@ -62,15 +58,10 @@ async function createAccount(formData: FormData, flow: Flow) {
         if (blocked) fail("blocked");
     }
 
-    // Strict one-account-per-IP cap, enforced at submit (not first login). Any prior
-    // account from this IP blocks a second registration outright — the bluntest brake
-    // on bulk automated signups. Trade-off: shared exits (offices, campuses, and
-    // especially CGNAT mobile carriers) put many real users behind one IP, so this can
-    // reject legitimate people — loosen SIGNUP_IP_CAP if that bites. Null IP (dev) skips.
-    if (ip) {
-        const fromThisIp = await prisma.user.count({ where: { signupIp: ip } });
-        if (fromThisIp >= SIGNUP_IP_CAP) fail("iplimit");
-    }
+    // The per-IP signup cap was lifted — accounts are now reviewed/managed manually,
+    // so legitimate users behind a shared exit (office, campus, CGNAT mobile carrier)
+    // are no longer turned away after the first signup. The signup IP is still recorded
+    // below so the admin "Duplicate signups" panel and block-cluster action keep working.
 
     // Lightweight validation (no extra deps). Display name is no longer collected
     // at signup — it starts null and users can add one later in Settings; every
@@ -128,6 +119,11 @@ async function createAccount(formData: FormData, flow: Flow) {
         // click. Conditional spread mirrors the login path — a null IP writes nothing.
         data: {
             username, email, normalizedEmail, password: hash, role: "MEMBER",
+            // Verification is currently disabled (see auth-flags) — new accounts are
+            // born verified so they can log in and post immediately, and so the
+            // "prune never-verified" cron never touches them. Flip the flag to require
+            // the email round-trip again.
+            ...(EMAIL_VERIFICATION_REQUIRED ? {} : { emailVerified: new Date() }),
             ...(ip ? { signupIp: ip } : {}),
             igHandle, zipCode, localMarket,
             ...(flow.local
@@ -153,16 +149,24 @@ async function createAccount(formData: FormData, flow: Flow) {
         ...match,
     });
 
-    // Issue + send the verification link. We do NOT log the new user in anymore —
-    // login now requires a verified email, so auto-login would immediately reject
-    // them. Instead we send them to the login page with a "check your inbox" notice;
-    // if the mail hiccups they can resend from there. We don't fail signup on a
-    // mail error — the account exists and the link can be re-requested.
-    try {
-        const token = await createVerificationToken(user.id);
-        await sendVerificationEmail(email, token);
-    } catch (e) {
-        console.error("Verification email failed to send:", e);
+    // Issue + send the verification link — ONLY when verification is required. The
+    // account was created unverified in that case; we send them to the login page
+    // with a "check your inbox" notice and they can resend from there if the mail
+    // hiccups. We don't fail signup on a mail error — the account exists and the link
+    // can be re-requested. When verification is disabled the account is already
+    // verified above, so there's nothing to send.
+    if (EMAIL_VERIFICATION_REQUIRED) {
+        try {
+            const token = await createVerificationToken(user.id);
+            await sendVerificationEmail(email, token);
+        } catch (e) {
+            console.error("Verification email failed to send:", e);
+        }
+    } else {
+        // No verify step → send the one-time welcome now. Normally this fires when a
+        // user verifies; with verification disabled, signup is the moment they join.
+        // Self-guards on the admin enable/test-mode settings and never throws.
+        await sendWelcomeToNewMember(user.id);
     }
 
     // `sc` carries the conversion id to the login page, where the browser pixel

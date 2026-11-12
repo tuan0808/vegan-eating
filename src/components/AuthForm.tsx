@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/auth-flags";
 
 type Props = {
     mode: "login" | "register";
@@ -27,7 +28,6 @@ const MESSAGES: Record<string, string> = {
     taken: "An account with that email or username already exists.",
     captcha: "Please complete the verification check and try again.",
     blocked: "We couldn't create an account from this connection. If you believe this is a mistake, please contact us.",
-    iplimit: "An account has already been created from this network. If you need another, please contact us.",
     ig: "That Instagram handle doesn't look right — use just your @name (letters, numbers, dots, underscores).",
     zip: "Enter a 5-digit ZIP code.",
     igtaken: "That Instagram handle is already linked to another account. If it's yours, contact us.",
@@ -37,8 +37,9 @@ const MESSAGES: Record<string, string> = {
 };
 
 const NOTICES: Record<string, string> = {
-    registered:
-        "Account created! We've emailed you a verification link — click it to confirm your address, then log in.",
+    registered: EMAIL_VERIFICATION_REQUIRED
+        ? "Account created! We've emailed you a verification link — click it to confirm your address, then log in."
+        : "Account created! Log in below to start posting, saving recipes, and getting the newsletter.",
     resent: "If that account still needs verifying, we've sent a fresh link. Check your inbox.",
 };
 
@@ -47,9 +48,13 @@ export default function AuthForm({ mode, action, error, notice, resendAction, de
 
     // Offer the resend button when someone's clearly mid-verification: either they
     // just registered, or they tried to log in unverified. Reuses the email field
-    // already on the form via the button's formAction (no second input needed).
+    // already on the form via the button's formAction (no second input needed). With
+    // verification disabled a fresh signup is already verified, so the "registered"
+    // notice no longer warrants a resend button — only a legacy "unverified" login does.
     const showResend =
-        !isRegister && !!resendAction && (error === "unverified" || notice === "registered");
+        !isRegister &&
+        !!resendAction &&
+        (error === "unverified" || (EMAIL_VERIFICATION_REQUIRED && notice === "registered"));
 
     return (
         <div className="auth-wrap">

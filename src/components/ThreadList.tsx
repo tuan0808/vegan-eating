@@ -4,6 +4,10 @@
 import Link from "next/link";
 import type { ThreadRow } from "@/lib/forum";
 
+// Alternating warm tones so the thread list reads as a distinct block that
+// offsets from the page (matches the forum hub). Pinned rows get a green tint.
+const ROW_BG = ["#faf8f1", "#ebe8dc"];
+
 export default function ThreadList({
                                        threads,
                                        accent,
@@ -22,6 +26,7 @@ export default function ThreadList({
     notice?: { text: string; href?: string; linkLabel?: string } | null;
 }) {
     return (
+        <div className="forum-band">
         <div className="thread-wrap">
             <div className="toolbar">
                 <span className="toolbar-count">
@@ -52,13 +57,14 @@ export default function ThreadList({
                 </div>
             ) : (
                 <div className="thread-list">
-                    {threads.map((t) => {
+                    {threads.map((t, i) => {
                         const flair = t.pinned ? (t.tag ? `Pinned · ${t.tag}` : "Pinned") : t.tag;
                         return (
                             <Link
                                 key={t.id}
                                 href={`/forum/${categorySlug}/${forumSlug}/${t.slug}`}
-                                className="thread-row"
+                                className={`thread-row${t.pinned ? " is-pinned" : ""}`}
+                                style={{ background: t.pinned ? "#e4ecdd" : ROW_BG[i % 2] }}
                             >
                                 {/* layout on the div, not the <a>, so global link styles can't break it */}
                                 <div className="row-inner">
@@ -101,6 +107,9 @@ export default function ThreadList({
                     margin: 0 auto;
                     padding: 8px 28px 90px;
                 }
+                /* Contiguous alternating bands (see ROW_BG) — the offset tones
+                   define the block against the page, matching the forum hub.
+                   Hover (subtle darken) + green title live in globals.css. */
                 .toolbar {
                     display: flex;
                     align-items: center;
@@ -145,15 +154,13 @@ export default function ThreadList({
                     display: block;
                     text-decoration: none;
                     color: inherit;
-                    border-radius: 14px;
+                    /* background set inline (alternating ROW_BG / pinned tint) */
                 }
-                /* hover/lift + green title live in globals.css (.thread-row), so a
-                   scoped :hover here can't out-specify and override them. */
                 .row-inner {
                     display: flex;
-                    align-items: flex-start;
-                    gap: 20px;
-                    padding: 24px 16px;
+                    align-items: center;
+                    gap: 18px;
+                    padding: 22px 22px;
                 }
                 .avatar {
                     flex-shrink: 0;
@@ -268,6 +275,7 @@ export default function ThreadList({
                     }
                 }
             `}</style>
+        </div>
         </div>
     );
 }

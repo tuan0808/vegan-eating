@@ -29,6 +29,7 @@ export const PERMISSIONS = [
     { key: "articles", label: "Articles", hint: "Create, edit, import/export articles; upload images" },
     { key: "news", label: "News", hint: "Manage the news feed and sync" },
     { key: "forums", label: "Forums", hint: "Create and configure forum boards" },
+    { key: "vendors", label: "Vendor deals", hint: "Edit the vendor promo codes shown in the nav Forum menu" },
     { key: "veganize", label: "Veganizer", hint: "Answer Veganizer requests" },
     { key: "files.download", label: "Files: download", hint: "Browse and download the private staff files" },
     { key: "files.upload", label: "Files: upload", hint: "Upload files, create folders, delete/move their own" },

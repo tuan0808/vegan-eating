@@ -147,9 +147,9 @@ export async function Footer() {
                             <img
                                 src="/logo/logo-ink.svg"
                                 alt="vegan eating"
-                                width={166}
-                                height={44}
-                                style={{ height: 44, width: "auto", display: "block" }}
+                                width={211}
+                                height={56}
+                                style={{ height: 56, width: "auto", display: "block" }}
                             />
                         </Link>
                         <p style={{ marginTop: 14 }}>Eat green, feel green. Honest, tested plant-based recipes for everyday cooking — and a community to cook them with.</p>

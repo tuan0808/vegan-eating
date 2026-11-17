@@ -23,3 +23,8 @@ tsconfig.tsbuildinfo
 
 # Dev-only staff file storage (prod uses private Spaces objects)
 /.staff-files/
+
+# Reddit ad campaign targeting lists (not app code)
+/keywords.txt
+/community.txt
+/interest.txt

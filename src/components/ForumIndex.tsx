@@ -4,13 +4,13 @@
 import Link from "next/link";
 import type { CategoryBlock } from "@/lib/forum";
 
-// Two subtle neutral tones, alternated per row within a board.
-// Tone A is a warm off-white so it reads as a distinct card against the body;
-// tone B is the slightly deeper paper tone.
-const ROW_BG = ["#faf8f1", "#ece9de"];
+// Alternating warm tones so the list reads as a distinct block that offsets from
+// the page: tone A sits just above the paper colour, tone B just below it.
+const ROW_BG = ["#faf8f1", "#ebe8dc"];
 
 export default function ForumIndex({ categories }: { categories: CategoryBlock[] }) {
     return (
+        <div className="forum-band">
         <div className="forum-wrap">
             {categories.map((cat) => {
                 const accent = cat.accent;
@@ -108,30 +108,36 @@ export default function ForumIndex({ categories }: { categories: CategoryBlock[]
                 }
 
                 /* ---- Board ---- */
+                /* Contiguous alternating bands (see ROW_BG) — the offset tones
+                   define the block against the page; no borders or gaps. */
                 .board {
                     margin-top: 14px;
                     display: flex;
                     flex-direction: column;
-                    gap: 6px;
                 }
                 .forum-row {
                     display: block;
                     text-decoration: none;
                     color: inherit;
-                    border-radius: 14px;
-                    transition: filter 0.16s ease, transform 0.16s ease;
+                    /* background set inline (alternating ROW_BG) */
+                    transition: filter 0.15s ease;
                 }
                 .forum-row:hover {
-                    filter: brightness(0.97);
-                    transform: translateY(-1px);
+                    filter: brightness(0.965);
+                }
+                .forum-row:hover .forum-name {
+                    color: var(--terra, #2f7d38);
+                }
+                .forum-name {
+                    transition: color 0.15s ease;
                 }
 
                 /* The actual layout — a div, immune to global <a> rules */
                 .row-inner {
                     display: flex;
-                    align-items: flex-start;
+                    align-items: center;
                     gap: 16px;
-                    padding: 16px 18px;
+                    padding: 22px 22px;
                 }
 
                 .avatar {
@@ -221,6 +227,7 @@ export default function ForumIndex({ categories }: { categories: CategoryBlock[]
                     }
                 }
             `}</style>
+        </div>
         </div>
     );
 }

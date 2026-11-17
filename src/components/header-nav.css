@@ -2,17 +2,17 @@
 
 .vn-hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
 .vn-bar { position: relative; transition: background .28s ease, box-shadow .28s ease;
-    background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,0)); }
-.vn-hdr.lifted .vn-bar { background: var(--olive, #5c6e3f); box-shadow: 0 10px 30px -22px rgba(0,0,0,.6); }
+    background: linear-gradient(180deg, var(--olive, #225F27), #1d5221); }
+.vn-hdr.lifted .vn-bar { background: var(--olive, #225F27); box-shadow: 0 10px 30px -22px rgba(0,0,0,.6); }
 .vn-wrap { max-width: var(--maxw, 1200px); margin: 0 auto; padding: 0 28px; }
-.vn-nav { display: flex; align-items: center; gap: 30px; height: 74px; }
+.vn-nav { display: flex; align-items: center; gap: 30px; height: 74px; flex-wrap: nowrap; }
 
 /* white branding + links over the hero/olive */
 .vn-nav .logo-wm, .vn-nav .logo-wm em { color: #fff; }
 
 .vn-menu { display: flex; align-items: center; gap: 24px; height: 100%; }
 .vn-item { position: relative; height: 100%; display: flex; align-items: center; }
-.vn-item a { font-size: 14.5px; font-weight: 600; color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; height: 100%; border-bottom: 2px solid transparent; transition: border-color .18s, opacity .18s; }
+.vn-item a { font-size: 14.5px; font-weight: 600; color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; height: 100%; white-space: nowrap; border-bottom: 2px solid transparent; transition: border-color .18s, opacity .18s; }
 .vn-item .vn-chev { opacity: .7; transition: transform .25s; }
 .vn-item:hover a { opacity: .82; }
 .vn-item.open a { border-color: #fff; opacity: 1; }
@@ -21,7 +21,7 @@
 .vn-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 .vn-icon { width: 38px; height: 38px; border-radius: 10px; border: 1px solid rgba(255,255,255,.45); display: grid; place-items: center; color: #fff; transition: .18s; }
 .vn-icon:hover { background: rgba(255,255,255,.14); }
-.vn-sub { background: var(--carrot, #E15A22); color: #fff; text-decoration: none; font-weight: 600; font-size: 14.5px; padding: 11px 20px; border-radius: 11px; transition: .18s; }
+.vn-sub { background: var(--carrot, #E15A22); color: #fff; text-decoration: none; font-weight: 600; font-size: 14.5px; padding: 11px 20px; border-radius: 11px; white-space: nowrap; flex: none; transition: .18s; }
 .vn-sub:hover { background: #c44d18; }
 .vn-burger { display: none; flex-direction: column; gap: 4px; background: none; border: 0; cursor: pointer; padding: 8px; }
 .vn-burger span { width: 22px; height: 2px; background: #fff; border-radius: 2px; }
@@ -127,6 +127,38 @@
     .vn-sform-actions { flex-wrap: wrap; }
     .vn-sform-dice, .vn-sform-go { flex: 1 1 auto; justify-content: center; margin-right: 0; }
 }
+
+/* ---- Forum dropdown: vendor promo codes ---- */
+.vd-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 30px; padding: 30px 34px; align-items: start; }
+.vd-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.vd-head h4 { margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--olive, #5c6e3f); }
+.vd-lock { font-size: 12px; color: var(--muted, #6f7468); }
+.vd-lock a { color: var(--carrot, #E15A22); font-weight: 600; text-decoration: none; }
+.vd-lock a:hover { text-decoration: underline; }
+.vd-forum-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; padding: 12px 14px; border-radius: 12px; background: var(--green-soft, #dfe7da); border: 1px solid var(--line, rgba(27,42,29,.1)); text-decoration: none; transition: background .15s, border-color .15s; }
+.vd-forum-link:hover { background: #d3e0cd; border-color: var(--olive, #5c6e3f); }
+.vd-forum-name { font-size: 15px; font-weight: 700; color: var(--green, #1f4a2f); }
+.vd-forum-go { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--olive, #5c6e3f); }
+.vd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.vd-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--line, rgba(27,42,29,.08)); }
+.vd-row:last-child { border-bottom: 0; }
+.vd-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vd-name { font-size: 15px; font-weight: 600; color: var(--ink, #1b2a1d); text-decoration: none; }
+a.vd-name:hover { color: var(--green, #1f4a2f); text-decoration: underline; }
+.vd-blurb { font-size: 12.5px; color: var(--muted, #6f7468); }
+.vd-code { display: inline-flex; align-items: center; gap: 9px; flex: none; cursor: pointer; background: var(--green-soft, #dfe7da); border: 1px dashed var(--olive, #5c6e3f); border-radius: 10px; padding: 7px 11px; font-family: inherit; transition: background .15s; }
+.vd-code:hover { background: #d3e0cd; }
+.vd-code-text { font-weight: 700; font-size: 13.5px; letter-spacing: .04em; color: var(--green, #1f4a2f); font-variant-numeric: tabular-nums; }
+.vd-copy { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--olive, #5c6e3f); }
+.vd-locked { flex: none; font-size: 12.5px; font-weight: 600; color: var(--muted, #6f7468); text-decoration: none; border: 1px solid var(--line, rgba(27,42,29,.18)); border-radius: 10px; padding: 7px 12px; white-space: nowrap; transition: color .15s, border-color .15s; }
+.vd-locked:hover { color: var(--ink, #1b2a1d); border-color: var(--olive, #5c6e3f); }
+.vd-empty { font-size: 14px; color: var(--muted, #6f7468); margin: 6px 0; }
+.vd-empty a { color: var(--green, #1f4a2f); font-weight: 600; text-decoration: none; }
+.vd-empty a:hover { text-decoration: underline; }
+.vd-skel { display: flex; flex-direction: column; gap: 10px; }
+.vd-skel span { height: 46px; border-radius: 10px; background: var(--paper-2, #eceadf); }
+.vd-feature { align-self: stretch; }
+@media (max-width: 900px) { .vd-grid { grid-template-columns: 1fr; } }
 
 /* ---- Subscribe modal ---- */
 .vn-modal-back {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import RedditEvent from "@/components/analytics/RedditEvent";
 import { formatDay, getLocalConfig, IG_HANDLE, IG_URL } from "@/lib/local-markets";
 import { getGiveawayContent, giveawayVars } from "@/lib/giveaway-content";
+import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/auth-flags";
 import { Copy } from "../campaign";
 import "../whole-foods.css";
 
@@ -15,6 +16,10 @@ export const metadata: Metadata = { title: "You're almost in — vegan eating", 
 export default async function WholeFoodsNextPage({ searchParams }: { searchParams: Promise<{ sc?: string; member?: string }> }) {
     const sp = await searchParams;
     const member = sp?.member === "1";
+    // With verification disabled, a brand-new signup's entry counts immediately —
+    // same as an existing member who just entered. So there's no "check your inbox"
+    // step; following on IG is the only thing left.
+    const entered = member || !EMAIL_VERIFICATION_REQUIRED;
     const [{ giveaway: g }, c] = await Promise.all([getLocalConfig(), getGiveawayContent()]);
     const vars = giveawayVars(c, g);
 
@@ -23,7 +28,7 @@ export default async function WholeFoodsNextPage({ searchParams }: { searchParam
             {sp?.sc && <RedditEvent event="SignUp" conversionId={sp.sc} />}
             <div className="wf-inner">
                 <img src="/logo/logo-ink.svg" alt="vegan eating" width={150} height={38} className="wf-logo" />
-                <div className="wf-kicker">{member ? "You're entered" : "Account created"}</div>
+                <div className="wf-kicker">{entered ? "You're entered" : "Account created"}</div>
                 <h1 className="wf-h1">One last <em>step.</em></h1>
 
                 <ol className="wf-steps">
@@ -31,15 +36,19 @@ export default async function WholeFoodsNextPage({ searchParams }: { searchParam
                         <span className="wf-num">✓</span>
                         <div><b><Copy text={c.steps[0].title} vars={vars} /></b><span>Done — welcome to the table.</span></div>
                     </li>
-                    <li className={`wf-step ${member ? "is-done" : "is-now"}`}>
-                        <span className="wf-num">{member ? "✓" : 2}</span>
-                        <div>
-                            <b><Copy text={c.steps[1].title} vars={vars} /></b>
-                            <span>{member ? "Done." : "Check your inbox (and spam) for our link — your entry counts once you've verified."}</span>
-                        </div>
-                    </li>
-                    <li className={`wf-step ${member ? "is-now" : ""}`}>
-                        <span className="wf-num">3</span>
+                    {/* The email-verification step only exists when verification is on.
+                        With it off, the entry counts right away so we drop this step. */}
+                    {EMAIL_VERIFICATION_REQUIRED ? (
+                        <li className={`wf-step ${member ? "is-done" : "is-now"}`}>
+                            <span className="wf-num">{member ? "✓" : 2}</span>
+                            <div>
+                                <b><Copy text={c.steps[1].title} vars={vars} /></b>
+                                <span>{member ? "Done." : "Check your inbox (and spam) for our link — your entry counts once you've verified."}</span>
+                            </div>
+                        </li>
+                    ) : null}
+                    <li className={`wf-step ${entered ? "is-now" : ""}`}>
+                        <span className="wf-num">{EMAIL_VERIFICATION_REQUIRED ? 3 : 2}</span>
                         <div><b><Copy text={c.steps[2].title} vars={vars} /></b><span><Copy text={c.steps[2].text} vars={vars} /></span></div>
                     </li>
                 </ol>
@@ -48,7 +57,7 @@ export default async function WholeFoodsNextPage({ searchParams }: { searchParam
                     Follow @{IG_HANDLE}
                 </a>
                 <p className="wf-note">
-                    Winner drawn {formatDay(g.drawDate)}. {member ? <Link href="/dashboard">Go to your dashboard</Link> : <Link href="/login">Log in after verifying</Link>}
+                    Winner drawn {formatDay(g.drawDate)}. {member ? <Link href="/dashboard">Go to your dashboard</Link> : <Link href="/login">{EMAIL_VERIFICATION_REQUIRED ? "Log in after verifying" : "Log in to your account"}</Link>}
                 </p>
                 <p className="wf-foot"><Link href="/whole-foods/rules">Official rules</Link></p>
             </div>

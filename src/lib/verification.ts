@@ -1,7 +1,7 @@
 // src/lib/verification.ts
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
-import { sendWelcomeOnVerify } from '@/lib/welcome'
+import { sendWelcomeToNewMember } from '@/lib/welcome'
 
 const TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
@@ -39,6 +39,8 @@ export async function consumeVerificationToken(token: string): Promise<VerifyOut
         prisma.emailVerificationToken.delete({ where: { token } }),
     ])
     // Warm welcome email (honours admin enable/test-mode settings; never throws).
-    await sendWelcomeOnVerify(row.userId)
+    // Only reached when verification is enabled — the signup path sends it directly
+    // when verification is disabled, so a member gets exactly one welcome.
+    await sendWelcomeToNewMember(row.userId)
     return { status: 'ok', name: user?.name ?? user?.username ?? null }
 }

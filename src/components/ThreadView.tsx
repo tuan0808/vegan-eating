@@ -88,6 +88,7 @@ export default function ThreadView({
     );
 
     return (
+        <div className="forum-band">
         <div className="thread-view">
             <div className="posts">
                 {view.posts.map((p) => {
@@ -96,7 +97,7 @@ export default function ThreadView({
                     const editing = editingId === p.id;
 
                     return (
-                        <article key={p.id} className="post">
+                        <article key={p.id} className={`post${p.isOriginal ? " is-op" : ""}`}>
                             <div className="post-head">
                 <span className="avatar" style={{ background: view.accent }} aria-hidden>
                   {p.authorInitial}
@@ -108,7 +109,7 @@ export default function ThreadView({
                   </span>
                                 </div>
                                 {p.isOriginal ? (
-                                    <span className="op" style={{ color: view.accent, borderColor: view.accent }}>
+                                    <span className="op" style={{ background: view.accent, borderColor: view.accent }}>
                     Original poster
                   </span>
                                 ) : null}
@@ -254,6 +255,12 @@ export default function ThreadView({
                     border-radius: 16px;
                     padding: 22px 24px;
                 }
+                /* The opening post leads the thread — a warm green tint so it reads
+                   as the anchor the replies hang off. */
+                .post.is-op {
+                    background: #e9efe2;
+                    border-color: #cdd9c3;
+                }
                 .post-head {
                     display: flex;
                     align-items: center;
@@ -292,13 +299,14 @@ export default function ThreadView({
                 }
                 .op {
                     flex-shrink: 0;
-                    font-size: 11.5px;
+                    font-size: 11px;
                     font-weight: 700;
                     letter-spacing: 0.06em;
                     text-transform: uppercase;
+                    color: #fff;
                     border: 1px solid;
-                    border-radius: 999px;
-                    padding: 3px 10px;
+                    border-radius: 8px;
+                    padding: 4px 11px;
                 }
 
                 .body {
@@ -476,6 +484,7 @@ export default function ThreadView({
                     }
                 }
             `}</style>
+        </div>
         </div>
     );
 }

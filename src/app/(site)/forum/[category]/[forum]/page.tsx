@@ -6,6 +6,7 @@ import { getForumView } from "@/lib/forum";
 import { currentUser } from "@/lib/auth-helpers";
 import ThreadList from "@/components/ThreadList";
 import PageHero from "@/components/PageHero";
+import ForumMembersGate from "@/components/ForumMembersGate";
 import { canPostInBoard, postGateNotice } from "@/lib/forum-perms";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,12 @@ export default async function ForumViewPage(
     if (!view) notFound();
 
     const user = await currentUser();
+
+    // Members-only board: hide the thread list from logged-out visitors.
+    if (view.forum.membersOnly && !user) {
+        return <ForumMembersGate categoryName={view.category.name} forumName={view.forum.name} />;
+    }
+
     const newHref = `/forum/${view.category.slug}/${view.forum.slug}/new`;
     // Signed-in members who can't start a thread here get a notice instead of the button.
     const gate = user?.id ? await canPostInBoard({ id: user.id, role: user.role }, view.forum) : null;

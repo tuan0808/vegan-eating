@@ -8,6 +8,7 @@ import {
     resendMyVerification,
     type AccountResult,
 } from "@/lib/actions/community";
+import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/auth-flags";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const initial: AccountResult = { ok: false };
@@ -64,6 +65,17 @@ export default function AccountForm({ maskedEmail }: { maskedEmail: string }) {
     };
 
     if (sent) {
+        // Verification disabled → the change is already live, no inbox round-trip.
+        if (!EMAIL_VERIFICATION_REQUIRED) {
+            return (
+                <div className="cm-form">
+                    <p className="cm-ok">
+                        Your email has been updated to <strong>{newEmail.trim()}</strong>. It&rsquo;s active now —
+                        use it next time you log in.
+                    </p>
+                </div>
+            );
+        }
         return (
             <div className="cm-form">
                 <p className="cm-ok">
@@ -90,7 +102,8 @@ export default function AccountForm({ maskedEmail }: { maskedEmail: string }) {
 
             <p className="cm-note">
                 For your security your email is hidden, and it can only be changed <strong>once every
-                24 hours</strong>. Confirm your current email to unlock saving, then verify the new one.
+                24 hours</strong>. Confirm your current email to unlock saving
+                {EMAIL_VERIFICATION_REQUIRED ? ", then verify the new one." : "."}
             </p>
 
             <div className="cm-field">

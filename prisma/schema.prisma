@@ -169,6 +169,7 @@ model Forum {
   slug        String
   description String?
   postMinRole String   @default("MEMBER") // MEMBER | MODERATOR | ADMIN — min role to post here
+  membersOnly Boolean  @default(false) // when true, only logged-in members can VIEW this board
   position    Int      @default(0)
   createdAt   DateTime @default(now())
 

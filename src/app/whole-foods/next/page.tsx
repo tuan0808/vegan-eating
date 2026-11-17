@@ -4,10 +4,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import RedditEvent from "@/components/analytics/RedditEvent";
+import Header from "@/components/Header";
+import ClientEffects from "@/components/ClientEffects";
+import PageHero from "@/components/PageHero";
+import PageTracker from "@/components/analytics/PageTracker";
 import { formatDay, getLocalConfig, IG_HANDLE, IG_URL } from "@/lib/local-markets";
 import { getGiveawayContent, giveawayVars } from "@/lib/giveaway-content";
 import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/auth-flags";
-import { Copy } from "../campaign";
+import { Copy, copyText } from "../campaign";
 import "../whole-foods.css";
 
 export const dynamic = "force-dynamic";
@@ -26,8 +30,21 @@ export default async function WholeFoodsNextPage({ searchParams }: { searchParam
     return (
         <div className="wf">
             {sp?.sc && <RedditEvent event="SignUp" conversionId={sp.sc} />}
+            {/* Same nav + photo hero as /whole-foods, so the funnel looks like one page. */}
+            <Header />
+            <ClientEffects />
+            <PageTracker />
+            <PageHero
+                image="/header/whole-foods-header.webp"
+                imageAlt={`${c.partner} × vegan eating`}
+                kicker={`${c.partner} × vegan eating`}
+                title={copyText(c.headline, vars)}
+                dek={copyText(c.dek, vars)}
+                minHeight={420}
+            >
+                <p className="wf-hero-note">Once you register you&apos;re eligible for all future drawings.</p>
+            </PageHero>
             <div className="wf-inner">
-                <img src="/logo/logo-ink.svg" alt="vegan eating" width={150} height={38} className="wf-logo" />
                 <div className="wf-kicker">{entered ? "You're entered" : "Account created"}</div>
                 <h1 className="wf-h1">One last <em>step.</em></h1>
 

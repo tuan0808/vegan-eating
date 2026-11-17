@@ -5,6 +5,7 @@
 .wf-inner { width: 100%; max-width: 460px; margin: 36px auto 0; padding: 0 16px; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .wf-logo { height: 38px; width: auto; filter: brightness(0) invert(1); }
 .wf-kicker { margin-top: 28px; font-size: 12px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+.wf-inner > .wf-kicker:first-child { margin-top: 0; } /* /next: hero already supplies the space above */
 .wf-h1 { margin: 12px 0 0; font-size: clamp(38px, 11vw, 56px); line-height: .98; color: #fff; }
 .wf-h1 em { font-style: italic; color: var(--carrot); }
 .wf-dek { margin: 14px 0 0; font-size: 16px; line-height: 1.5; color: rgba(244,243,234,.78); max-width: 400px; }

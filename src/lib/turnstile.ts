@@ -10,7 +10,10 @@ const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 export async function verifyTurnstile(token: string | null, ip?: string | null): Promise<boolean> {
     const secret = process.env.TURNSTILE_SECRET_KEY
     if (!secret) return true // not configured — don't block
-    if (!token) return false
+    if (!token) {
+        console.warn('[turnstile] rejected: no token posted (widget not rendered/completed)')
+        return false
+    }
 
     try {
         const body = new URLSearchParams({ secret, response: token })
@@ -21,9 +24,13 @@ export async function verifyTurnstile(token: string | null, ip?: string | null):
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body,
         })
-        const data = (await res.json()) as { success?: boolean }
+        const data = (await res.json()) as { success?: boolean; 'error-codes'?: string[]; hostname?: string }
+        if (data.success !== true) {
+            console.warn('[turnstile] rejected:', data['error-codes'], 'host:', data.hostname)
+        }
         return data.success === true
-    } catch {
+    } catch (e) {
+        console.warn('[turnstile] siteverify request failed:', e)
         return false
     }
 }

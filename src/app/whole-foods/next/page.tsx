@@ -46,7 +46,6 @@ export default async function WholeFoodsNextPage({ searchParams }: { searchParam
             </PageHero>
             <div className="wf-inner">
                 <div className="wf-kicker">{entered ? "You're entered" : "Account created"}</div>
-                <h1 className="wf-h1">One last <em>step.</em></h1>
 
                 <ol className="wf-steps">
                     <li className="wf-step is-done">

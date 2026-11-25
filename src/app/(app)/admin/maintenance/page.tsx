@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth-helpers";
 import MaintenanceSection from "@/components/admin/MaintenanceSection";
+import HomePageSection from "@/components/admin/HomePageSection";
 import WelcomeEmailSection from "@/components/admin/WelcomeEmailSection";
 import NewsletterSection from "@/components/admin/NewsletterSection";
 import NewsletterSubscribers from "@/components/admin/NewsletterSubscribers";
@@ -48,8 +49,10 @@ export default async function AdminMaintenancePage() {
                 Admin · Site settings
             </p>
 
-            <SettingsTabs labels={["Maintenance", "Welcome email", "Newsletter", "Newsletter videos"]}>
+            <SettingsTabs labels={["Maintenance", "Home page", "Welcome email", "Newsletter", "Newsletter videos"]}>
                 <MaintenanceSection />
+
+                <HomePageSection />
 
                 <section className="settings-section">
                     <div className="settings-section-head">

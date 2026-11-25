@@ -1,8 +1,10 @@
 // src/app/page.tsx
 import { Collections, ForumSection, JoinBand } from "@/components/HomeSections";
+import { Hero } from "@/components/Sections";
 import SocialCarousel from "@/components/SocialCarousel";
 import WholeFoodsBanner from "@/components/WholeFoodsBanner";
 import { buildSocialFeed } from "@/lib/social-feed";
+import { getHomeLead } from "@/lib/home-config";
 import Meditation from "@/components/Meditation";
 import HomeSearch from "@/components/HomeSearch";
 import HomeNearby from "@/components/HomeNearby";
@@ -44,7 +46,9 @@ export default async function Home({
 }) {
     const sp = await searchParams;
 
-    const [latest, picks, topCities, ig, feedRecipes] = await Promise.all([
+    const [lead, hero, latest, picks, topCities, ig, feedRecipes] = await Promise.all([
+        getHomeLead(),
+        randomRecipes(1),
         latestRecipes(6),
         randomRecipes(4),
         popularCities(TOP_CITIES),
@@ -53,7 +57,9 @@ export default async function Home({
     ]);
 
     // Lead the page with a social wall: full IG history with a recipe slipped in
-    // every few posts (see buildSocialFeed), replacing the old featured Hero.
+    // every few posts (see buildSocialFeed). Admins can flip the lead back to the
+    // original big recipe banner (Hero) from Site settings → Home page when the
+    // Instagram feed is down — see getHomeLead.
     const socialFeed = buildSocialFeed(ig, feedRecipes);
 
     // Seed the "near me" area from the visitor's IP so it renders local on first
@@ -78,9 +84,14 @@ export default async function Home({
 
     return (
         <>
-            <WholeFoodsBanner />
-
-            <SocialCarousel items={socialFeed} />
+            {lead === "banner" ? (
+                <Hero recipe={hero[0]} />
+            ) : (
+                <>
+                    <WholeFoodsBanner />
+                    <SocialCarousel items={socialFeed} />
+                </>
+            )}
 
             <HomeSearch />
 

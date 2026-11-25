@@ -59,7 +59,7 @@ function safeName(original: string, isVideo: boolean): string {
 
 export async function POST(req: NextRequest) {
     // Content editors only — never let an unauthenticated request write files to the server.
-    if (!(await userWith("recipes", "articles"))) {
+    if (!(await userWith("recipes", "articles", "vendors"))) {
         return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
 

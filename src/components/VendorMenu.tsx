@@ -7,8 +7,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-type PV = { id: string; name: string; url?: string; blurb?: string; hasCode: boolean; code: string | null };
-type Resp = { loggedIn: boolean; vendors: PV[]; dealsHref: string };
+type PV = { id: string; name: string; url?: string; blurb?: string; hasCode: boolean; code: string | null; image?: string };
+type Resp = { loggedIn: boolean; vendors: PV[]; featured: PV | null; dealsHref: string };
+
+const FEATURE_GRADIENT = "linear-gradient(135deg,#225F27,#2f9e63 60%,#8fd19e)";
+
+const CopyIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+);
+const CheckIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M20 6 9 17l-5-5" />
+    </svg>
+);
 
 export default function VendorMenu({
     loggedIn,
@@ -43,7 +57,34 @@ export default function VendorMenu({
 
     const dealsHref = data?.dealsHref || "/forum";
     const vendors = data?.vendors ?? [];
+    const featured = data?.featured ?? null;
     const memberView = data?.loggedIn ?? loggedIn;
+
+    // The big right-hand card. A featured ("MAIN") vendor turns it into a premium
+    // ad spot — their image, linking to their site. With no featured vendor it
+    // falls back to the forum (so it isn't just a duplicate of the left link).
+    const featureInner = featured ? (
+        <>
+            <div className="vn-ph" style={featured.image ? undefined : { background: FEATURE_GRADIENT }}>
+                {featured.image ? <img className="vn-ph-img" src={featured.image} alt="" /> : null}
+                <span>{featured.name}</span>
+            </div>
+            <div className="vn-cap">
+                <span className="vn-k">Featured partner</span>
+                <h5>{featured.blurb || featured.name}</h5>
+            </div>
+        </>
+    ) : (
+        <>
+            <div className="vn-ph" style={{ background: FEATURE_GRADIENT }}>
+                <span>Vendor Deals</span>
+            </div>
+            <div className="vn-cap">
+                <span className="vn-k">More savings</span>
+                <h5>Every vendor deal in the forum</h5>
+            </div>
+        </>
+    );
 
     return (
         <div className="vd-grid">
@@ -85,9 +126,15 @@ export default function VendorMenu({
                                     {v.blurb ? <span className="vd-blurb">{v.blurb}</span> : null}
                                 </div>
                                 {v.code ? (
-                                    <button type="button" className="vd-code" onClick={() => copy(v.id, v.code!)} title="Copy code">
+                                    <button
+                                        type="button"
+                                        className="vd-code"
+                                        onClick={() => copy(v.id, v.code!)}
+                                        title={copied === v.id ? "Copied" : "Copy code"}
+                                        aria-label={copied === v.id ? "Code copied" : "Copy code"}
+                                    >
                                         <span className="vd-code-text">{v.code}</span>
-                                        <span className="vd-copy">{copied === v.id ? "Copied" : "Copy"}</span>
+                                        <span className="vd-copy">{copied === v.id ? <CheckIcon /> : <CopyIcon />}</span>
                                     </button>
                                 ) : v.hasCode ? (
                                     <Link href="/login" className="vd-locked" onClick={onNavigate}>Log in for code</Link>
@@ -98,12 +145,21 @@ export default function VendorMenu({
                 )}
             </div>
 
-            <Link className="vn-feature vd-feature" href={dealsHref} onClick={onNavigate}>
-                <div className="vn-ph" style={{ background: "linear-gradient(135deg,#225F27,#2f9e63 60%,#8fd19e)" }}>
-                    <span>Vendor Deals</span>
-                </div>
-                <div className="vn-cap"><span className="vn-k">More savings</span><h5>Every vendor deal in the forum</h5></div>
-            </Link>
+            {featured?.url ? (
+                <a
+                    className="vn-feature vd-feature"
+                    href={featured.url}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    onClick={onNavigate}
+                >
+                    {featureInner}
+                </a>
+            ) : (
+                <Link className="vn-feature vd-feature" href={dealsHref} onClick={onNavigate}>
+                    {featureInner}
+                </Link>
+            )}
         </div>
     );
 }

@@ -26,6 +26,30 @@ export default function VendorsEditor({ initial }: { initial: VendorConfig }) {
     const remove = (id: string) => setRows((rs) => rs.filter((r) => r.id !== id));
     const add = () => setRows((rs) => [...rs, blankRow()]);
 
+    // Only one MAIN slot — ticking it on a row clears it everywhere else.
+    const setMain = (id: string, on: boolean) =>
+        setRows((rs) => rs.map((r) => ({ ...r, featured: on ? r.id === id : r.id === id ? false : r.featured })));
+
+    const [uploadingId, setUploadingId] = useState<string | null>(null);
+    const [uploadErr, setUploadErr] = useState<string | null>(null);
+
+    const uploadImage = async (id: string, file: File) => {
+        setUploadErr(null);
+        setUploadingId(id);
+        try {
+            const fd = new FormData();
+            fd.set("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = (await res.json().catch(() => null)) as { path?: string; error?: string } | null;
+            if (!res.ok || !data?.path) throw new Error(data?.error || "Upload failed.");
+            patch(id, "image", data.path);
+        } catch (e) {
+            setUploadErr((e as Error).message);
+        } finally {
+            setUploadingId(null);
+        }
+    };
+
     const save = () => {
         const config = { vendors: rows, dealsHref };
         const fd = new FormData();
@@ -69,13 +93,58 @@ export default function VendorsEditor({ initial }: { initial: VendorConfig }) {
                                 <input style={input} value={r.url ?? ""} onChange={(e) => patch(r.id, "url", e.target.value)} placeholder="https://vendor.com" maxLength={200} />
                             </label>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-                            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-                                <input type="checkbox" checked={r.prominent} onChange={(e) => patch(r.id, "prominent", e.target.checked)} />
-                                Prominent (show in nav)
-                            </label>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginTop: 4, flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+                                <label style={checkLbl}>
+                                    <input type="checkbox" checked={r.prominent} onChange={(e) => patch(r.id, "prominent", e.target.checked)} />
+                                    Prominent (show in nav)
+                                </label>
+                                <label style={checkLbl}>
+                                    <input type="checkbox" checked={!!r.featured} onChange={(e) => setMain(r.id, e.target.checked)} />
+                                    Main (featured spot) <span style={premiumTag}>Premium</span>
+                                </label>
+                            </div>
                             <button type="button" onClick={() => remove(r.id)} style={removeBtn}>Remove</button>
                         </div>
+
+                        {r.featured && (
+                            <div style={{ borderTop: "1px dashed var(--line,#e6e3d8)", paddingTop: 12, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+                                <div style={featThumb}>
+                                    {r.image ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={r.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                    ) : (
+                                        <span style={{ fontSize: 11, color: "#fff", opacity: 0.9 }}>No image</span>
+                                    )}
+                                </div>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 180 }}>
+                                    <span style={lbl}>Featured card image</span>
+                                    <span style={{ fontSize: 12, color: "var(--muted,#6f7468)", lineHeight: 1.4 }}>
+                                        Shown in the big card on the right of the Free Promos menu. Links to the vendor’s site. JPG/PNG/WebP, up to 8&nbsp;MB.
+                                    </span>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 2 }}>
+                                        <label style={{ ...removeBtn, borderColor: "var(--olive,#5c6e3f)", color: "var(--olive,#5c6e3f)", cursor: "pointer" }}>
+                                            {uploadingId === r.id ? "Uploading…" : r.image ? "Replace image" : "Upload image"}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                style={{ display: "none" }}
+                                                disabled={uploadingId === r.id}
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) uploadImage(r.id, f);
+                                                    e.target.value = "";
+                                                }}
+                                            />
+                                        </label>
+                                        {r.image && (
+                                            <button type="button" onClick={() => patch(r.id, "image", "")} style={{ ...removeBtn, padding: "6px 10px" }}>Clear</button>
+                                        )}
+                                    </div>
+                                    {uploadErr && uploadingId === null && <span style={{ fontSize: 12.5, color: "#9a3f1f" }}>{uploadErr}</span>}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -117,5 +186,8 @@ const field: React.CSSProperties = { display: "flex", flexDirection: "column", g
 const lbl: React.CSSProperties = { fontSize: 12.5, fontWeight: 600, color: "var(--ink,#1c2317)" };
 const input: React.CSSProperties = { border: "1px solid #d9d5c8", borderRadius: 10, padding: "9px 11px", fontSize: 14.5, background: "#fff", color: "var(--ink,#1c2317)", fontFamily: "inherit" };
 const removeBtn: React.CSSProperties = { background: "transparent", border: "1px solid rgba(154,63,31,.35)", color: "#9a3f1f", borderRadius: 10, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" };
+const checkLbl: React.CSSProperties = { display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, cursor: "pointer" };
+const premiumTag: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--carrot,#E15A22)", border: "1px solid rgba(225,90,34,.4)", borderRadius: 6, padding: "1px 6px" };
+const featThumb: React.CSSProperties = { width: 128, height: 80, borderRadius: 10, overflow: "hidden", flex: "none", display: "grid", placeItems: "center", background: "linear-gradient(135deg,#225F27,#2f9e63 60%,#8fd19e)" };
 const addBtn: React.CSSProperties = { marginTop: 14, background: "transparent", border: "1px dashed var(--olive,#5c6e3f)", color: "var(--olive,#5c6e3f)", borderRadius: 11, padding: "11px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", width: "100%" };
 const saveBtn: React.CSSProperties = { background: "var(--carrot,#E15A22)", color: "#fff", border: 0, borderRadius: 11, padding: "12px 24px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" };

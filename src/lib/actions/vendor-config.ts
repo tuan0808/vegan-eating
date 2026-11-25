@@ -3,12 +3,13 @@
 // and promo codes. Permission-gated ("vendors"); stored via vendor-config.ts.
 import { revalidatePath } from "next/cache";
 import { userWith } from "@/lib/permissions";
-import { getVendorConfig, saveVendorConfig, MAX_VENDORS, MAX_FIELD, type Vendor } from "@/lib/vendor-config";
+import { getVendorConfig, saveVendorConfig, MAX_VENDORS, MAX_FIELD, MAX_URL, type Vendor } from "@/lib/vendor-config";
 import { syncVendorThreads } from "@/lib/vendor-threads";
 
 export type SaveState = { ok: boolean; message: string | null; key?: number };
 
 const clip = (s: unknown): string => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_FIELD);
+const clipUrl = (s: unknown): string => String(s ?? "").trim().slice(0, MAX_URL);
 
 export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
     const u = await userWith("vendors");
@@ -25,6 +26,7 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
     if (rows.length > MAX_VENDORS) return { ok: false, message: `Too many vendors (max ${MAX_VENDORS}).`, key: Date.now() };
 
     const vendors: Vendor[] = [];
+    let featuredTaken = false; // only one MAIN premium slot — first wins
     try {
         rows.forEach((r, i) => {
             const o = (r && typeof r === "object" ? r : {}) as Record<string, unknown>;
@@ -35,6 +37,9 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
             // A prominent vendor with no code would render a lonely "members only"
             // row with nothing to reveal — surface that instead of saving it silently.
             if (prominent && !code) throw new Error(`"${name}" is marked prominent but has no promo code.`);
+            // One premium slot only: keep the first featured row, drop the flag on any others.
+            const featured = !!o.featured && !featuredTaken;
+            if (featured) featuredTaken = true;
             vendors.push({
                 id: clip(o.id) || `v-${i}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24)}`,
                 name,
@@ -42,6 +47,8 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
                 code,
                 blurb: clip(o.blurb) || undefined,
                 prominent,
+                featured,
+                image: clipUrl(o.image) || undefined,
                 threadSlug: clip(o.threadSlug) || undefined, // keep an existing thread link
             });
         });

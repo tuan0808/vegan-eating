@@ -19,6 +19,8 @@ export type Vendor = {
     code: string; // promo code (members-only)
     blurb?: string; // short offer, e.g. "20% off sitewide"
     prominent: boolean; // highlighted in the nav; others live in the forum
+    featured?: boolean; // the single "MAIN" premium slot (big card on the nav's right)
+    image?: string; // uploaded card image for the featured slot (URL or /uploads path)
     threadSlug?: string; // the auto-created forum thread for this code (once created)
 };
 
@@ -33,6 +35,7 @@ export const VENDOR_DEFAULTS: VendorConfig = { vendors: [], dealsHref: "/forum" 
 
 export const MAX_VENDORS = 60;
 export const MAX_FIELD = 200;
+export const MAX_URL = 500; // image/CDN paths run longer than ordinary fields
 
 /** The shape sent to the browser: code is null unless the viewer is a member. */
 export type PublicVendor = {
@@ -42,9 +45,11 @@ export type PublicVendor = {
     blurb?: string;
     hasCode: boolean;
     code: string | null;
+    image?: string; // only populated for the featured card
 };
 
 const clip = (s: unknown): string => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_FIELD);
+const clipUrl = (s: unknown): string => String(s ?? "").trim().slice(0, MAX_URL);
 
 function normalizeVendor(r: unknown, i: number): Vendor | null {
     if (!r || typeof r !== "object") return null;
@@ -58,6 +63,8 @@ function normalizeVendor(r: unknown, i: number): Vendor | null {
         code: clip(o.code),
         blurb: clip(o.blurb) || undefined,
         prominent: !!o.prominent,
+        featured: !!o.featured,
+        image: clipUrl(o.image) || undefined,
         threadSlug: clip(o.threadSlug) || undefined,
     };
 }
@@ -97,4 +104,23 @@ export function publicVendors(cfg: VendorConfig, loggedIn: boolean): PublicVendo
             hasCode: !!v.code,
             code: loggedIn ? v.code || null : null,
         }));
+}
+
+/**
+ * The single "MAIN" vendor shown in the big card on the nav's right — the premium
+ * ad spot. There's only one slot, so the first featured vendor wins. Returns null
+ * when no vendor is featured (the card then falls back to the forum link).
+ */
+export function featuredVendor(cfg: VendorConfig, loggedIn: boolean): PublicVendor | null {
+    const v = cfg.vendors.find((x) => x.featured);
+    if (!v) return null;
+    return {
+        id: v.id,
+        name: v.name,
+        url: v.url,
+        blurb: v.blurb,
+        hasCode: !!v.code,
+        code: loggedIn ? v.code || null : null,
+        image: v.image,
+    };
 }

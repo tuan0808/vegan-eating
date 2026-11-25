@@ -149,7 +149,8 @@ a.vd-name:hover { color: var(--green, #1f4a2f); text-decoration: underline; }
 .vd-code { display: inline-flex; align-items: center; gap: 9px; flex: none; cursor: pointer; background: var(--green-soft, #dfe7da); border: 1px dashed var(--olive, #5c6e3f); border-radius: 10px; padding: 7px 11px; font-family: inherit; transition: background .15s; }
 .vd-code:hover { background: #d3e0cd; }
 .vd-code-text { font-weight: 700; font-size: 13.5px; letter-spacing: .04em; color: var(--green, #1f4a2f); font-variant-numeric: tabular-nums; }
-.vd-copy { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--olive, #5c6e3f); }
+.vd-copy { display: inline-flex; align-items: center; color: var(--olive, #5c6e3f); }
+.vd-code:hover .vd-copy { color: var(--green, #1f4a2f); }
 .vd-locked { flex: none; font-size: 12.5px; font-weight: 600; color: var(--muted, #6f7468); text-decoration: none; border: 1px solid var(--line, rgba(27,42,29,.18)); border-radius: 10px; padding: 7px 12px; white-space: nowrap; transition: color .15s, border-color .15s; }
 .vd-locked:hover { color: var(--ink, #1b2a1d); border-color: var(--olive, #5c6e3f); }
 .vd-empty { font-size: 14px; color: var(--muted, #6f7468); margin: 6px 0; }

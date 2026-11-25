@@ -54,7 +54,13 @@ export default function VendorsEditor({ initial }: { initial: VendorConfig }) {
         const config = { vendors: rows, dealsHref };
         const fd = new FormData();
         fd.set("config", JSON.stringify(config));
-        start(async () => setState(await saveVendorsAction(fd)));
+        start(async () => {
+            const s = await saveVendorsAction(fd);
+            setState(s);
+            // Adopt the server's canonical rows (with freshly-assigned threadSlugs)
+            // so a second save doesn't create duplicate forum threads.
+            if (s.ok && s.vendors) setRows(s.vendors);
+        });
     };
 
     const prominentCount = rows.filter((r) => r.prominent && r.name.trim()).length;

@@ -40,7 +40,7 @@ export function parseBoard(dealsHref: string): { categorySlug: string; forumSlug
     return { categorySlug: parts[1], forumSlug: parts[2] };
 }
 
-const threadTitle = (v: Vendor) => (v.blurb ? `${v.name} — ${v.blurb}` : `${v.name} promo code`);
+export const threadTitle = (v: Vendor) => (v.blurb ? `${v.name} — ${v.blurb}` : `${v.name} promo code`);
 
 function threadBody(v: Vendor): string {
     const lines = [`<p><strong>${esc(v.name)}</strong>${v.blurb ? ` — ${esc(v.blurb)}` : ""}.</p>`];
@@ -80,6 +80,15 @@ export async function syncVendorThreads(
     for (const v of vendors) {
         if (v.threadSlug || !v.code) { out.push(v); continue; }
         try {
+            // Defensive: if a thread for this vendor already exists on the board
+            // (e.g. its threadSlug was lost before it round-tripped back to the
+            // editor), adopt it instead of posting a duplicate.
+            const existing = await prisma.thread.findFirst({
+                where: { forumId: forum.id, title: threadTitle(v) },
+                select: { slug: true },
+            });
+            if (existing) { out.push({ ...v, threadSlug: existing.slug }); continue; }
+
             const slug = await uniqueThreadSlug(slugify(threadTitle(v)));
             const now = new Date();
             await prisma.thread.create({

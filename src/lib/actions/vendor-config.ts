@@ -6,7 +6,14 @@ import { userWith } from "@/lib/permissions";
 import { getVendorConfig, saveVendorConfig, MAX_VENDORS, MAX_FIELD, MAX_URL, type Vendor } from "@/lib/vendor-config";
 import { syncVendorThreads } from "@/lib/vendor-threads";
 
-export type SaveState = { ok: boolean; message: string | null; key?: number };
+export type SaveState = {
+    ok: boolean;
+    message: string | null;
+    key?: number;
+    // On success, the saved vendors with their (possibly newly-assigned) threadSlugs.
+    // The editor swaps these into its state so a re-save doesn't re-post threads.
+    vendors?: Vendor[];
+};
 
 const clip = (s: unknown): string => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_FIELD);
 const clipUrl = (s: unknown): string => String(s ?? "").trim().slice(0, MAX_URL);
@@ -85,5 +92,6 @@ export async function saveVendorsAction(fd: FormData): Promise<SaveState> {
         ok: true,
         message: `Saved — ${synced.vendors.length} vendor${synced.vendors.length === 1 ? "" : "s"} (${prominent} in the nav).${threadNote}`,
         key: Date.now(),
+        vendors: synced.vendors,
     };
 }
